@@ -1,35 +1,49 @@
-<h1 align="center">starter-ts</h1>
+<h1 align="center">modern-text</h1>
 
 <p align="center">
-  <a href="https://unpkg.com/starter-ts">
-    <img src="https://img.shields.io/bundlephobia/minzip/starter-ts" alt="Minzip">
+  <a href="https://unpkg.com/modern-text">
+    <img src="https://img.shields.io/bundlephobia/minzip/modern-text" alt="Minzip">
   </a>
-  <a href="https://www.npmjs.com/package/starter-ts">
-    <img src="https://img.shields.io/npm/v/starter-ts.svg" alt="Version">
+  <a href="https://www.npmjs.com/package/modern-text">
+    <img src="https://img.shields.io/npm/v/modern-text.svg" alt="Version">
   </a>
-  <a href="https://www.npmjs.com/package/starter-ts">
-    <img src="https://img.shields.io/npm/dm/starter-ts" alt="Downloads">
+  <a href="https://www.npmjs.com/package/modern-text">
+    <img src="https://img.shields.io/npm/dm/modern-text" alt="Downloads">
   </a>
-  <a href="https://github.com/qq15725/starter-ts/issues">
-    <img src="https://img.shields.io/github/issues/qq15725/starter-ts" alt="Issues">
+  <a href="https://github.com/qq15725/modern-text/issues">
+    <img src="https://img.shields.io/github/issues/qq15725/modern-text" alt="Issues">
   </a>
-  <a href="https://github.com/qq15725/starter-ts/blob/main/LICENSE">
-    <img src="https://img.shields.io/npm/l/starter-ts.svg" alt="License">
+  <a href="https://github.com/qq15725/modern-text/blob/main/LICENSE">
+    <img src="https://img.shields.io/npm/l/modern-text.svg" alt="License">
   </a>
 </p>
 
-## Try it now!
+## Usage
 
-### GitHub Template
+```ts
+import { Text } from 'modern-text'
 
-[Create a repo from this template on GitHub](https://github.com/qq15725/starter-ts/generate).
+const text = new Text({
+  style: {
+    width: 100,
+    height: 200,
+    fontSize: 22,
+    backgroundColor: '#0000FF',
+    textDecoration: 'underline',
+  },
+  content: [
+    {
+      fragments: [
+        { content: 'He', style: { color: 'red', fontSize: 12 } },
+        { content: 'llo', style: { color: 'black' } },
+      ],
+    },
+    { content: ', ', style: { color: 'grey' } },
+    { content: 'World!', style: { color: 'black' } },
+  ],
+})
 
-### Clone to local
+document.body.append(text.view) // canvas 2d
 
-If you prefer to do it manually with the cleaner git history
-
-```bash
-npx degit qq15725/starter-ts my-ts-lib
-cd my-ts-lib
-pnpm i # If you don't have pnpm installed, run: npm install -g pnpm
+console.log(text.measure()) // boundingBox with paragraphs
 ```
