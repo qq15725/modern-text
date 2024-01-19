@@ -91,7 +91,7 @@ export class Text {
   readonly context: CanvasRenderingContext2D
   pixelRatio: number
   style: TextStyle
-  data: string | Array<TextParagraphWithStyle>
+  data: TextData
 
   constructor(properties: TextProperties = {}) {
     const {
