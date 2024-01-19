@@ -6,17 +6,6 @@ export type TextAlign = 'center' | 'end' | 'left' | 'right' | 'start'
 export type TextBaseline = 'alphabetic' | 'bottom' | 'hanging' | 'ideographic' | 'middle' | 'top'
 export type TextDecoration = 'underline' | 'line-through'
 
-export interface TextParagraphWithStyle {
-  data?: string
-  style?: Partial<TextFragmentStyle>
-  fragments?: Array<TextFragmentWithStyle>
-}
-
-export interface TextFragmentWithStyle {
-  data: string
-  style?: Partial<TextFragmentStyle>
-}
-
 export interface TextParagraph {
   width: number
   height: number
@@ -29,8 +18,8 @@ export interface TextParagraph {
 
 export interface TextFragment {
   width: number
-  actualBoundingBoxWidth: number
   height: number
+  actualBoundingBoxWidth: number
   relativeX: number
   relativeY: number
   absoluteX: number
@@ -38,13 +27,10 @@ export interface TextFragment {
   fillX: number
   fillY: number
   data: string
-  style: Partial<TextFragmentStyle>
+  style: TextFragmentStyle
 }
 
-export interface TextStyle {
-  width: number
-  height: number
-  // ↓ TextFragment style
+export interface TextFragmentStyle {
   color: string
   fontSize: number
   fontWeight: FontWeight
@@ -64,14 +50,31 @@ export interface TextStyle {
   shadowOffsetX: number
   shadowOffsetY: number
   shadowBlur: number
-  // ↑ TextFragment style
 }
 
-export type TextFragmentStyle = Omit<TextStyle, 'width' | 'height'>
+export interface TextStyle extends TextFragmentStyle {
+  width: number | 'auto'
+  height: number | 'auto'
+}
 
-export type TextData = string | TextParagraphWithStyle | Array<TextParagraphWithStyle>
+export interface TextParagraphWithDataAndStyle extends Partial<TextFragmentStyle> {
+  data: string
+}
 
-export interface TextProperties {
+export interface TextParagraphWithFragmentsAndStyle extends Partial<TextFragmentStyle> {
+  fragments: Array<TextFragmentWithStyle>
+}
+
+export interface TextFragmentWithStyle extends Partial<TextFragmentStyle> {
+  data: string
+}
+
+export type TextData =
+  | string
+  | TextParagraphWithDataAndStyle | TextParagraphWithFragmentsAndStyle
+  | Array<TextParagraphWithDataAndStyle | TextParagraphWithFragmentsAndStyle>
+
+export interface TextOptions {
   view?: HTMLCanvasElement
   pixelRatio?: number
   data?: TextData
@@ -87,27 +90,10 @@ export interface MeasureResult {
 }
 
 export class Text {
-  readonly view: HTMLCanvasElement
-  readonly context: CanvasRenderingContext2D
-  pixelRatio: number
-  style: TextStyle
-  data: TextData
-
-  constructor(properties: TextProperties = {}) {
-    const {
-      view = document.createElement('canvas'),
-      pixelRatio = window.devicePixelRatio || 1,
-      data = '',
-      style,
-    } = properties
-
-    this.view = view
-    this.context = view.getContext('2d')!
-    this.pixelRatio = pixelRatio
-    this.data = data
-    this.style = {
-      width: 0,
-      height: 0,
+  static get defaultStyle(): TextStyle {
+    return {
+      width: 'auto',
+      height: 'auto',
       color: '#000000',
       fontSize: 14,
       fontWeight: 'normal',
@@ -127,6 +113,29 @@ export class Text {
       shadowOffsetX: 0,
       shadowOffsetY: 0,
       shadowBlur: 0,
+    }
+  }
+
+  readonly view: HTMLCanvasElement
+  readonly context: CanvasRenderingContext2D
+  pixelRatio: number
+  style: TextStyle
+  data: TextData
+
+  constructor(options: TextOptions = {}) {
+    const {
+      view = document.createElement('canvas'),
+      pixelRatio = window.devicePixelRatio || 1,
+      data = '',
+      style,
+    } = options
+
+    this.view = view
+    this.context = view.getContext('2d')!
+    this.pixelRatio = pixelRatio
+    this.data = data
+    this.style = {
+      ...Text.defaultStyle,
       ...style,
     }
     this.update()
@@ -146,7 +155,7 @@ export class Text {
       let offsetX = 0
       let lastFragment: TextFragment | undefined
       for (const fragment of paragraph.fragments) {
-        const style = this._getFragmentStyle(fragment.style)
+        const style = fragment.style
         this._setContextStyle(style)
         const result = context.measureText(fragment.data)
         const fragmentWidth = result.width
@@ -241,48 +250,52 @@ export class Text {
   protected _createParagraphs(data: TextData): Array<TextParagraph> {
     const shared = {
       width: 0,
-      actualBoundingBoxWidth: 0,
       height: 0,
+      actualBoundingBoxWidth: 0,
       relativeX: 0,
       relativeY: 0,
       absoluteX: 0,
       absoluteY: 0,
     }
 
-    const createTextParagraph = (props: Partial<TextParagraph> = {}): TextParagraph => {
+    const createTextParagraph = (props: Record<string, any> = {}): TextParagraph => {
       return { ...shared, fragments: [], ...props } as any
     }
 
-    const createTextFragments = (props: Partial<TextFragment> = {}): Array<TextFragment> => {
+    const createTextFragments = (props: Record<string, any> = {}): Array<TextFragment> => {
       const fragments: Array<TextFragment> = []
-      const data = props.data ?? ''
-      fragments.push({ fillX: 0, fillY: 0, style: {}, ...shared, ...props, data })
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { width: _width, height: _height, ...style } = this.style
+      fragments.push({
+        fillX: 0,
+        fillY: 0,
+        ...shared,
+        ...props,
+        style: {
+          ...style,
+          ...props.style,
+        },
+        data: props.data ?? '',
+      })
       return fragments
     }
 
     const paragraphs: Array<TextParagraph> = []
     if (typeof data === 'string') {
-      if (data) {
-        paragraphs.push(
-          createTextParagraph({
-            fragments: createTextFragments({ data }),
-          }),
-        )
-      }
+      paragraphs.push(createTextParagraph({ fragments: createTextFragments({ data }) }))
     } else {
       data = Array.isArray(data) ? data : [data]
       for (const p of data) {
         const paragraph = createTextParagraph()
-        if (p.fragments) {
-          for (const f of p.fragments) {
-            paragraph.fragments.push(
-              ...createTextFragments({ data: f.data, style: { ...p.style, ...f.style } }),
-            )
+        if ('fragments' in p) {
+          const { fragments, ...pStyle } = p
+          for (const f of fragments) {
+            const { data: fData, ...fStyle } = f
+            paragraph.fragments.push(...createTextFragments({ data: fData, style: { ...pStyle, ...fStyle } }))
           }
-        } else if (p.data) {
-          paragraph.fragments.push(
-            ...createTextFragments({ data: p.data, style: p.style }),
-          )
+        } else if ('data' in p) {
+          const { data: pData, ...pStyle } = p
+          paragraph.fragments.push(...createTextFragments({ data: pData, style: pStyle }))
         }
         paragraphs.push(paragraph)
       }
@@ -306,7 +319,7 @@ export class Text {
       let first = true
       // eslint-disable-next-line no-cond-assign
       while (fragment = restFragments.shift()) {
-        const style = this._getFragmentStyle(fragment.style)
+        const style = fragment.style
         this._setContextStyle(style)
         let text = ''
         let wrap = false
@@ -364,7 +377,7 @@ export class Text {
     const context = this.context!
     paragraphs.forEach(paragraph => {
       paragraph.fragments.forEach(fragment => {
-        const style = this._getFragmentStyle(fragment.style)
+        const style = fragment.style
         this._setContextStyle(style)
         if (style.textStrokeWidth) {
           context.strokeText(fragment.data, fragment.fillX, fragment.fillY)
@@ -388,7 +401,7 @@ export class Text {
     })
   }
 
-  protected _resizeCanvas(width: number, height: number) {
+  protected _resizeView(width: number, height: number) {
     const view = this.view
     view.style.width = `${ width }px`
     view.style.height = `${ height }px`
@@ -398,11 +411,7 @@ export class Text {
     view.height = Math.max(1, Math.floor(height * this.pixelRatio))
   }
 
-  protected _getFragmentStyle(style: Partial<TextStyle> = {}): TextStyle {
-    return { ...this.style, ...style }
-  }
-
-  protected _setContextStyle(style: TextStyle) {
+  protected _setContextStyle(style: TextFragmentStyle) {
     const context = this.context
     context.shadowColor = style.shadowColor
     context.shadowOffsetX = style.shadowOffsetX
@@ -428,10 +437,12 @@ export class Text {
   update() {
     const context = this.context
     let { width, height } = this.style
+    if (width === 'auto') width = 0
+    if (height === 'auto') height = 0
     const result = this.measure(width, height)
     if (!width) width = result.width
     height = Math.max(height, result.height)
-    this._resizeCanvas(width, height)
+    this._resizeView(width, height)
     const pixelRatio = this.pixelRatio
     context.scale(pixelRatio, pixelRatio)
     context.clearRect(0, 0, context.canvas.width, context.canvas.height)

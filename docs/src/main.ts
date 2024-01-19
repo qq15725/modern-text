@@ -5,18 +5,18 @@ const text = new Text({
     width: 100,
     height: 200,
     fontSize: 22,
-    backgroundColor: '#0000FF',
     textDecoration: 'underline',
   },
   data: [
     {
+      letterSpacing: 3,
       fragments: [
-        { data: 'He', style: { color: 'red', fontSize: 12 } },
-        { data: 'llo', style: { color: 'black' } },
+        { data: 'He', color: 'red', fontSize: 12 },
+        { data: 'llo', color: 'black' },
       ],
     },
-    { data: ', ', style: { color: 'grey' } },
-    { data: 'World!', style: { color: 'black' } },
+    { data: ', ', color: 'grey' },
+    { data: 'World!', color: 'black' },
   ],
 })
 
