@@ -1,3 +1,12 @@
+## [0.0.4](https://github.com/qq15725/modern-text/compare/v0.0.3...v0.0.4) (2024-01-19)
+
+
+### Features
+
+* flat style ([423fe5d](https://github.com/qq15725/modern-text/commit/423fe5d88e3dd1c1c7ab41799ef6dea07ce3ca6c))
+
+
+
 ## [0.0.3](https://github.com/qq15725/modern-text/compare/v0.0.2...v0.0.3) (2024-01-19)
 
 
