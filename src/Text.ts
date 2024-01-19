@@ -7,13 +7,13 @@ export type TextBaseline = 'alphabetic' | 'bottom' | 'hanging' | 'ideographic' |
 export type TextDecoration = 'underline' | 'line-through'
 
 export interface TextParagraphWithStyle {
-  content?: string
+  data?: string
   style?: Partial<TextFragmentStyle>
   fragments?: Array<TextFragmentWithStyle>
 }
 
 export interface TextFragmentWithStyle {
-  content: string
+  data: string
   style?: Partial<TextFragmentStyle>
 }
 
@@ -37,7 +37,7 @@ export interface TextFragment {
   absoluteY: number
   fillX: number
   fillY: number
-  content: string
+  data: string
   style: Partial<TextFragmentStyle>
 }
 
@@ -69,10 +69,12 @@ export interface TextStyle {
 
 export type TextFragmentStyle = Omit<TextStyle, 'width' | 'height'>
 
+export type TextData = string | TextParagraphWithStyle | Array<TextParagraphWithStyle>
+
 export interface TextProperties {
   view?: HTMLCanvasElement
   pixelRatio?: number
-  content?: string | Array<TextParagraphWithStyle>
+  data?: TextData
   style?: Partial<TextStyle>
 }
 
@@ -89,20 +91,20 @@ export class Text {
   readonly context: CanvasRenderingContext2D
   pixelRatio: number
   style: TextStyle
-  content: string | Array<TextParagraphWithStyle>
+  data: string | Array<TextParagraphWithStyle>
 
   constructor(properties: TextProperties = {}) {
     const {
       view = document.createElement('canvas'),
       pixelRatio = window.devicePixelRatio || 1,
-      content = '',
+      data = '',
       style,
     } = properties
 
     this.view = view
     this.context = view.getContext('2d')!
     this.pixelRatio = pixelRatio
-    this.content = content
+    this.data = data
     this.style = {
       width: 0,
       height: 0,
@@ -131,7 +133,7 @@ export class Text {
   }
 
   measure(width = 0, height = 0): MeasureResult {
-    let paragraphs = this._createParagraphs(this.content)
+    let paragraphs = this._createParagraphs(this.data)
     paragraphs = this._createWrapedParagraphs(paragraphs, width)
     const context = this.context
     let offsetY = 0
@@ -146,7 +148,7 @@ export class Text {
       for (const fragment of paragraph.fragments) {
         const style = this._getFragmentStyle(fragment.style)
         this._setContextStyle(style)
-        const result = context.measureText(fragment.content)
+        const result = context.measureText(fragment.data)
         const fragmentWidth = result.width
         const actualBoundingBoxWidth = result.actualBoundingBoxRight + result.actualBoundingBoxLeft
         fragment.relativeX = offsetX
@@ -236,9 +238,7 @@ export class Text {
     return { ...boundingRect, paragraphs }
   }
 
-  protected _createParagraphs(
-    content: string | TextParagraphWithStyle | Array<TextParagraphWithStyle>,
-  ): Array<TextParagraph> {
+  protected _createParagraphs(data: TextData): Array<TextParagraph> {
     const shared = {
       width: 0,
       actualBoundingBoxWidth: 0,
@@ -255,33 +255,33 @@ export class Text {
 
     const createTextFragments = (props: Partial<TextFragment> = {}): Array<TextFragment> => {
       const fragments: Array<TextFragment> = []
-      const content = props.content ?? ''
-      fragments.push({ fillX: 0, fillY: 0, style: {}, ...shared, ...props, content })
+      const data = props.data ?? ''
+      fragments.push({ fillX: 0, fillY: 0, style: {}, ...shared, ...props, data })
       return fragments
     }
 
     const paragraphs: Array<TextParagraph> = []
-    if (typeof content === 'string') {
-      if (content) {
+    if (typeof data === 'string') {
+      if (data) {
         paragraphs.push(
           createTextParagraph({
-            fragments: createTextFragments({ content }),
+            fragments: createTextFragments({ data }),
           }),
         )
       }
     } else {
-      content = Array.isArray(content) ? content : [content]
-      for (const p of content) {
+      data = Array.isArray(data) ? data : [data]
+      for (const p of data) {
         const paragraph = createTextParagraph()
         if (p.fragments) {
           for (const f of p.fragments) {
             paragraph.fragments.push(
-              ...createTextFragments({ content: f.content, style: { ...p.style, ...f.style } }),
+              ...createTextFragments({ data: f.data, style: { ...p.style, ...f.style } }),
             )
           }
-        } else if (p.content) {
+        } else if (p.data) {
           paragraph.fragments.push(
-            ...createTextFragments({ content: p.content, style: p.style }),
+            ...createTextFragments({ data: p.data, style: p.style }),
           )
         }
         paragraphs.push(paragraph)
@@ -310,7 +310,7 @@ export class Text {
         this._setContextStyle(style)
         let text = ''
         let wrap = false
-        for (const char of fragment.content) {
+        for (const char of fragment.data) {
           const charWidth = this.context!.measureText(char).width + (first ? 0 : style.letterSpacing)
           const isNewline = /^[\r\n]$/.test(char)
           if (
@@ -331,13 +331,13 @@ export class Text {
               wrapedParagraphs.push({ ...paragraph, fragments: fragments.slice() })
               fragments.length = 0
             }
-            const restText = fragment.content.substring(pos)
+            const restText = fragment.data.substring(pos)
             if (restText.length || restFragments.length) {
               restParagraphs.unshift({
                 ...paragraph,
                 fragments: (
                   restText.length
-                    ? [{ ...fragment, content: restText }]
+                    ? [{ ...fragment, data: restText }]
                     : []
                 ).concat(restFragments.slice()),
               })
@@ -367,9 +367,9 @@ export class Text {
         const style = this._getFragmentStyle(fragment.style)
         this._setContextStyle(style)
         if (style.textStrokeWidth) {
-          context.strokeText(fragment.content, fragment.fillX, fragment.fillY)
+          context.strokeText(fragment.data, fragment.fillX, fragment.fillY)
         }
-        context.fillText(fragment.content, fragment.fillX, fragment.fillY)
+        context.fillText(fragment.data, fragment.fillX, fragment.fillY)
         switch (style.textDecoration) {
           case 'underline':
             context.beginPath()

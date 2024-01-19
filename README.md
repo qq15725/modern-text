@@ -31,15 +31,15 @@ const text = new Text({
     backgroundColor: '#0000FF',
     textDecoration: 'underline',
   },
-  content: [
+  data: [
     {
       fragments: [
-        { content: 'He', style: { color: 'red', fontSize: 12 } },
-        { content: 'llo', style: { color: 'black' } },
+        { data: 'He', style: { color: 'red', fontSize: 12 } },
+        { data: 'llo', style: { color: 'black' } },
       ],
     },
-    { content: ', ', style: { color: 'grey' } },
-    { content: 'World!', style: { color: 'black' } },
+    { data: ', ', style: { color: 'grey' } },
+    { data: 'World!', style: { color: 'black' } },
   ],
 })
 
