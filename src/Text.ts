@@ -32,6 +32,7 @@ export interface TextFragment {
 
 export interface TextFragmentStyle {
   color: string
+  backgroundColor?: string
   fontSize: number
   fontWeight: FontWeight
   fontFamily: string
@@ -164,7 +165,11 @@ export class Text {
         fragment.relativeY = paragraph.relativeY
         fragment.width = fragmentWidth
         fragment.actualBoundingBoxWidth = actualBoundingBoxWidth
-        fragment.height = style.fontSize * style.lineHeight
+        if (fragment.data.match(/^\s$/)) {
+          fragment.height = 0
+        } else {
+          fragment.height = style.fontSize * style.lineHeight
+        }
         offsetX += fragmentWidth + style.letterSpacing
         lastFragment = fragment
         paragraph.height = Math.max(paragraph.height, fragment.height)
@@ -216,30 +221,30 @@ export class Text {
           break
       }
 
+      const diffHeight = height - boundingRect.height
+
       switch (this.style.textBaseline) {
-        case 'top':
-        case 'hanging':
-          paragraph.absoluteY = paragraph.relativeY
+        case 'bottom':
+          paragraph.absoluteY = paragraph.relativeY + diffHeight
           paragraph.fragments.forEach(fragment => {
-            fragment.absoluteY = paragraph.absoluteY
-            fragment.fillY = fragment.absoluteY
+            fragment.absoluteY = paragraph.absoluteY + (paragraph.height - fragment.height)
+            fragment.fillY = fragment.absoluteY + fragment.height
           })
           break
         case 'middle':
         case 'alphabetic':
         case 'ideographic':
-          paragraph.absoluteY = paragraph.relativeY + (height - boundingRect.height) / 2
+          paragraph.absoluteY = paragraph.relativeY + diffHeight / 2
           paragraph.fragments.forEach(fragment => {
-            fragment.absoluteY = paragraph.absoluteY
-            fragment.fillY = fragment.absoluteY + paragraph.height / 2
+            fragment.absoluteY = paragraph.absoluteY + (paragraph.height - fragment.height) / 2
+            fragment.fillY = fragment.absoluteY + fragment.height / 2
           })
           break
-        case 'bottom':
-          paragraph.absoluteY = paragraph.relativeY + height - boundingRect.height
-          paragraph.fragments.forEach(fragment => {
-            fragment.absoluteY = paragraph.absoluteY
-            fragment.fillY = fragment.absoluteY + paragraph.height
-          })
+        case 'top':
+        case 'hanging':
+        default:
+          paragraph.absoluteY = paragraph.relativeY
+          paragraph.fragments.forEach(fragment => fragment.fillY = fragment.absoluteY = paragraph.absoluteY)
           break
       }
     }
@@ -375,9 +380,17 @@ export class Text {
 
   protected _draw(paragraphs: Array<TextParagraph>) {
     const context = this.context!
+    if (this.style.backgroundColor) {
+      context.fillStyle = this.style.backgroundColor
+      context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+    }
     paragraphs.forEach(paragraph => {
       paragraph.fragments.forEach(fragment => {
         const style = fragment.style
+        if (style.backgroundColor) {
+          context.fillStyle = style.backgroundColor
+          context.fillRect(fragment.absoluteX, fragment.absoluteY, fragment.width, fragment.height)
+        }
         this._setContextStyle(style)
         if (style.textStrokeWidth) {
           context.strokeText(fragment.data, fragment.fillX, fragment.fillY)
