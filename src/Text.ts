@@ -3,30 +3,30 @@ export type FontStyle = 'normal' | 'italic' | 'oblique' | `oblique ${ string }`
 export type FontKerning = 'auto' | 'none' | 'normal'
 export type TextWrap = 'wrap' | 'nowrap'
 export type TextAlign = 'center' | 'end' | 'left' | 'right' | 'start'
-export type TextBaseline = 'alphabetic' | 'bottom' | 'hanging' | 'ideographic' | 'middle' | 'top'
+export type VerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom' | 'sub' | 'text-top' | 'text-bottom'
 export type TextDecoration = 'underline' | 'line-through'
 
-export interface TextParagraph {
+export interface BoundingBox {
+  left: number
+  top: number
   width: number
   height: number
-  relativeX: number
-  relativeY: number
-  absoluteX: number
-  absoluteY: number
+}
+
+export interface TextParagraph {
+  contentBox: BoundingBox
+  lineBox: BoundingBox
+  baseline: number
   fragments: Array<TextFragment>
+  style: TextFragmentStyle
 }
 
 export interface TextFragment {
-  width: number
-  height: number
-  actualBoundingBoxWidth: number
-  relativeX: number
-  relativeY: number
-  absoluteX: number
-  absoluteY: number
-  fillX: number
-  fillY: number
-  data: string
+  contentBox: BoundingBox
+  inlineBox: BoundingBox
+  textBox: BoundingBox
+  baseline: number
+  content: string
   style: TextFragmentStyle
 }
 
@@ -40,7 +40,7 @@ export interface TextFragmentStyle {
   fontKerning: FontKerning
   textWrap: TextWrap
   textAlign: TextAlign
-  textBaseline: TextBaseline
+  verticalAlign: VerticalAlign
   textDecoration: TextDecoration | null
   textStrokeWidth: number
   textStrokeColor: string
@@ -58,8 +58,8 @@ export interface TextStyle extends TextFragmentStyle {
   height: number | 'auto'
 }
 
-export interface TextParagraphWithDataAndStyle extends Partial<TextFragmentStyle> {
-  data: string
+export interface TextParagraphWithContentAndStyle extends Partial<TextFragmentStyle> {
+  content: string
 }
 
 export interface TextParagraphWithFragmentsAndStyle extends Partial<TextFragmentStyle> {
@@ -67,26 +67,22 @@ export interface TextParagraphWithFragmentsAndStyle extends Partial<TextFragment
 }
 
 export interface TextFragmentWithStyle extends Partial<TextFragmentStyle> {
-  data: string
+  content: string
 }
 
 export type TextData =
   | string
-  | TextParagraphWithDataAndStyle | TextParagraphWithFragmentsAndStyle
-  | Array<TextParagraphWithDataAndStyle | TextParagraphWithFragmentsAndStyle>
+  | TextParagraphWithContentAndStyle | TextParagraphWithFragmentsAndStyle
+  | Array<TextParagraphWithContentAndStyle | TextParagraphWithFragmentsAndStyle>
 
 export interface TextOptions {
   view?: HTMLCanvasElement
   pixelRatio?: number
-  data?: TextData
+  content?: TextData
   style?: Partial<TextStyle>
 }
 
-export interface MeasureResult {
-  x: number
-  y: number
-  width: number
-  height: number
+export interface MeasureResult extends BoundingBox {
   paragraphs: Array<TextParagraph>
 }
 
@@ -103,7 +99,7 @@ export class Text {
       fontKerning: 'normal',
       textWrap: 'wrap',
       textAlign: 'start',
-      textBaseline: 'middle',
+      verticalAlign: 'baseline',
       textDecoration: null,
       textStrokeWidth: 0,
       textStrokeColor: '#000000',
@@ -121,20 +117,20 @@ export class Text {
   readonly context: CanvasRenderingContext2D
   pixelRatio: number
   style: TextStyle
-  data: TextData
+  content: TextData
 
   constructor(options: TextOptions = {}) {
     const {
       view = document.createElement('canvas'),
       pixelRatio = window.devicePixelRatio || 1,
-      data = '',
+      content = '',
       style,
     } = options
 
     this.view = view
     this.context = view.getContext('2d')!
     this.pixelRatio = pixelRatio
-    this.data = data
+    this.content = content
     this.style = {
       ...Text.defaultStyle,
       ...style,
@@ -142,129 +138,148 @@ export class Text {
     this.update()
   }
 
-  measure(width = 0, height = 0): MeasureResult {
-    let paragraphs = this._createParagraphs(this.data)
+  measure(width = 0, _height = 0): MeasureResult {
+    let paragraphs = this._createParagraphs(this.content)
     paragraphs = this._createWrapedParagraphs(paragraphs, width)
     const context = this.context
-    let offsetY = 0
+    let paragraphY = 0
     for (let len = paragraphs.length, i = 0; i < len; i++) {
       const paragraph = paragraphs[i]
-      paragraph.relativeX = 0
-      paragraph.relativeY = offsetY
-      paragraph.width = 0
-      paragraph.height = 0
-      let offsetX = 0
-      let lastFragment: TextFragment | undefined
+      paragraph.contentBox.top = paragraphY
+      let fragmentX = 0
+      let highestFragment: TextFragment | null = null
       for (const fragment of paragraph.fragments) {
-        const style = fragment.style
-        this._setContextStyle(style)
-        const result = context.measureText(fragment.data)
-        const fragmentWidth = result.width
-        const actualBoundingBoxWidth = result.actualBoundingBoxRight + result.actualBoundingBoxLeft
-        fragment.relativeX = offsetX
-        fragment.relativeY = paragraph.relativeY
-        fragment.width = fragmentWidth
-        fragment.actualBoundingBoxWidth = actualBoundingBoxWidth
-        if (fragment.data.match(/^\s$/)) {
-          fragment.height = 0
-        } else {
-          fragment.height = style.fontSize * style.lineHeight
+        this._setContextStyle({
+          ...fragment.style,
+          textAlign: 'left',
+          verticalAlign: 'baseline',
+        })
+        const result = context.measureText(fragment.content)
+        fragment.inlineBox.left = fragmentX
+        fragment.inlineBox.top = paragraphY
+        fragment.inlineBox.width = result.width
+        fragment.inlineBox.height = fragment.style.fontSize * fragment.style.lineHeight
+        fragment.contentBox.left = fragment.inlineBox.left
+        fragment.contentBox.width = fragment.inlineBox.width
+        fragment.contentBox.height = fragment.style.fontSize
+        fragment.contentBox.top = fragment.inlineBox.top + (fragment.inlineBox.height - fragment.contentBox.height) / 2
+        fragment.textBox.width = result.actualBoundingBoxLeft + result.actualBoundingBoxRight
+        fragment.textBox.height = result.actualBoundingBoxAscent + result.actualBoundingBoxDescent
+        fragment.textBox.left = fragment.contentBox.left + (fragment.contentBox.width - fragment.textBox.width) / 2
+        fragment.textBox.top = fragment.contentBox.top + (fragment.contentBox.height - fragment.textBox.height) / 2
+        fragment.baseline = fragment.textBox.top + result.actualBoundingBoxAscent
+        fragmentX += fragment.contentBox.width + fragment.style.letterSpacing
+        if (paragraph.contentBox.height < fragment.contentBox.height) {
+          highestFragment = fragment
         }
-        offsetX += fragmentWidth + style.letterSpacing
-        lastFragment = fragment
-        paragraph.height = Math.max(paragraph.height, fragment.height)
+        paragraph.contentBox.left = Math.min(paragraph.contentBox.left, fragment.contentBox.left)
+        paragraph.contentBox.top = Math.min(paragraph.contentBox.top, fragment.contentBox.top)
+        paragraph.contentBox.height = Math.max(paragraph.contentBox.height, fragment.contentBox.height)
+        paragraph.lineBox.height = Math.max(paragraph.lineBox.height, fragment.inlineBox.height)
       }
-      paragraph.width = lastFragment
-        ? lastFragment.relativeX + Math.max(lastFragment.width, lastFragment.actualBoundingBoxWidth)
-        : 0
-      offsetY += paragraph.height
+      const lastFragment = paragraph.fragments[paragraph.fragments.length - 1]
+      paragraph.contentBox.width = Math.max(
+        paragraph.contentBox.width,
+        lastFragment
+          ? lastFragment.contentBox.left + Math.max(lastFragment.contentBox.width, lastFragment.textBox.width)
+          : 0,
+      )
+      paragraph.lineBox.left = 0
+      paragraph.lineBox.top = paragraphY
+      paragraph.lineBox.width = Math.max(width, paragraph.contentBox.width)
+      this._setContextStyle({
+        ...(highestFragment ?? paragraph).style,
+        textAlign: 'left',
+        verticalAlign: 'baseline',
+      })
+      const result = context.measureText('X')
+      paragraph.baseline = paragraph.lineBox.top
+        + (paragraph.lineBox.height - result.actualBoundingBoxAscent + result.actualBoundingBoxDescent) / 2
+        + result.actualBoundingBoxAscent
+      paragraphY += paragraph.lineBox.height
     }
 
-    const boundingRect = paragraphs.reduce((rect, paragraph) => {
-      rect.x = Math.min(rect.x, paragraph.relativeX)
-      rect.y = Math.min(rect.y, paragraph.relativeY)
-      rect.width = Math.max(rect.width, paragraph.width)
-      rect.height += paragraph.height
+    const boundingBox = paragraphs.reduce((rect, paragraph) => {
+      rect.left = Math.min(rect.left, paragraph.lineBox.left)
+      rect.top = Math.min(rect.top, paragraph.lineBox.top)
+      rect.width = Math.max(rect.width, paragraph.lineBox.width)
+      rect.height += paragraph.lineBox.height
       return rect
-    }, { x: 0, y: 0, width: 0, height: 0 })
-
-    width = width || boundingRect.width
-    height = Math.max(height, boundingRect.height)
+    }, { left: 0, top: 0, width: 0, height: 0 })
 
     for (let len = paragraphs.length, i = 0; i < len; i++) {
       const paragraph = paragraphs[i]
 
-      switch (this.style.textAlign) {
-        case 'center':
-          paragraph.absoluteX = (width - boundingRect.width) / 2
-          paragraph.fragments.forEach(fragment => {
-            fragment.absoluteX = paragraph.absoluteX + fragment.relativeX
-            fragment.fillX = fragment.absoluteX + fragment.width / 2
-          })
-          break
-        case 'end':
-        case 'right':
-          paragraph.absoluteX = width - boundingRect.width
-          paragraph.fragments.forEach(fragment => {
-            fragment.absoluteX = paragraph.absoluteX + fragment.relativeX
-            fragment.fillX = fragment.absoluteX + fragment.width
-          })
-          break
-        case 'start':
-        case 'left':
-        default:
-          paragraph.absoluteX = 0
-          paragraph.fragments.forEach(fragment => {
-            fragment.absoluteX = paragraph.absoluteX + fragment.relativeX
-            fragment.fillX = fragment.absoluteX
-          })
-          break
-      }
+      paragraph.fragments.forEach(fragment => {
+        const oldLeft = fragment.inlineBox.left
+        const oldTop = fragment.inlineBox.top
+        const diffHeight = (paragraph.lineBox.height - fragment.inlineBox.height)
 
-      const diffHeight = height - boundingRect.height
+        switch (fragment.style.textAlign) {
+          case 'end':
+          case 'right':
+            fragment.inlineBox.left += (paragraph.lineBox.width - paragraph.contentBox.width)
+            break
+          case 'center':
+            fragment.inlineBox.left += (paragraph.lineBox.width - paragraph.contentBox.width) / 2
+            break
+          case 'start':
+          case 'left':
+          default:
+            fragment.inlineBox.left += paragraph.lineBox.left
+            break
+        }
 
-      switch (this.style.textBaseline) {
-        case 'bottom':
-          paragraph.absoluteY = paragraph.relativeY + diffHeight
-          paragraph.fragments.forEach(fragment => {
-            fragment.absoluteY = paragraph.absoluteY + (paragraph.height - fragment.height)
-            fragment.fillY = fragment.absoluteY + fragment.height
-          })
-          break
-        case 'middle':
-        case 'alphabetic':
-        case 'ideographic':
-          paragraph.absoluteY = paragraph.relativeY + diffHeight / 2
-          paragraph.fragments.forEach(fragment => {
-            fragment.absoluteY = paragraph.absoluteY + (paragraph.height - fragment.height) / 2
-            fragment.fillY = fragment.absoluteY + fragment.height / 2
-          })
-          break
-        case 'top':
-        case 'hanging':
-        default:
-          paragraph.absoluteY = paragraph.relativeY
-          paragraph.fragments.forEach(fragment => fragment.fillY = fragment.absoluteY = paragraph.absoluteY)
-          break
-      }
+        switch (fragment.style.verticalAlign) {
+          case 'top':
+            fragment.inlineBox.top = paragraph.lineBox.top
+            break
+          case 'middle':
+            fragment.inlineBox.top = paragraph.lineBox.top + diffHeight / 2
+            break
+          case 'bottom':
+            fragment.inlineBox.top = paragraph.lineBox.top + diffHeight
+            break
+          case 'sub':
+          case 'text-top':
+          case 'text-bottom':
+            // TODO
+            break
+          case 'baseline':
+          default:
+            if (fragment.inlineBox.height < paragraph.lineBox.height) {
+              fragment.inlineBox.top += (paragraph.baseline - fragment.baseline)
+            }
+            break
+        }
+
+        const diffLeft = fragment.inlineBox.left - oldLeft
+        const diffTop = fragment.inlineBox.top - oldTop
+        fragment.contentBox.left += diffLeft
+        fragment.contentBox.top += diffTop
+        fragment.textBox.left += diffLeft
+        fragment.textBox.top += diffTop
+      })
     }
 
-    return { ...boundingRect, paragraphs }
+    return { ...boundingBox, paragraphs }
   }
 
-  protected _createParagraphs(data: TextData): Array<TextParagraph> {
-    const shared = {
-      width: 0,
-      height: 0,
-      actualBoundingBoxWidth: 0,
-      relativeX: 0,
-      relativeY: 0,
-      absoluteX: 0,
-      absoluteY: 0,
-    }
-
+  protected _createParagraphs(content: TextData): Array<TextParagraph> {
     const createTextParagraph = (props: Record<string, any> = {}): TextParagraph => {
-      return { ...shared, fragments: [], ...props } as any
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { width: _width, height: _height, ...style } = this.style
+      return {
+        contentBox: { left: 0, top: 0, width: 0, height: 0 },
+        lineBox: { left: 0, top: 0, width: 0, height: 0 },
+        baseline: 0,
+        fragments: [],
+        ...props,
+        style: {
+          ...style,
+          ...props.style,
+        },
+      } as any
     }
 
     const createTextFragments = (props: Record<string, any> = {}): Array<TextFragment> => {
@@ -272,37 +287,40 @@ export class Text {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { width: _width, height: _height, ...style } = this.style
       fragments.push({
-        fillX: 0,
-        fillY: 0,
-        ...shared,
+        contentBox: { left: 0, top: 0, width: 0, height: 0 },
+        inlineBox: { left: 0, top: 0, width: 0, height: 0 },
+        textBox: { left: 0, top: 0, width: 0, height: 0 },
+        baseline: 0,
         ...props,
         style: {
           ...style,
           ...props.style,
         },
-        data: props.data ?? '',
-      })
+        content: props.content ?? '',
+      } as any)
       return fragments
     }
 
     const paragraphs: Array<TextParagraph> = []
-    if (typeof data === 'string') {
-      paragraphs.push(createTextParagraph({ fragments: createTextFragments({ data }) }))
+    if (typeof content === 'string') {
+      paragraphs.push(createTextParagraph({ fragments: createTextFragments({ content }) }))
     } else {
-      data = Array.isArray(data) ? data : [data]
-      for (const p of data) {
-        const paragraph = createTextParagraph()
+      content = Array.isArray(content) ? content : [content]
+      for (const p of content) {
         if ('fragments' in p) {
           const { fragments, ...pStyle } = p
+          const paragraph = createTextParagraph({ style: pStyle })
           for (const f of fragments) {
-            const { data: fData, ...fStyle } = f
-            paragraph.fragments.push(...createTextFragments({ data: fData, style: { ...pStyle, ...fStyle } }))
+            const { content: fData, ...fStyle } = f
+            paragraph.fragments.push(...createTextFragments({ content: fData, style: { ...pStyle, ...fStyle } }))
           }
-        } else if ('data' in p) {
-          const { data: pData, ...pStyle } = p
-          paragraph.fragments.push(...createTextFragments({ data: pData, style: pStyle }))
+          paragraphs.push(paragraph)
+        } else if ('content' in p) {
+          const { content: pData, ...pStyle } = p
+          const paragraph = createTextParagraph({ style: pStyle })
+          paragraph.fragments.push(...createTextFragments({ content: pData, style: pStyle }))
+          paragraphs.push(paragraph)
         }
-        paragraphs.push(paragraph)
       }
     }
     return paragraphs
@@ -328,7 +346,7 @@ export class Text {
         this._setContextStyle(style)
         let text = ''
         let wrap = false
-        for (const char of fragment.data) {
+        for (const char of fragment.content) {
           const charWidth = this.context!.measureText(char).width + (first ? 0 : style.letterSpacing)
           const isNewline = /^[\r\n]$/.test(char)
           if (
@@ -346,16 +364,25 @@ export class Text {
             }
             if (text.length) fragments.push({ ...fragment, text })
             if (fragments.length) {
-              wrapedParagraphs.push({ ...paragraph, fragments: fragments.slice() })
+              wrapedParagraphs.push({
+                baseline: paragraph!.baseline,
+                style: { ...paragraph!.style },
+                contentBox: { ...paragraph!.contentBox },
+                lineBox: { ...paragraph!.lineBox },
+                fragments: fragments.slice(),
+              })
               fragments.length = 0
             }
-            const restText = fragment.data.substring(pos)
+            const restText = fragment.content.substring(pos)
             if (restText.length || restFragments.length) {
               restParagraphs.unshift({
-                ...paragraph,
+                baseline: paragraph!.baseline,
+                style: { ...paragraph!.style },
+                contentBox: { ...paragraph!.contentBox },
+                lineBox: { ...paragraph!.lineBox },
                 fragments: (
                   restText.length
-                    ? [{ ...fragment, data: restText }]
+                    ? [{ ...fragment, content: restText }]
                     : []
                 ).concat(restFragments.slice()),
               })
@@ -385,28 +412,37 @@ export class Text {
       context.fillRect(0, 0, context.canvas.width, context.canvas.height)
     }
     paragraphs.forEach(paragraph => {
+      if (paragraph.style.backgroundColor) {
+        context.fillStyle = paragraph.style.backgroundColor
+        context.fillRect(paragraph.lineBox.left, paragraph.lineBox.top, paragraph.lineBox.width, paragraph.lineBox.height)
+      }
+    })
+    paragraphs.forEach(paragraph => {
       paragraph.fragments.forEach(fragment => {
-        const style = fragment.style
-        if (style.backgroundColor) {
-          context.fillStyle = style.backgroundColor
-          context.fillRect(fragment.absoluteX, fragment.absoluteY, fragment.width, fragment.height)
+        if (fragment.style.backgroundColor) {
+          context.fillStyle = fragment.style.backgroundColor
+          context.fillRect(fragment.inlineBox.left, fragment.inlineBox.top, fragment.inlineBox.width, fragment.inlineBox.height)
         }
-        this._setContextStyle(style)
-        if (style.textStrokeWidth) {
-          context.strokeText(fragment.data, fragment.fillX, fragment.fillY)
+        this._setContextStyle({
+          ...fragment.style,
+          textAlign: 'left',
+          verticalAlign: 'top',
+        })
+        if (fragment.style.textStrokeWidth) {
+          context.strokeText(fragment.content, fragment.contentBox.left, fragment.contentBox.top)
         }
-        context.fillText(fragment.data, fragment.fillX, fragment.fillY)
-        switch (style.textDecoration) {
+        context.fillText(fragment.content, fragment.contentBox.left, fragment.contentBox.top)
+        switch (fragment.style.textDecoration) {
           case 'underline':
             context.beginPath()
-            context.moveTo(fragment.absoluteX, paragraph.absoluteY + paragraph.height - 2)
-            context.lineTo(fragment.absoluteX + fragment.width, paragraph.absoluteY + paragraph.height - 2)
+            context.moveTo(fragment.contentBox.left, fragment.contentBox.top + fragment.contentBox.height - 2)
+            context.lineTo(fragment.contentBox.left + fragment.contentBox.width, fragment.contentBox.top + fragment.contentBox.height - 2)
             context.stroke()
             break
           case 'line-through':
             context.beginPath()
-            context.moveTo(fragment.absoluteX, paragraph.absoluteY + paragraph.height / 2)
-            context.lineTo(fragment.absoluteX + fragment.width, paragraph.absoluteY + paragraph.height / 2)
+            context.moveTo(fragment.contentBox.left, fragment.contentBox.top + fragment.contentBox.height / 2)
+            context.lineTo(fragment.contentBox.left + fragment.contentBox.width, fragment.contentBox.top + fragment.contentBox.height / 2)
             context.stroke()
             break
         }
@@ -435,7 +471,16 @@ export class Text {
     context.fillStyle = style.color
     context.direction = style.direction
     context.textAlign = style.textAlign
-    context.textBaseline = style.textBaseline
+    switch (style.verticalAlign) {
+      case 'baseline':
+        context.textBaseline = 'alphabetic'
+        break
+      case 'top':
+      case 'middle':
+      case 'bottom':
+        context.textBaseline = style.verticalAlign
+        break
+    }
     context.font = [
       style.fontStyle,
       style.fontWeight,

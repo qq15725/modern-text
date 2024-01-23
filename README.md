@@ -30,16 +30,16 @@ const text = new Text({
     fontSize: 22,
     textDecoration: 'underline',
   },
-  data: [
+  content: [
     {
       letterSpacing: 3,
       fragments: [
-        { data: 'He', color: 'red', fontSize: 12 },
-        { data: 'llo', color: 'black' },
+        { content: 'He', color: 'red', fontSize: 12 },
+        { content: 'llo', color: 'black' },
       ],
     },
-    { data: ', ', color: 'grey' },
-    { data: 'World!', color: 'black' },
+    { content: ', ', color: 'grey' },
+    { content: 'World!', color: 'black' },
   ],
 })
 

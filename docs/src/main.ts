@@ -2,24 +2,35 @@ import { Text } from '../../src'
 
 const text = new Text({
   style: {
-    width: 100,
-    height: 200,
-    fontSize: 22,
-    textDecoration: 'underline',
+    textAlign: 'left',
+    verticalAlign: 'baseline',
+    lineHeight: 0.71,
+    fontWeight: 400,
+    letterSpacing: 0,
+    fontSize: 136.782,
+    height: 201,
+    width: 265,
+    writingMode: 'horizontal-tb',
   },
-  data: [
+  content: [
     {
-      letterSpacing: 3,
+      backgroundColor: 'blue',
       fragments: [
-        { data: 'He', color: 'red', fontSize: 12 },
-        { data: 'llo', color: 'black' },
+        { content: '冬', backgroundColor: 'red' },
+        { content: '天', fontSize: 89, backgroundColor: 'yellow' },
       ],
     },
-    { data: ', ', color: 'grey' },
-    { data: 'World!', color: 'black' },
+    {
+      backgroundColor: 'green',
+      fragments: [
+        { content: ' ', backgroundColor: 'salmon' },
+        { content: '你', fontSize: 71, backgroundColor: 'sienna' },
+        { content: '好', fontSize: 100, backgroundColor: 'silver' },
+      ],
+    },
   ],
 })
 
 document.body.append(text.view)
 
-console.log(text.measure())
+console.log(text.measure(text.style.width))
