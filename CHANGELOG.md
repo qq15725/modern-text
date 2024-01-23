@@ -1,3 +1,12 @@
+## [0.0.6](https://github.com/qq15725/modern-text/compare/v0.0.5...v0.0.6) (2024-01-23)
+
+
+### Bug Fixes
+
+* baseline vertical align ([26c93f7](https://github.com/qq15725/modern-text/commit/26c93f73887899679ea6f9c13cb43e21af880ae1))
+
+
+
 ## [0.0.5](https://github.com/qq15725/modern-text/compare/v0.0.4...v0.0.5) (2024-01-20)
 
 
