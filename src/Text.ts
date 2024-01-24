@@ -70,7 +70,7 @@ export interface TextFragmentWithStyle extends Partial<TextFragmentStyle> {
   content: string
 }
 
-export type TextData =
+export type TextContent =
   | string
   | TextParagraphWithContentAndStyle | TextParagraphWithFragmentsAndStyle
   | Array<TextParagraphWithContentAndStyle | TextParagraphWithFragmentsAndStyle>
@@ -78,11 +78,13 @@ export type TextData =
 export interface TextOptions {
   view?: HTMLCanvasElement
   pixelRatio?: number
-  content?: TextData
+  content?: TextContent
   style?: Partial<TextStyle>
 }
 
-export interface MeasureResult extends BoundingBox {
+export interface MeasureResult {
+  contentBox: BoundingBox
+  lineBox: BoundingBox
   paragraphs: Array<TextParagraph>
 }
 
@@ -117,7 +119,7 @@ export class Text {
   readonly context: CanvasRenderingContext2D
   pixelRatio: number
   style: TextStyle
-  content: TextData
+  content: TextContent
 
   constructor(options: TextOptions = {}) {
     const {
@@ -138,7 +140,9 @@ export class Text {
     this.update()
   }
 
-  measure(width = 0, _height = 0): MeasureResult {
+  measure(): MeasureResult {
+    let { width } = this.style
+    if (width === 'auto') width = 0
     let paragraphs = this._createParagraphs(this.content)
     paragraphs = this._createWrapedParagraphs(paragraphs, width)
     const context = this.context
@@ -199,14 +203,6 @@ export class Text {
       paragraphY += paragraph.lineBox.height
     }
 
-    const boundingBox = paragraphs.reduce((rect, paragraph) => {
-      rect.left = Math.min(rect.left, paragraph.lineBox.left)
-      rect.top = Math.min(rect.top, paragraph.lineBox.top)
-      rect.width = Math.max(rect.width, paragraph.lineBox.width)
-      rect.height += paragraph.lineBox.height
-      return rect
-    }, { left: 0, top: 0, width: 0, height: 0 })
-
     for (let len = paragraphs.length, i = 0; i < len; i++) {
       const paragraph = paragraphs[i]
 
@@ -262,10 +258,26 @@ export class Text {
       })
     }
 
-    return { ...boundingBox, paragraphs }
+    const contentBox = paragraphs.reduce((rect, paragraph) => {
+      rect.left = Math.min(rect.left, paragraph.contentBox.left)
+      rect.top = Math.min(rect.top, paragraph.contentBox.top)
+      rect.width = Math.max(rect.width, paragraph.contentBox.width)
+      rect.height += paragraph.contentBox.height
+      return rect
+    }, { left: 0, top: 0, width: 0, height: 0 })
+
+    const lineBox = paragraphs.reduce((rect, paragraph) => {
+      rect.left = Math.min(rect.left, paragraph.lineBox.left)
+      rect.top = Math.min(rect.top, paragraph.lineBox.top)
+      rect.width = Math.max(rect.width, paragraph.lineBox.width)
+      rect.height += paragraph.lineBox.height
+      return rect
+    }, { left: 0, top: 0, width: 0, height: 0 })
+
+    return { lineBox, contentBox, paragraphs }
   }
 
-  protected _createParagraphs(content: TextData): Array<TextParagraph> {
+  protected _createParagraphs(content: TextContent): Array<TextParagraph> {
     const createTextParagraph = (props: Record<string, any> = {}): TextParagraph => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { width: _width, height: _height, ...style } = this.style
@@ -330,6 +342,8 @@ export class Text {
     paragraphs: Array<TextParagraph>,
     width: number,
   ): Array<TextParagraph> {
+    const deepClone = (val: Record<string, any>) => JSON.parse(JSON.stringify(val))
+
     const wrapedParagraphs: Array<TextParagraph> = []
     const restParagraphs = paragraphs.slice()
     let paragraph: TextParagraph | undefined
@@ -339,15 +353,14 @@ export class Text {
       const restFragments = paragraph.fragments.slice()
       let paragraphWidth = 0
       const fragments = []
-      let first = true
       // eslint-disable-next-line no-cond-assign
       while (fragment = restFragments.shift()) {
         const style = fragment.style
         this._setContextStyle(style)
-        let text = ''
+        let content = ''
         let wrap = false
         for (const char of fragment.content) {
-          const charWidth = this.context!.measureText(char).width + (first ? 0 : style.letterSpacing)
+          const charWidth = this.context!.measureText(char).width
           const isNewline = /^[\r\n]$/.test(char)
           if (
             isNewline
@@ -357,18 +370,15 @@ export class Text {
               && paragraphWidth + charWidth > width
             )
           ) {
-            let pos = isNewline ? text.length + 1 : text.length
+            let pos = isNewline ? content.length + 1 : content.length
             if (!paragraphWidth && !pos) {
-              text += char
+              content += char
               pos++
             }
-            if (text.length) fragments.push({ ...fragment, text })
+            if (content.length) fragments.push({ ...deepClone(fragment), content })
             if (fragments.length) {
               wrapedParagraphs.push({
-                baseline: paragraph!.baseline,
-                style: { ...paragraph!.style },
-                contentBox: { ...paragraph!.contentBox },
-                lineBox: { ...paragraph!.lineBox },
+                ...deepClone(paragraph),
                 fragments: fragments.slice(),
               })
               fragments.length = 0
@@ -376,13 +386,10 @@ export class Text {
             const restText = fragment.content.substring(pos)
             if (restText.length || restFragments.length) {
               restParagraphs.unshift({
-                baseline: paragraph!.baseline,
-                style: { ...paragraph!.style },
-                contentBox: { ...paragraph!.contentBox },
-                lineBox: { ...paragraph!.lineBox },
+                ...deepClone(paragraph),
                 fragments: (
                   restText.length
-                    ? [{ ...fragment, content: restText }]
+                    ? [{ ...deepClone(fragment), content: restText }]
                     : []
                 ).concat(restFragments.slice()),
               })
@@ -393,13 +400,12 @@ export class Text {
           } else {
             paragraphWidth += charWidth
           }
-          text += char
+          content += char
         }
-        if (!wrap) fragments.push({ ...fragment })
-        first = false
+        if (!wrap) fragments.push(deepClone(fragment))
       }
       if (fragments.length) {
-        wrapedParagraphs.push({ ...paragraph, fragments })
+        wrapedParagraphs.push({ ...deepClone(paragraph), fragments })
       }
     }
     return wrapedParagraphs
@@ -497,13 +503,13 @@ export class Text {
     let { width, height } = this.style
     if (width === 'auto') width = 0
     if (height === 'auto') height = 0
-    const result = this.measure(width, height)
-    if (!width) width = result.width
-    height = Math.max(height, result.height)
+    const { lineBox, paragraphs } = this.measure()
+    if (!width) width = lineBox.width
+    height = Math.max(height, lineBox.height)
     this._resizeView(width, height)
     const pixelRatio = this.pixelRatio
     context.scale(pixelRatio, pixelRatio)
     context.clearRect(0, 0, context.canvas.width, context.canvas.height)
-    this._draw(result.paragraphs)
+    this._draw(paragraphs)
   }
 }
