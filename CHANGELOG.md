@@ -1,3 +1,12 @@
+## [0.0.7](https://github.com/qq15725/modern-text/compare/v0.0.6...v0.0.7) (2024-01-24)
+
+
+### Features
+
+* change MeasureResult ([77c7227](https://github.com/qq15725/modern-text/commit/77c72271f8425474c10150dbf47965f344001bc1))
+
+
+
 ## [0.0.6](https://github.com/qq15725/modern-text/compare/v0.0.5...v0.0.6) (2024-01-23)
 
 
