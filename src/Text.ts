@@ -259,6 +259,8 @@ export class Text {
         fragment.contentBox.top += diffTop
         fragment.glyphBox.left += diffLeft
         fragment.glyphBox.top += diffTop
+        fragment.baseline += diffTop
+        fragment.centerX += diffLeft
       })
     }
 
