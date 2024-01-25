@@ -1,3 +1,12 @@
+## [0.0.8](https://github.com/qq15725/modern-text/compare/v0.0.7...v0.0.8) (2024-01-25)
+
+
+### Features
+
+* rename textBox to glyphBox ([2d4e7ff](https://github.com/qq15725/modern-text/commit/2d4e7ffb41052d58907f2c33ef7eae652992ab94))
+
+
+
 ## [0.0.7](https://github.com/qq15725/modern-text/compare/v0.0.6...v0.0.7) (2024-01-24)
 
 
