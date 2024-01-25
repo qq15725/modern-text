@@ -1,3 +1,12 @@
+## [0.0.9](https://github.com/qq15725/modern-text/compare/v0.0.8...v0.0.9) (2024-01-25)
+
+
+### Bug Fixes
+
+* baseline ([cc78461](https://github.com/qq15725/modern-text/commit/cc784614be6e16356c4396ed8c9043024f899cf6))
+
+
+
 ## [0.0.8](https://github.com/qq15725/modern-text/compare/v0.0.7...v0.0.8) (2024-01-25)
 
 
