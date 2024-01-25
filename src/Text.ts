@@ -24,7 +24,8 @@ export interface TextParagraph {
 export interface TextFragment {
   contentBox: BoundingBox
   inlineBox: BoundingBox
-  textBox: BoundingBox
+  glyphBox: BoundingBox
+  centerX: number
   baseline: number
   content: string
   style: TextFragmentStyle
@@ -82,9 +83,9 @@ export interface TextOptions {
   style?: Partial<TextStyle>
 }
 
-export interface MeasureResult {
+export interface Metrics {
   contentBox: BoundingBox
-  lineBox: BoundingBox
+  actualContentBox: BoundingBox
   paragraphs: Array<TextParagraph>
 }
 
@@ -140,7 +141,7 @@ export class Text {
     this.update()
   }
 
-  measure(): MeasureResult {
+  measure(): Metrics {
     let { width } = this.style
     if (width === 'auto') width = 0
     let paragraphs = this._createParagraphs(this.content)
@@ -155,23 +156,26 @@ export class Text {
       for (const fragment of paragraph.fragments) {
         this._setContextStyle({
           ...fragment.style,
-          textAlign: 'left',
+          textAlign: 'center',
           verticalAlign: 'baseline',
         })
         const result = context.measureText(fragment.content)
+        const contentWidth = result.width
+        const contentHeight = fragment.style.fontSize
         fragment.inlineBox.left = fragmentX
         fragment.inlineBox.top = paragraphY
-        fragment.inlineBox.width = result.width
-        fragment.inlineBox.height = fragment.style.fontSize * fragment.style.lineHeight
+        fragment.inlineBox.width = contentWidth
+        fragment.inlineBox.height = contentHeight * fragment.style.lineHeight
         fragment.contentBox.left = fragment.inlineBox.left
-        fragment.contentBox.width = fragment.inlineBox.width
-        fragment.contentBox.height = fragment.style.fontSize
+        fragment.contentBox.width = contentWidth
+        fragment.contentBox.height = contentHeight
         fragment.contentBox.top = fragment.inlineBox.top + (fragment.inlineBox.height - fragment.contentBox.height) / 2
-        fragment.textBox.width = result.actualBoundingBoxLeft + result.actualBoundingBoxRight
-        fragment.textBox.height = result.actualBoundingBoxAscent + result.actualBoundingBoxDescent
-        fragment.textBox.left = fragment.contentBox.left + (fragment.contentBox.width - fragment.textBox.width) / 2
-        fragment.textBox.top = fragment.contentBox.top + (fragment.contentBox.height - fragment.textBox.height) / 2
-        fragment.baseline = fragment.textBox.top + result.actualBoundingBoxAscent
+        fragment.glyphBox.width = result.actualBoundingBoxLeft + result.actualBoundingBoxRight
+        fragment.glyphBox.height = result.actualBoundingBoxAscent + result.actualBoundingBoxDescent
+        fragment.glyphBox.left = fragment.contentBox.left + (fragment.contentBox.width - fragment.glyphBox.width) / 2
+        fragment.glyphBox.top = fragment.contentBox.top + (fragment.contentBox.height - fragment.glyphBox.height) / 2
+        fragment.centerX = fragment.glyphBox.left + result.actualBoundingBoxLeft
+        fragment.baseline = fragment.glyphBox.top + result.actualBoundingBoxAscent
         fragmentX += fragment.contentBox.width + fragment.style.letterSpacing
         if (paragraph.contentBox.height < fragment.contentBox.height) {
           highestFragment = fragment
@@ -185,7 +189,7 @@ export class Text {
       paragraph.contentBox.width = Math.max(
         paragraph.contentBox.width,
         lastFragment
-          ? lastFragment.contentBox.left + Math.max(lastFragment.contentBox.width, lastFragment.textBox.width)
+          ? lastFragment.contentBox.left + Math.max(lastFragment.contentBox.width, lastFragment.glyphBox.width)
           : 0,
       )
       paragraph.lineBox.left = 0
@@ -253,12 +257,12 @@ export class Text {
         const diffTop = fragment.inlineBox.top - oldTop
         fragment.contentBox.left += diffLeft
         fragment.contentBox.top += diffTop
-        fragment.textBox.left += diffLeft
-        fragment.textBox.top += diffTop
+        fragment.glyphBox.left += diffLeft
+        fragment.glyphBox.top += diffTop
       })
     }
 
-    const contentBox = paragraphs.reduce((rect, paragraph) => {
+    const actualContentBox = paragraphs.reduce((rect, paragraph) => {
       rect.left = Math.min(rect.left, paragraph.contentBox.left)
       rect.top = Math.min(rect.top, paragraph.contentBox.top)
       rect.width = Math.max(rect.width, paragraph.contentBox.width)
@@ -266,7 +270,7 @@ export class Text {
       return rect
     }, { left: 0, top: 0, width: 0, height: 0 })
 
-    const lineBox = paragraphs.reduce((rect, paragraph) => {
+    const contentBox = paragraphs.reduce((rect, paragraph) => {
       rect.left = Math.min(rect.left, paragraph.lineBox.left)
       rect.top = Math.min(rect.top, paragraph.lineBox.top)
       rect.width = Math.max(rect.width, paragraph.lineBox.width)
@@ -274,7 +278,7 @@ export class Text {
       return rect
     }, { left: 0, top: 0, width: 0, height: 0 })
 
-    return { lineBox, contentBox, paragraphs }
+    return { contentBox, actualContentBox, paragraphs }
   }
 
   protected _createParagraphs(content: TextContent): Array<TextParagraph> {
@@ -301,7 +305,8 @@ export class Text {
       fragments.push({
         contentBox: { left: 0, top: 0, width: 0, height: 0 },
         inlineBox: { left: 0, top: 0, width: 0, height: 0 },
-        textBox: { left: 0, top: 0, width: 0, height: 0 },
+        glyphBox: { left: 0, top: 0, width: 0, height: 0 },
+        centerX: 0,
         baseline: 0,
         ...props,
         style: {
@@ -503,9 +508,9 @@ export class Text {
     let { width, height } = this.style
     if (width === 'auto') width = 0
     if (height === 'auto') height = 0
-    const { lineBox, paragraphs } = this.measure()
-    if (!width) width = lineBox.width
-    height = Math.max(height, lineBox.height)
+    const { contentBox, paragraphs } = this.measure()
+    if (!width) width = contentBox.width
+    height = Math.max(height, contentBox.height)
     this._resizeView(width, height)
     const pixelRatio = this.pixelRatio
     context.scale(pixelRatio, pixelRatio)
