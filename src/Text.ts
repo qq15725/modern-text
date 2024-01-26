@@ -8,7 +8,9 @@ export type TextDecoration = 'underline' | 'line-through'
 
 export interface BoundingBox {
   left: number
+  right: number
   top: number
+  bottom: number
   width: number
   height: number
 }
@@ -16,6 +18,7 @@ export interface BoundingBox {
 export interface TextParagraph {
   contentBox: BoundingBox
   lineBox: BoundingBox
+  glyphBox: BoundingBox
   baseline: number
   fragments: Array<TextFragment>
   style: TextFragmentStyle
@@ -85,6 +88,7 @@ export interface TextOptions {
 
 export interface Metrics {
   contentBox: BoundingBox
+  glyphBox: BoundingBox
   actualContentBox: BoundingBox
   paragraphs: Array<TextParagraph>
 }
@@ -141,6 +145,41 @@ export class Text {
     this.update()
   }
 
+  protected _createBox(left = 0, top = 0, width = 0, height = 0): BoundingBox {
+    return {
+      left,
+      top,
+      width,
+      height,
+      right: left + width,
+      bottom: top + height,
+    }
+  }
+
+  protected _moveBox(box: BoundingBox, tx = 0, ty = 0): void {
+    box.left += tx
+    box.right += tx
+    box.top += ty
+    box.bottom += ty
+  }
+
+  protected _updateBoxSize(box: BoundingBox): void {
+    box.width = box.right - box.left
+    box.height = box.bottom - box.top
+  }
+
+  protected _mergeBoxes(boxes: Array<BoundingBox>): BoundingBox {
+    const merged = boxes.slice(1).reduce((merged, box) => {
+      merged.left = Math.min(merged.left, box.left)
+      merged.top = Math.min(merged.top, box.top)
+      merged.right = Math.max(merged.right, box.right)
+      merged.bottom = Math.max(merged.bottom, box.bottom)
+      return merged
+    }, { ...boxes[0] })
+    this._updateBoxSize(merged)
+    return merged
+  }
+
   measure(): Metrics {
     let { width } = this.style
     if (width === 'auto') width = 0
@@ -150,7 +189,7 @@ export class Text {
     let paragraphY = 0
     for (let len = paragraphs.length, i = 0; i < len; i++) {
       const paragraph = paragraphs[i]
-      paragraph.contentBox.top = paragraphY
+      const contentBoxes: Array<BoundingBox> = []
       let fragmentX = 0
       let highestFragment: TextFragment | null = null
       for (const fragment of paragraph.fragments) {
@@ -162,39 +201,37 @@ export class Text {
         const result = context.measureText(fragment.content)
         const contentWidth = result.width
         const contentHeight = fragment.style.fontSize
-        fragment.inlineBox.left = fragmentX
-        fragment.inlineBox.top = paragraphY
-        fragment.inlineBox.width = contentWidth
-        fragment.inlineBox.height = contentHeight * fragment.style.lineHeight
-        fragment.contentBox.left = fragment.inlineBox.left
-        fragment.contentBox.width = contentWidth
-        fragment.contentBox.height = contentHeight
-        fragment.contentBox.top = fragment.inlineBox.top + (fragment.inlineBox.height - fragment.contentBox.height) / 2
-        fragment.glyphBox.width = result.actualBoundingBoxLeft + result.actualBoundingBoxRight
-        fragment.glyphBox.height = result.actualBoundingBoxAscent + result.actualBoundingBoxDescent
-        fragment.glyphBox.left = fragment.contentBox.left + (fragment.contentBox.width - fragment.glyphBox.width) / 2
-        fragment.glyphBox.top = fragment.contentBox.top + (fragment.contentBox.height - fragment.glyphBox.height) / 2
+        fragment.inlineBox = this._createBox(
+          fragmentX,
+          paragraphY,
+          contentWidth,
+          contentHeight * fragment.style.lineHeight,
+        )
+        fragment.contentBox = this._createBox(
+          fragment.inlineBox.left,
+          fragment.inlineBox.top + (fragment.inlineBox.height - contentHeight) / 2,
+          contentWidth,
+          contentHeight,
+        )
+        const glyphBoxWidth = result.actualBoundingBoxLeft + result.actualBoundingBoxRight
+        const glyphBoxHeight = result.actualBoundingBoxAscent + result.actualBoundingBoxDescent
+        fragment.glyphBox = this._createBox(
+          fragment.contentBox.left + (fragment.contentBox.width - glyphBoxWidth) / 2,
+          fragment.contentBox.top + (fragment.contentBox.height - glyphBoxHeight) / 2,
+          glyphBoxWidth,
+          glyphBoxHeight,
+        )
         fragment.centerX = fragment.glyphBox.left + result.actualBoundingBoxLeft
         fragment.baseline = fragment.glyphBox.top + result.actualBoundingBoxAscent
         fragmentX += fragment.contentBox.width + fragment.style.letterSpacing
-        if (paragraph.contentBox.height < fragment.contentBox.height) {
-          highestFragment = fragment
-        }
-        paragraph.contentBox.left = Math.min(paragraph.contentBox.left, fragment.contentBox.left)
-        paragraph.contentBox.top = Math.min(paragraph.contentBox.top, fragment.contentBox.top)
-        paragraph.contentBox.height = Math.max(paragraph.contentBox.height, fragment.contentBox.height)
-        paragraph.lineBox.height = Math.max(paragraph.lineBox.height, fragment.inlineBox.height)
+        contentBoxes.push(fragment.contentBox)
+        paragraph.contentBox = this._mergeBoxes(contentBoxes)
+        if (paragraph.contentBox.height < fragment.contentBox.height) highestFragment = fragment
       }
-      const lastFragment = paragraph.fragments[paragraph.fragments.length - 1]
-      paragraph.contentBox.width = Math.max(
-        paragraph.contentBox.width,
-        lastFragment
-          ? lastFragment.contentBox.left + Math.max(lastFragment.contentBox.width, lastFragment.glyphBox.width)
-          : 0,
-      )
-      paragraph.lineBox.left = 0
-      paragraph.lineBox.top = paragraphY
-      paragraph.lineBox.width = Math.max(width, paragraph.contentBox.width)
+      paragraph.lineBox = this._mergeBoxes([
+        ...paragraph.fragments.map(fragment => fragment.inlineBox),
+        this._createBox(0, paragraphY, width),
+      ])
       this._setContextStyle({
         ...(highestFragment ?? paragraph).style,
         textAlign: 'left',
@@ -215,30 +252,32 @@ export class Text {
         const oldTop = fragment.inlineBox.top
         const diffHeight = (paragraph.lineBox.height - fragment.inlineBox.height)
 
+        let newLeft
+        let newTop = oldTop
         switch (fragment.style.textAlign) {
           case 'end':
           case 'right':
-            fragment.inlineBox.left += (paragraph.lineBox.width - paragraph.contentBox.width)
+            newLeft = oldLeft + (paragraph.lineBox.width - paragraph.contentBox.width)
             break
           case 'center':
-            fragment.inlineBox.left += (paragraph.lineBox.width - paragraph.contentBox.width) / 2
+            newLeft = oldLeft + (paragraph.lineBox.width - paragraph.contentBox.width) / 2
             break
           case 'start':
           case 'left':
           default:
-            fragment.inlineBox.left += paragraph.lineBox.left
+            newLeft = oldLeft + paragraph.lineBox.left
             break
         }
 
         switch (fragment.style.verticalAlign) {
           case 'top':
-            fragment.inlineBox.top = paragraph.lineBox.top
+            newTop = oldTop + paragraph.lineBox.top
             break
           case 'middle':
-            fragment.inlineBox.top = paragraph.lineBox.top + diffHeight / 2
+            newTop = oldTop + paragraph.lineBox.top + diffHeight / 2
             break
           case 'bottom':
-            fragment.inlineBox.top = paragraph.lineBox.top + diffHeight
+            newTop = oldTop + paragraph.lineBox.top + diffHeight
             break
           case 'sub':
           case 'text-top':
@@ -248,39 +287,30 @@ export class Text {
           case 'baseline':
           default:
             if (fragment.inlineBox.height < paragraph.lineBox.height) {
-              fragment.inlineBox.top += (paragraph.baseline - fragment.baseline)
+              newTop = oldTop + (paragraph.baseline - fragment.baseline)
             }
             break
         }
 
-        const diffLeft = fragment.inlineBox.left - oldLeft
-        const diffTop = fragment.inlineBox.top - oldTop
-        fragment.contentBox.left += diffLeft
-        fragment.contentBox.top += diffTop
-        fragment.glyphBox.left += diffLeft
-        fragment.glyphBox.top += diffTop
+        const diffLeft = newLeft - oldLeft
+        const diffTop = newTop - oldTop
+        this._moveBox(fragment.inlineBox, diffLeft, diffTop)
+        this._moveBox(fragment.contentBox, diffLeft, diffTop)
+        this._moveBox(fragment.glyphBox, diffLeft, diffTop)
         fragment.baseline += diffTop
         fragment.centerX += diffLeft
       })
+
+      paragraph.contentBox = this._mergeBoxes(paragraph.fragments.map(fragment => fragment.contentBox))
+      paragraph.glyphBox = this._mergeBoxes(paragraph.fragments.map(fragment => fragment.glyphBox))
     }
 
-    const actualContentBox = paragraphs.reduce((rect, paragraph) => {
-      rect.left = Math.min(rect.left, paragraph.contentBox.left)
-      rect.top = Math.min(rect.top, paragraph.contentBox.top)
-      rect.width = Math.max(rect.width, paragraph.contentBox.width)
-      rect.height += paragraph.contentBox.height
-      return rect
-    }, { left: 0, top: 0, width: 0, height: 0 })
-
-    const contentBox = paragraphs.reduce((rect, paragraph) => {
-      rect.left = Math.min(rect.left, paragraph.lineBox.left)
-      rect.top = Math.min(rect.top, paragraph.lineBox.top)
-      rect.width = Math.max(rect.width, paragraph.lineBox.width)
-      rect.height += paragraph.lineBox.height
-      return rect
-    }, { left: 0, top: 0, width: 0, height: 0 })
-
-    return { contentBox, actualContentBox, paragraphs }
+    return {
+      actualContentBox: this._mergeBoxes(paragraphs.map(paragraph => paragraph.contentBox)),
+      contentBox: this._mergeBoxes(paragraphs.map(paragraph => paragraph.lineBox)),
+      glyphBox: this._mergeBoxes(paragraphs.map(paragraph => paragraph.glyphBox)),
+      paragraphs,
+    }
   }
 
   protected _createParagraphs(content: TextContent): Array<TextParagraph> {
@@ -288,8 +318,9 @@ export class Text {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { width: _width, height: _height, ...style } = this.style
       return {
-        contentBox: { left: 0, top: 0, width: 0, height: 0 },
-        lineBox: { left: 0, top: 0, width: 0, height: 0 },
+        contentBox: this._createBox(),
+        lineBox: this._createBox(),
+        glyphBox: this._createBox(),
         baseline: 0,
         fragments: [],
         ...props,
@@ -305,9 +336,9 @@ export class Text {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { width: _width, height: _height, ...style } = this.style
       fragments.push({
-        contentBox: { left: 0, top: 0, width: 0, height: 0 },
-        inlineBox: { left: 0, top: 0, width: 0, height: 0 },
-        glyphBox: { left: 0, top: 0, width: 0, height: 0 },
+        contentBox: this._createBox(),
+        inlineBox: this._createBox(),
+        glyphBox: this._createBox(),
         centerX: 0,
         baseline: 0,
         ...props,
