@@ -1,3 +1,12 @@
+## [0.0.10](https://github.com/qq15725/modern-text/compare/v0.0.9...v0.0.10) (2024-01-26)
+
+
+### Features
+
+* add glyphBox to TextMetrics ([8501ad0](https://github.com/qq15725/modern-text/commit/8501ad08c6a2da4ec51f8e478563ccc2195d64d7))
+
+
+
 ## [0.0.9](https://github.com/qq15725/modern-text/compare/v0.0.8...v0.0.9) (2024-01-25)
 
 
