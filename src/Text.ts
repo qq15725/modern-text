@@ -228,7 +228,7 @@ export class Text {
         )
         fragment.centerX = fragment.glyphBox.left + result.actualBoundingBoxLeft
         fragment.baseline = fragment.glyphBox.top + result.actualBoundingBoxAscent
-        fragmentX += fragment.contentBox.width + fragment.style.letterSpacing
+        fragmentX += fragment.contentBox.width
         contentBoxes.push(fragment.contentBox)
         paragraph.contentBox = this._mergeBoxes(contentBoxes)
         if (paragraph.contentBox.height < fragment.contentBox.height) highestFragment = fragment
