@@ -94,6 +94,9 @@ export interface Metrics {
 }
 
 export class Text {
+  // eslint-disable-next-line no-misleading-character-class
+  static punctuationRegex = /[\s\n\t\u200B\u200C\u200D\u200E\u200F.,?!:;"'(){}\[\]<>\/\\|~#\$%\*\+=&^，。？！：；“”‘’（）【】《》……——]/
+
   static get defaultStyle(): TextStyle {
     return {
       width: 'auto',
@@ -213,11 +216,13 @@ export class Text {
           contentWidth,
           contentHeight,
         )
+        const xGlyphHeight = context.measureText('X').actualBoundingBoxAscent
+        const diffHeight = (fragment.contentBox.height - xGlyphHeight) / 2
         const glyphBoxWidth = result.actualBoundingBoxLeft + result.actualBoundingBoxRight
         const glyphBoxHeight = result.actualBoundingBoxAscent + result.actualBoundingBoxDescent
         fragment.glyphBox = this._createBox(
           fragment.contentBox.left + (fragment.contentBox.width - glyphBoxWidth) / 2,
-          fragment.contentBox.top + (fragment.contentBox.height - glyphBoxHeight) / 2,
+          fragment.contentBox.top + diffHeight + (xGlyphHeight - result.actualBoundingBoxAscent),
           glyphBoxWidth,
           glyphBoxHeight,
         )
