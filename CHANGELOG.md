@@ -1,3 +1,12 @@
+## [0.0.13](https://github.com/qq15725/modern-text/compare/v0.0.12...v0.0.13) (2024-01-29)
+
+
+### Bug Fixes
+
+* VerticalAlign ([7e5c855](https://github.com/qq15725/modern-text/commit/7e5c855680d17daa3133f532d559c1cdb97bf664))
+
+
+
 ## [0.0.12](https://github.com/qq15725/modern-text/compare/v0.0.11...v0.0.12) (2024-01-27)
 
 
