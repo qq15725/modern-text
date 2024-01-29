@@ -1,3 +1,12 @@
+## [0.0.14](https://github.com/qq15725/modern-text/compare/v0.0.13...v0.0.14) (2024-01-29)
+
+
+### Bug Fixes
+
+* punctuation text wrap ([3607f88](https://github.com/qq15725/modern-text/commit/3607f88da054a74a1165024c2864fc646dcf20aa))
+
+
+
 ## [0.0.13](https://github.com/qq15725/modern-text/compare/v0.0.12...v0.0.13) (2024-01-29)
 
 
