@@ -412,9 +412,19 @@ export class Text {
         this._setContextStyle(style)
         let content = ''
         let wrap = false
+        let index = 0
+        let measuring = ''
         for (const char of fragment.content) {
-          const charWidth = this.context!.measureText(char).width
-          const isNewline = /^[\r\n]$/.test(char)
+          if (Text.punctuationRegex.test(fragment.content[index + 1])) {
+            index++
+            measuring = char
+            continue
+          } else {
+            index++
+            measuring += char
+          }
+          const charWidth = this.context!.measureText(measuring).width
+          const isNewline = /^[\r\n]$/.test(measuring)
           if (
             isNewline
             || (
@@ -425,24 +435,21 @@ export class Text {
           ) {
             let pos = isNewline ? content.length + 1 : content.length
             if (!paragraphWidth && !pos) {
-              content += char
-              pos++
+              content += measuring
+              pos += measuring.length
             }
             if (content.length) fragments.push({ ...deepClone(fragment), content })
             if (fragments.length) {
-              wrapedParagraphs.push({
-                ...deepClone(paragraph),
-                fragments: fragments.slice(),
-              })
+              wrapedParagraphs.push({ ...deepClone(paragraph), fragments: fragments.slice() })
               fragments.length = 0
             }
-            const restText = fragment.content.substring(pos)
-            if (restText.length || restFragments.length) {
+            const restContent = fragment.content.substring(pos)
+            if (restContent.length || restFragments.length) {
               restParagraphs.unshift({
                 ...deepClone(paragraph),
                 fragments: (
-                  restText.length
-                    ? [{ ...deepClone(fragment), content: restText }]
+                  restContent.length
+                    ? [{ ...deepClone(fragment), content: restContent }]
                     : []
                 ).concat(restFragments.slice()),
               })
@@ -453,7 +460,8 @@ export class Text {
           } else {
             paragraphWidth += charWidth
           }
-          content += char
+          content += measuring
+          measuring = ''
         }
         if (!wrap) fragments.push(deepClone(fragment))
       }
