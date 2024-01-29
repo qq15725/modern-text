@@ -3,7 +3,7 @@ export type FontStyle = 'normal' | 'italic' | 'oblique' | `oblique ${ string }`
 export type FontKerning = 'auto' | 'none' | 'normal'
 export type TextWrap = 'wrap' | 'nowrap'
 export type TextAlign = 'center' | 'end' | 'left' | 'right' | 'start'
-export type VerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom' | 'sub' | 'text-top' | 'text-bottom'
+export type VerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom' | 'sub' | 'super' | 'text-top' | 'text-bottom'
 export type TextDecoration = 'underline' | 'line-through'
 
 export interface BoundingBox {
@@ -20,6 +20,7 @@ export interface TextParagraph {
   lineBox: BoundingBox
   glyphBox: BoundingBox
   baseline: number
+  xHeight: number
   fragments: Array<TextFragment>
   style: TextFragmentStyle
 }
@@ -201,8 +202,8 @@ export class Text {
           textAlign: 'center',
           verticalAlign: 'baseline',
         })
-        const result = context.measureText(fragment.content)
-        const contentWidth = result.width
+        const textMetrics = context.measureText(fragment.content)
+        const contentWidth = textMetrics.width
         const contentHeight = fragment.style.fontSize
         fragment.inlineBox = this._createBox(
           fragmentX,
@@ -216,18 +217,19 @@ export class Text {
           contentWidth,
           contentHeight,
         )
-        const xGlyphHeight = context.measureText('X').actualBoundingBoxAscent
-        const diffHeight = (fragment.contentBox.height - xGlyphHeight) / 2
-        const glyphBoxWidth = result.actualBoundingBoxLeft + result.actualBoundingBoxRight
-        const glyphBoxHeight = result.actualBoundingBoxAscent + result.actualBoundingBoxDescent
+        const fontHeight = textMetrics.fontBoundingBoxAscent + textMetrics.fontBoundingBoxDescent
+        const glyphWidth = textMetrics.actualBoundingBoxLeft + textMetrics.actualBoundingBoxRight
+        const glyphHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent
+        fragment.baseline = fragment.inlineBox.top
+          + (fragment.inlineBox.height - fontHeight) / 2
+          + textMetrics.fontBoundingBoxAscent
         fragment.glyphBox = this._createBox(
-          fragment.contentBox.left + (fragment.contentBox.width - glyphBoxWidth) / 2,
-          fragment.contentBox.top + diffHeight + (xGlyphHeight - result.actualBoundingBoxAscent),
-          glyphBoxWidth,
-          glyphBoxHeight,
+          fragment.contentBox.left + (fragment.contentBox.width - glyphWidth) / 2,
+          fragment.baseline - textMetrics.actualBoundingBoxAscent,
+          glyphWidth,
+          glyphHeight,
         )
-        fragment.centerX = fragment.glyphBox.left + result.actualBoundingBoxLeft
-        fragment.baseline = fragment.glyphBox.top + result.actualBoundingBoxAscent
+        fragment.centerX = fragment.glyphBox.left + textMetrics.actualBoundingBoxLeft
         fragmentX += fragment.contentBox.width
         contentBoxes.push(fragment.contentBox)
         paragraph.contentBox = this._mergeBoxes(contentBoxes)
@@ -242,10 +244,12 @@ export class Text {
         textAlign: 'left',
         verticalAlign: 'baseline',
       })
-      const result = context.measureText('X')
+      const xTextMetrics = context.measureText('x')
+      const xFontHeight = xTextMetrics.fontBoundingBoxAscent + xTextMetrics.fontBoundingBoxDescent
+      paragraph.xHeight = xTextMetrics.actualBoundingBoxAscent
       paragraph.baseline = paragraph.lineBox.top
-        + (paragraph.lineBox.height - result.actualBoundingBoxAscent + result.actualBoundingBoxDescent) / 2
-        + result.actualBoundingBoxAscent
+        + (paragraph.lineBox.height - xFontHeight) / 2
+        + xTextMetrics.fontBoundingBoxAscent
       paragraphY += paragraph.lineBox.height
     }
 
@@ -255,7 +259,6 @@ export class Text {
       paragraph.fragments.forEach(fragment => {
         const oldLeft = fragment.inlineBox.left
         const oldTop = fragment.inlineBox.top
-        const diffHeight = (paragraph.lineBox.height - fragment.inlineBox.height)
 
         let newLeft
         let newTop = oldTop
@@ -276,18 +279,25 @@ export class Text {
 
         switch (fragment.style.verticalAlign) {
           case 'top':
-            newTop = oldTop + paragraph.lineBox.top
+            newTop = oldTop + (paragraph.lineBox.top - fragment.inlineBox.top)
             break
           case 'middle':
-            newTop = oldTop + paragraph.lineBox.top + diffHeight / 2
+            newTop = (paragraph.baseline - paragraph.xHeight / 2) - fragment.inlineBox.height / 2
             break
           case 'bottom':
-            newTop = oldTop + paragraph.lineBox.top + diffHeight
+            newTop = oldTop + (paragraph.lineBox.bottom - fragment.inlineBox.bottom)
             break
           case 'sub':
+            newTop = oldTop + (paragraph.baseline - fragment.glyphBox.bottom)
+            break
+          case 'super':
+            newTop = oldTop + (paragraph.baseline - fragment.glyphBox.top)
+            break
           case 'text-top':
+            newTop = oldTop + (paragraph.glyphBox.top - fragment.inlineBox.top)
+            break
           case 'text-bottom':
-            // TODO
+            newTop = oldTop + (paragraph.glyphBox.bottom - fragment.inlineBox.bottom)
             break
           case 'baseline':
           default:
