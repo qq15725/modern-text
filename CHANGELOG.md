@@ -1,3 +1,12 @@
+## [0.0.16](https://github.com/qq15725/modern-text/compare/v0.0.15...v0.0.16) (2024-01-30)
+
+
+### Bug Fixes
+
+* glyphBox left ([55987b2](https://github.com/qq15725/modern-text/commit/55987b259df7a1ab2745d8abd336bb8c11023570))
+
+
+
 ## [0.0.15](https://github.com/qq15725/modern-text/compare/v0.0.14...v0.0.15) (2024-01-30)
 
 
