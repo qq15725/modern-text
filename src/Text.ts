@@ -224,7 +224,7 @@ export class Text {
           + (fragment.inlineBox.height - fontHeight) / 2
           + textMetrics.fontBoundingBoxAscent
         fragment.glyphBox = this._createBox(
-          fragment.contentBox.left + (fragment.contentBox.width - glyphWidth) / 2,
+          fragment.contentBox.left,
           fragment.baseline - textMetrics.actualBoundingBoxAscent,
           glyphWidth,
           glyphHeight,
