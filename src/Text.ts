@@ -397,7 +397,7 @@ export class Text {
   ): Array<TextParagraph> {
     const deepClone = (val: Record<string, any>) => JSON.parse(JSON.stringify(val))
 
-    const wrapedParagraphs: Array<TextParagraph> = []
+    const newParagraphs: Array<TextParagraph> = []
     const restParagraphs = paragraphs.slice()
     let paragraph: TextParagraph | undefined
     let fragment: TextFragment | undefined
@@ -415,14 +415,8 @@ export class Text {
         let index = 0
         let measuring = ''
         for (const char of fragment.content) {
-          if (Text.punctuationRegex.test(fragment.content[index + 1])) {
-            index++
-            measuring = char
-            continue
-          } else {
-            index++
-            measuring += char
-          }
+          measuring += char
+          if (Text.punctuationRegex.test(fragment.content[++index])) continue
           const charWidth = this.context!.measureText(measuring).width
           const isNewline = /^[\r\n]$/.test(measuring)
           if (
@@ -440,7 +434,7 @@ export class Text {
             }
             if (content.length) fragments.push({ ...deepClone(fragment), content })
             if (fragments.length) {
-              wrapedParagraphs.push({ ...deepClone(paragraph), fragments: fragments.slice() })
+              newParagraphs.push({ ...deepClone(paragraph), fragments: fragments.slice() })
               fragments.length = 0
             }
             const restContent = fragment.content.substring(pos)
@@ -466,10 +460,10 @@ export class Text {
         if (!wrap) fragments.push(deepClone(fragment))
       }
       if (fragments.length) {
-        wrapedParagraphs.push({ ...deepClone(paragraph), fragments })
+        newParagraphs.push({ ...deepClone(paragraph), fragments })
       }
     }
-    return wrapedParagraphs
+    return newParagraphs
   }
 
   protected _draw(paragraphs: Array<TextParagraph>) {
