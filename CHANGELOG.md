@@ -1,3 +1,12 @@
+## [0.0.15](https://github.com/qq15725/modern-text/compare/v0.0.14...v0.0.15) (2024-01-30)
+
+
+### Bug Fixes
+
+* punctuation logic ([6c04567](https://github.com/qq15725/modern-text/commit/6c04567019d8657230eadbe01d364cba06d96ad4))
+
+
+
 ## [0.0.14](https://github.com/qq15725/modern-text/compare/v0.0.13...v0.0.14) (2024-01-29)
 
 
