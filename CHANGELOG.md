@@ -1,3 +1,12 @@
+## [0.0.17](https://github.com/qq15725/modern-text/compare/v0.0.16...v0.0.17) (2024-02-05)
+
+
+### Features
+
+* add textTransform style ([d1cf305](https://github.com/qq15725/modern-text/commit/d1cf305824c0f164928c4b170b85c74149a941b1))
+
+
+
 ## [0.0.16](https://github.com/qq15725/modern-text/compare/v0.0.15...v0.0.16) (2024-01-30)
 
 
