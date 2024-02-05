@@ -5,6 +5,7 @@ export type TextWrap = 'wrap' | 'nowrap'
 export type TextAlign = 'center' | 'end' | 'left' | 'right' | 'start'
 export type VerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom' | 'sub' | 'super' | 'text-top' | 'text-bottom'
 export type TextDecoration = 'underline' | 'line-through'
+export type TextTransform = 'uppercase' | 'lowercase' | 'none'
 
 export interface BoundingBox {
   left: number
@@ -46,6 +47,7 @@ export interface TextFragmentStyle {
   textWrap: TextWrap
   textAlign: TextAlign
   verticalAlign: VerticalAlign
+  textTransform: TextTransform
   textDecoration: TextDecoration | null
   textStrokeWidth: number
   textStrokeColor: string
@@ -111,6 +113,7 @@ export class Text {
       textWrap: 'wrap',
       textAlign: 'start',
       verticalAlign: 'baseline',
+      textTransform: 'none',
       textDecoration: null,
       textStrokeWidth: 0,
       textStrokeColor: '#000000',
@@ -349,7 +352,20 @@ export class Text {
     const createTextFragments = (props: Record<string, any> = {}): Array<TextFragment> => {
       const fragments: Array<TextFragment> = []
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { width: _width, height: _height, ...style } = this.style
+      const { width: _width, height: _height, ...mainStyle } = this.style
+      const style = {
+        ...mainStyle,
+        ...props.style,
+      }
+      let content = (props.content ?? '') as string
+      switch (style.textTransform as TextTransform) {
+        case 'uppercase':
+          content = content.toUpperCase()
+          break
+        case 'lowercase':
+          content = content.toLowerCase()
+          break
+      }
       fragments.push({
         contentBox: this._createBox(),
         inlineBox: this._createBox(),
@@ -357,11 +373,8 @@ export class Text {
         centerX: 0,
         baseline: 0,
         ...props,
-        style: {
-          ...style,
-          ...props.style,
-        },
-        content: props.content ?? '',
+        style,
+        content,
       } as any)
       return fragments
     }
