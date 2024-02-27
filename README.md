@@ -30,6 +30,12 @@ const text = new Text({
     fontSize: 22,
     textDecoration: 'underline',
   },
+  // content: 'paragraph'
+  // content: ['paragraph1', 'paragraph2']
+  // content: [
+  //   { content: 'paragraph1', fontSize: 16 },
+  //   { content: 'paragraph2', fontSize: 20 },
+  // ]
   content: [
     {
       letterSpacing: 3,

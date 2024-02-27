@@ -82,7 +82,7 @@ export interface TextFragmentWithStyle extends Partial<TextFragmentStyle> {
 export type TextContent =
   | string
   | TextParagraphWithContentAndStyle | TextParagraphWithFragmentsAndStyle
-  | Array<TextParagraphWithContentAndStyle | TextParagraphWithFragmentsAndStyle>
+  | Array<string | TextParagraphWithContentAndStyle | TextParagraphWithFragmentsAndStyle>
 
 export interface TextOptions {
   view?: HTMLCanvasElement
@@ -194,7 +194,7 @@ export class Text {
     let { width } = this.style
     if (width === 'auto') width = 0
     let paragraphs = this._createParagraphs(this.content)
-    paragraphs = this._createWrapedParagraphs(paragraphs, width)
+    paragraphs = this._wrapParagraphs(paragraphs, width)
     const context = this.context
     let paragraphY = 0
     for (let len = paragraphs.length, i = 0; i < len; i++) {
@@ -335,7 +335,7 @@ export class Text {
   }
 
   protected _createParagraphs(content: TextContent): Array<TextParagraph> {
-    const createTextParagraph = (props: Record<string, any> = {}): TextParagraph => {
+    const createParagraph = (props: Record<string, any> = {}): TextParagraph => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { width: _width, height: _height, ...style } = this.style
       return {
@@ -352,8 +352,7 @@ export class Text {
       } as any
     }
 
-    const createTextFragments = (props: Record<string, any> = {}): Array<TextFragment> => {
-      const fragments: Array<TextFragment> = []
+    const createFragment = (props: Record<string, any> = {}): TextFragment => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { width: _width, height: _height, ...mainStyle } = this.style
       const style = {
@@ -369,7 +368,7 @@ export class Text {
           content = content.toLowerCase()
           break
       }
-      fragments.push({
+      return {
         contentBox: this._createBox(),
         inlineBox: this._createBox(),
         glyphBox: this._createBox(),
@@ -378,28 +377,31 @@ export class Text {
         ...props,
         style,
         content,
-      } as any)
-      return fragments
+      } as any
     }
 
     const paragraphs: Array<TextParagraph> = []
     if (typeof content === 'string') {
-      paragraphs.push(createTextParagraph({ fragments: createTextFragments({ content }) }))
+      paragraphs.push(createParagraph({ fragments: [createFragment({ content })] }))
     } else {
       content = Array.isArray(content) ? content : [content]
       for (const p of content) {
-        if ('fragments' in p) {
+        if (typeof p === 'string') {
+          const paragraph = createParagraph()
+          paragraph.fragments.push(createFragment({ content: p }))
+          paragraphs.push(paragraph)
+        } else if ('fragments' in p) {
           const { fragments, ...pStyle } = p
-          const paragraph = createTextParagraph({ style: pStyle })
+          const paragraph = createParagraph({ style: pStyle })
           for (const f of fragments) {
             const { content: fData, ...fStyle } = f
-            paragraph.fragments.push(...createTextFragments({ content: fData, style: { ...pStyle, ...fStyle } }))
+            paragraph.fragments.push(createFragment({ content: fData, style: { ...pStyle, ...fStyle } }))
           }
           paragraphs.push(paragraph)
         } else if ('content' in p) {
           const { content: pData, ...pStyle } = p
-          const paragraph = createTextParagraph({ style: pStyle })
-          paragraph.fragments.push(...createTextFragments({ content: pData, style: pStyle }))
+          const paragraph = createParagraph({ style: pStyle })
+          paragraph.fragments.push(createFragment({ content: pData, style: pStyle }))
           paragraphs.push(paragraph)
         }
       }
@@ -407,7 +409,7 @@ export class Text {
     return paragraphs
   }
 
-  protected _createWrapedParagraphs(
+  protected _wrapParagraphs(
     paragraphs: Array<TextParagraph>,
     width: number,
   ): Array<TextParagraph> {
