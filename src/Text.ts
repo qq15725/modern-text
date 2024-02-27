@@ -82,7 +82,7 @@ export interface TextFragmentWithStyle extends Partial<TextFragmentStyle> {
 export type TextContent =
   | string
   | TextParagraphWithContentAndStyle | TextParagraphWithFragmentsAndStyle
-  | Array<string | TextParagraphWithContentAndStyle | TextParagraphWithFragmentsAndStyle>
+  | Array<string | Array<string | TextParagraphWithContentAndStyle> | TextParagraphWithContentAndStyle | TextParagraphWithFragmentsAndStyle>
 
 export interface TextOptions {
   view?: HTMLCanvasElement
@@ -352,11 +352,22 @@ export class Text {
       } as any
     }
 
-    const createFragment = (props: Record<string, any> = {}): TextFragment => {
+    const createFragment = (
+      source: string | Record<string, any>,
+      paragraphStyle?: Record<string, any>,
+    ): TextFragment => {
+      let props
+      if (typeof source === 'string') {
+        props = { content: source }
+      } else {
+        const { content, ...style } = source
+        props = { content, style }
+      }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { width: _width, height: _height, ...mainStyle } = this.style
       const style = {
         ...mainStyle,
+        ...paragraphStyle,
         ...props.style,
       }
       let content = (props.content ?? '') as string
@@ -382,27 +393,26 @@ export class Text {
 
     const paragraphs: Array<TextParagraph> = []
     if (typeof content === 'string') {
-      paragraphs.push(createParagraph({ fragments: [createFragment({ content })] }))
+      paragraphs.push(createParagraph({ fragments: [createFragment(content)] }))
     } else {
       content = Array.isArray(content) ? content : [content]
       for (const p of content) {
         if (typeof p === 'string') {
-          const paragraph = createParagraph()
-          paragraph.fragments.push(createFragment({ content: p }))
-          paragraphs.push(paragraph)
+          paragraphs.push(createParagraph({ fragments: [createFragment(p)] }))
+        } else if (Array.isArray(p)) {
+          paragraphs.push(createParagraph({ fragments: p.map(f => createFragment(f)) }))
         } else if ('fragments' in p) {
           const { fragments, ...pStyle } = p
-          const paragraph = createParagraph({ style: pStyle })
-          for (const f of fragments) {
-            const { content: fData, ...fStyle } = f
-            paragraph.fragments.push(createFragment({ content: fData, style: { ...pStyle, ...fStyle } }))
-          }
-          paragraphs.push(paragraph)
+          paragraphs.push(createParagraph({
+            style: pStyle,
+            fragments: fragments.map(f => createFragment(f, pStyle)),
+          }))
         } else if ('content' in p) {
           const { content: pData, ...pStyle } = p
-          const paragraph = createParagraph({ style: pStyle })
-          paragraph.fragments.push(createFragment({ content: pData, style: pStyle }))
-          paragraphs.push(paragraph)
+          paragraphs.push(createParagraph({
+            style: pStyle,
+            fragments: [createFragment(pData, pStyle)],
+          }))
         }
       }
     }

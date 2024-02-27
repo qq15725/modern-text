@@ -31,10 +31,21 @@ const text = new Text({
     textDecoration: 'underline',
   },
   // content: 'paragraph'
-  // content: ['paragraph1', 'paragraph2']
   // content: [
-  //   { content: 'paragraph1', fontSize: 16 },
+  //   'paragraph1',
+  //   ['paragraph1', 'paragraph2'],
   //   { content: 'paragraph2', fontSize: 20 },
+  //   [
+  //     { content: 'fragment1', fontSize: 12 },
+  //     { content: 'fragment2', fontSize: 30 },
+  //   ],
+  //   {
+  //     backgroundColor: 'blue',
+  //     fragments: [
+  //       { content: 'fragment3', color: 'red', fontSize: 12 },
+  //       { content: 'fragment4', color: 'black' },
+  //     ],
+  //   },
   // ]
   content: [
     {
