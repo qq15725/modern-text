@@ -6,6 +6,7 @@ export type TextAlign = 'center' | 'end' | 'left' | 'right' | 'start'
 export type VerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom' | 'sub' | 'super' | 'text-top' | 'text-bottom'
 export type TextDecoration = 'underline' | 'line-through'
 export type TextTransform = 'uppercase' | 'lowercase' | 'none'
+export type WritingMode = 'horizontal-tb' | 'vertical-lr' | 'vertical-rl'
 
 export interface BoundingBox {
   left: number
@@ -58,6 +59,7 @@ export interface TextFragmentStyle {
   shadowOffsetX: number
   shadowOffsetY: number
   shadowBlur: number
+  writingMode: WritingMode
 }
 
 export interface TextStyle extends TextFragmentStyle {
@@ -124,6 +126,7 @@ export class Text {
       shadowOffsetX: 0,
       shadowOffsetY: 0,
       shadowBlur: 0,
+      writingMode: 'horizontal-tb',
     }
   }
 
@@ -422,6 +425,7 @@ export class Text {
       // eslint-disable-next-line no-cond-assign
       while (fragment = restFragments.shift()) {
         const style = fragment.style
+        const isVertical = style.writingMode?.startsWith('vertical')
         this._setContextStyle(style)
         let content = ''
         let wrap = false
@@ -429,11 +433,12 @@ export class Text {
         let measuring = ''
         for (const char of fragment.content) {
           measuring += char
-          if (Text.punctuationRegex.test(fragment.content[++index])) continue
+          if (!isVertical && Text.punctuationRegex.test(fragment.content[++index])) continue
           const charWidth = this.context!.measureText(measuring).width
           const isNewline = /^[\r\n]$/.test(measuring)
           if (
             isNewline
+            || isVertical
             || (
               style.textWrap === 'wrap'
               && width
