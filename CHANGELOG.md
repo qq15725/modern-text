@@ -1,3 +1,14 @@
+## [0.0.18](https://github.com/qq15725/modern-text/compare/v0.0.17...v0.0.18) (2024-02-27)
+
+
+### Features
+
+* TextContent support Array<string> ([ca6249d](https://github.com/qq15725/modern-text/commit/ca6249d399125de2e28a85601f70137d8e40d8d6))
+* TextContent support more type ([b2958dc](https://github.com/qq15725/modern-text/commit/b2958dc9ba43931589619ed8f9d5a02149ac8f4b))
+* writingMode ([cac2540](https://github.com/qq15725/modern-text/commit/cac2540f32045f50d71c35b2d2980e847f2e7149))
+
+
+
 ## [0.0.17](https://github.com/qq15725/modern-text/compare/v0.0.16...v0.0.17) (2024-02-05)
 
 
