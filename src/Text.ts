@@ -339,7 +339,7 @@ export class Text {
     ])
 
     const mergeStyle = (...styles: Array<Record<string, any>>) => {
-      const lastStyle = styles.pop()
+      const lastStyle = styles.pop()!
       return styles.reduce((merged, style) => {
         for (const key in style) {
           if (!excludeStyles.has(key)) {
