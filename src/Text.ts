@@ -1,3 +1,5 @@
+import { parseCssLinearGradient } from './utils'
+
 export type FontWeight = 'normal' | 'bold' | 'lighter' | 'bolder' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
 export type FontStyle = 'normal' | 'italic' | 'oblique' | `oblique ${ string }`
 export type FontKerning = 'auto' | 'none' | 'normal'
@@ -38,7 +40,7 @@ export interface TextFragment {
 }
 
 export interface TextFragmentStyle {
-  color: string
+  color?: string
   backgroundColor?: string
   fontSize: number
   fontWeight: FontWeight
@@ -51,11 +53,11 @@ export interface TextFragmentStyle {
   textTransform: TextTransform
   textDecoration: TextDecoration | null
   textStrokeWidth: number
-  textStrokeColor: string
+  textStrokeColor?: string
   direction: 'inherit' | 'ltr' | 'rtl'
   lineHeight: number
   letterSpacing: number
-  shadowColor: string
+  shadowColor?: string
   shadowOffsetX: number
   shadowOffsetY: number
   shadowBlur: number
@@ -106,7 +108,6 @@ export class Text {
     return {
       width: 'auto',
       height: 'auto',
-      color: '#000000',
       fontSize: 14,
       fontWeight: 'normal',
       fontFamily: 'sans-serif',
@@ -118,11 +119,9 @@ export class Text {
       textTransform: 'none',
       textDecoration: null,
       textStrokeWidth: 0,
-      textStrokeColor: '#000000',
       direction: 'inherit',
       lineHeight: 1,
       letterSpacing: 0,
-      shadowColor: '#000000',
       shadowOffsetX: 0,
       shadowOffsetY: 0,
       shadowBlur: 0,
@@ -335,6 +334,22 @@ export class Text {
   }
 
   protected _createParagraphs(content: TextContent): Array<TextParagraph> {
+    const excludeStyles = new Set([
+      'color', 'backgroundColor', 'textStrokeColor', 'shadowColor',
+    ])
+
+    const mergeStyle = (...styles: Array<Record<string, any>>) => {
+      const lastStyle = styles.pop()
+      return styles.reduce((merged, style) => {
+        for (const key in style) {
+          if (!excludeStyles.has(key)) {
+            merged[key] = (style as any)[key]
+          }
+        }
+        return merged
+      }, lastStyle)
+    }
+
     const createParagraph = (props: Record<string, any> = {}): TextParagraph => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { width: _width, height: _height, ...style } = this.style
@@ -345,10 +360,7 @@ export class Text {
         baseline: 0,
         fragments: [],
         ...props,
-        style: {
-          ...style,
-          ...props.style,
-        },
+        style: mergeStyle(style, props.style ?? {}),
       } as any
     }
 
@@ -365,11 +377,7 @@ export class Text {
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { width: _width, height: _height, ...mainStyle } = this.style
-      const style = {
-        ...mainStyle,
-        ...paragraphStyle,
-        ...props.style,
-      }
+      const style = mergeStyle(mainStyle, paragraphStyle ?? {}, props.style ?? {})
       let content = (props.content ?? '') as string
       switch (style.textTransform as TextTransform) {
         case 'uppercase':
@@ -498,42 +506,52 @@ export class Text {
 
   protected _draw(paragraphs: Array<TextParagraph>) {
     const context = this.context!
+    const { width, height } = context.canvas
+    const box = { left: 0, top: 0, width, height }
+
+    // backgroundColor
     if (this.style.backgroundColor) {
-      context.fillStyle = this.style.backgroundColor
-      context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+      context.fillStyle = this._parseColor(this.style.backgroundColor, box)
+      context.fillRect(0, 0, width, height)
     }
     paragraphs.forEach(paragraph => {
       if (paragraph.style.backgroundColor) {
-        context.fillStyle = paragraph.style.backgroundColor
+        context.fillStyle = this._parseColor(paragraph.style.backgroundColor, paragraph.contentBox)
         context.fillRect(paragraph.lineBox.left, paragraph.lineBox.top, paragraph.lineBox.width, paragraph.lineBox.height)
       }
-    })
-    paragraphs.forEach(paragraph => {
       paragraph.fragments.forEach(fragment => {
         if (fragment.style.backgroundColor) {
-          context.fillStyle = fragment.style.backgroundColor
+          context.fillStyle = this._parseColor(fragment.style.backgroundColor, fragment.contentBox)
           context.fillRect(fragment.inlineBox.left, fragment.inlineBox.top, fragment.inlineBox.width, fragment.inlineBox.height)
         }
+      })
+    })
+
+    this._setContextStyle(this.style, box)
+    paragraphs.forEach(paragraph => {
+      this._setContextStyle(paragraph.style, paragraph.contentBox)
+      paragraph.fragments.forEach(fragment => {
         this._setContextStyle({
           ...fragment.style,
           textAlign: 'left',
           verticalAlign: 'top',
-        })
+        }, fragment.contentBox)
+        const { left, top, width, height } = fragment.contentBox
         if (fragment.style.textStrokeWidth) {
-          context.strokeText(fragment.content, fragment.contentBox.left, fragment.contentBox.top)
+          context.strokeText(fragment.content, left, top)
         }
-        context.fillText(fragment.content, fragment.contentBox.left, fragment.contentBox.top)
+        context.fillText(fragment.content, left, top)
         switch (fragment.style.textDecoration) {
           case 'underline':
             context.beginPath()
-            context.moveTo(fragment.contentBox.left, fragment.contentBox.top + fragment.contentBox.height - 2)
-            context.lineTo(fragment.contentBox.left + fragment.contentBox.width, fragment.contentBox.top + fragment.contentBox.height - 2)
+            context.moveTo(left, top + height - 2)
+            context.lineTo(left + width, top + height - 2)
             context.stroke()
             break
           case 'line-through':
             context.beginPath()
-            context.moveTo(fragment.contentBox.left, fragment.contentBox.top + fragment.contentBox.height / 2)
-            context.lineTo(fragment.contentBox.left + fragment.contentBox.width, fragment.contentBox.top + fragment.contentBox.height / 2)
+            context.moveTo(left, top + height / 2)
+            context.lineTo(left + width, top + height / 2)
             context.stroke()
             break
         }
@@ -551,15 +569,31 @@ export class Text {
     view.height = Math.max(1, Math.floor(height * this.pixelRatio))
   }
 
-  protected _setContextStyle(style: TextFragmentStyle) {
+  protected _parseColor(cssColor: string, box: Omit<BoundingBox, 'right' | 'bottom'>) {
+    if (cssColor.startsWith('linear-gradient')) {
+      const { x0, y0, x1, y1, stops } = parseCssLinearGradient(cssColor, box.left, box.top, box.width, box.height)
+      const gradient = this.context.createLinearGradient(x0, y0, x1, y1)
+      stops.forEach(stop => gradient.addColorStop(stop.offset, stop.color))
+      return gradient
+    }
+    return cssColor
+  }
+
+  protected _setContextStyle(style: TextFragmentStyle, box?: Omit<BoundingBox, 'right' | 'bottom'>) {
     const context = this.context
-    context.shadowColor = style.shadowColor
+    if (style.shadowColor) {
+      context.shadowColor = style.shadowColor
+    }
     context.shadowOffsetX = style.shadowOffsetX
     context.shadowOffsetY = style.shadowOffsetY
     context.shadowBlur = style.shadowBlur
-    context.strokeStyle = style.textStrokeColor
+    if (style.textStrokeColor && box) {
+      context.strokeStyle = this._parseColor(style.textStrokeColor, box)
+    }
     context.lineWidth = style.textStrokeWidth
-    context.fillStyle = style.color
+    if (style.color && box) {
+      context.fillStyle = this._parseColor(style.color, box)
+    }
     context.direction = style.direction
     context.textAlign = style.textAlign
     switch (style.verticalAlign) {
