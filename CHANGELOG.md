@@ -1,3 +1,12 @@
+# [0.1.0](https://github.com/qq15725/modern-text/compare/v0.0.18...v0.1.0) (2024-03-16)
+
+
+### Features
+
+* support css linear gradient ([57fb1d9](https://github.com/qq15725/modern-text/commit/57fb1d9b11769fbd1a2bcb158f0924420ed760f3))
+
+
+
 ## [0.0.18](https://github.com/qq15725/modern-text/compare/v0.0.17...v0.0.18) (2024-02-27)
 
 
