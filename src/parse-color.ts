@@ -1,4 +1,20 @@
-export function parseCssLinearGradient(css: string, x: number, y: number, width: number, height: number) {
+import type { BoundingBox } from './bounding-box'
+
+export function parseColor(
+  ctx: CanvasRenderingContext2D,
+  source: string | CanvasGradient | CanvasPattern,
+  box: BoundingBox,
+): string | CanvasGradient | CanvasPattern {
+  if (typeof source === 'string' && source.startsWith('linear-gradient')) {
+    const { x0, y0, x1, y1, stops } = parseCssLinearGradient(source, box.left, box.top, box.width, box.height)
+    const gradient = ctx.createLinearGradient(x0, y0, x1, y1)
+    stops.forEach(stop => gradient.addColorStop(stop.offset, stop.color))
+    return gradient
+  }
+  return source
+}
+
+function parseCssLinearGradient(css: string, x: number, y: number, width: number, height: number) {
   const str = css.match(/linear-gradient\((.+)\)$/)?.[1] ?? ''
   const first = str.split(',')[0]
   const cssDeg = first.includes('deg') ? first : '0deg'

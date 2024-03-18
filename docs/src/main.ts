@@ -1,14 +1,21 @@
-import { Text } from '../../src'
+import { measureText, renderText } from '../../src'
+import type { MeasureTextOptions } from '../../src'
 
-const text = new Text({
+const text: MeasureTextOptions = {
   style: {
-    fontSize: 44,
-    width: 1003,
-    color: 'linear-gradient(0deg, rgb(235, 229, 229) 0%, rgba(235, 229, 229, 0) 90.7609%)',
+    fontSize: 39,
+    height: 585,
+    width: 159,
+    // color: 'linear-gradient(0deg, rgb(235, 229, 229) 0%, rgba(235, 229, 229, 0) 90.7609%)',
+    lineHeight: 2,
+    letterSpacing: 13,
+    writingMode: 'vertical-rl',
   },
-  content: '廉以养德、静以修身：廉洁自律诗词金句大集萃！ 多植荷花塘自清，勤反腐败政自明。 水不流则腐，官不廉则败。 修身养性心如玉，纵欲贪色形成魔。 勤以为民，廉以养德，淡以明志，静以修身。 身有正气，不',
-})
+  content: [
+    '一束鲜花，一面春光',
+    '欣于所遇，快然自足',
+  ],
+}
 
-document.body.append(text.view)
-
-console.log(text.measure(text.style.width))
+console.log(measureText(text))
+document.body.append(renderText(text))

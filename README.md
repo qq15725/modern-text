@@ -21,9 +21,9 @@
 ## Usage
 
 ```ts
-import { Text } from 'modern-text'
+import { measureText, renderText } from 'modern-text'
 
-const text = new Text({
+const text = {
   style: {
     width: 100,
     height: 200,
@@ -58,9 +58,9 @@ const text = new Text({
     { content: ', ', color: 'grey' },
     { content: 'World!', color: 'black' },
   ],
-})
+}
 
-document.body.append(text.view) // canvas 2d
+document.body.append(renderText(text)) // canvas 2d
 
-console.log(text.measure()) // boundingBox with computed paragraphs
+console.log(measureText(text)) // boundingBox with computed paragraphs
 ```
