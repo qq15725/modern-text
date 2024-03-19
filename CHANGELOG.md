@@ -1,3 +1,13 @@
+## [0.1.2](https://github.com/qq15725/modern-text/compare/v0.1.1...v0.1.2) (2024-03-19)
+
+
+### Features
+
+* support vertical-rl / vertical-lr ([db99dbc](https://github.com/qq15725/modern-text/commit/db99dbc5af5c0b8e5cca43d0c49e0dfe34c43456))
+* support vertical-rl / vertical-lr ([b132f25](https://github.com/qq15725/modern-text/commit/b132f250957ac95693be886dd2305ff62fd23cc8))
+
+
+
 ## [0.1.1](https://github.com/qq15725/modern-text/compare/v0.1.0...v0.1.1) (2024-03-16)
 
 
