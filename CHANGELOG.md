@@ -1,3 +1,12 @@
+## [0.1.3](https://github.com/qq15725/modern-text/compare/v0.1.2...v0.1.3) (2024-03-19)
+
+
+### Features
+
+* support renderText to view ([4bf5723](https://github.com/qq15725/modern-text/commit/4bf57237576545c61972d5281ffebb19a56d550c))
+
+
+
 ## [0.1.2](https://github.com/qq15725/modern-text/compare/v0.1.1...v0.1.2) (2024-03-19)
 
 
