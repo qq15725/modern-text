@@ -33,6 +33,7 @@ export function setContextStyle(ctx: OffscreenCanvasRenderingContext2D | CanvasR
       ctx.textBaseline = style.verticalAlign
       break
   }
+  if (style.letterSpacing !== undefined) (ctx as any).letterSpacing = `${ style.letterSpacing }px`
   if (
     style.fontStyle
     || style.fontWeight !== undefined

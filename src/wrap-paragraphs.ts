@@ -27,7 +27,10 @@ export function wrapParagraphs(
       let index = 0
       let word = ''
       for (const c of f.content) {
-        p.maxCharWidth = Math.max(p.maxCharWidth, canvasMeasureText(c, fStyle).width)
+        p.maxCharWidth = Math.max(
+          p.maxCharWidth,
+          canvasMeasureText(c, { ...fStyle, letterSpacing: 0 }).width,
+        )
         word += c
         if (punctuationRE.test(f.content[++index])) continue
         let size
@@ -41,7 +44,7 @@ export function wrapParagraphs(
           case 'horizontal-tb':
           default:
             size = width
-            cSize = canvasMeasureText(word, fStyle).width
+            cSize = canvasMeasureText(word, { ...fStyle, letterSpacing: 0 }).width
             break
         }
         cSize += word.length * fStyle.letterSpacing

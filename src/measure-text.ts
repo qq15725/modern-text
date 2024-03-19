@@ -52,8 +52,9 @@ export function measureText(options: MeasureTextOptions) {
   let paragraphs = parseParagraphs(content, style)
   paragraphs = wrapParagraphs(paragraphs, userWidth, userHeight)
 
-  const maxVerticalWidth = paragraphs.reduce((w, p) => w + p.maxCharWidth, 0)
-
+  let vWidth = paragraphs.reduce((w, p) => {
+    return w + p.maxCharWidth * p.getComputedStyle().lineHeight
+  }, 0)
   let px = 0
   let py = 0
   paragraphs.forEach(p => {
@@ -65,13 +66,17 @@ export function measureText(options: MeasureTextOptions) {
       const fStyle = f.getComputedStyle()
       switch (fStyle.writingMode) {
         case 'vertical-rl':
-          fx = maxVerticalWidth - fx
-        // eslint-disable-next-line no-fallthrough
         case 'vertical-lr': {
-          if (!i) fy = 0
-          const len = f.content.length
           const fWidth = p.maxCharWidth
           const fLineWidth = fWidth * fStyle.lineHeight
+          if (!i) {
+            fy = 0
+            if (fStyle.writingMode === 'vertical-rl') {
+              vWidth -= fLineWidth
+              fx = vWidth
+            }
+          }
+          const len = f.content.length
           const fHeight = len * fStyle.fontSize + (len - 1) * fStyle.letterSpacing
           f.contentBox.x = fx + (fLineWidth - fWidth) / 2
           f.contentBox.y = fy
@@ -87,7 +92,7 @@ export function measureText(options: MeasureTextOptions) {
           f.glyphBox.height = fHeight
           f.baseline = 0
           f.centerX = fx + fLineWidth / 2
-          fy += fHeight
+          fy += fHeight + fStyle.letterSpacing
           break
         }
         case 'horizontal-tb': {
