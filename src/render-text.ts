@@ -14,26 +14,27 @@ export function renderText(options: RenderTextOptions) {
     pixelRatio = 1,
   } = options
   const style = { ...rawStyle }
-  let { width = 0, height = 0 } = style
-  const { contentBox, paragraphs } = measureText(options)
-  if (!width) width = contentBox.width
-  if (!height) height = contentBox.height
+  const { box, viewBox, paragraphs } = measureText(options)
+  const { x, y, width, height } = viewBox
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')!
-  canvas.style.width = `${ width }px`
-  canvas.style.height = `${ height }px`
-  canvas.dataset.width = String(width)
-  canvas.dataset.height = String(height)
-  canvas.width = Math.max(1, Math.floor(width * pixelRatio))
-  canvas.height = Math.max(1, Math.floor(height * pixelRatio))
+  const canvasWidth = -x + width
+  const canvasHeight = -y + height
+  canvas.style.width = `${ canvasWidth }px`
+  canvas.style.height = `${ canvasHeight }px`
+  canvas.dataset.width = String(box.width)
+  canvas.dataset.height = String(box.height)
+  canvas.dataset.pixelRatio = String(pixelRatio)
+  canvas.width = Math.max(1, Math.floor(canvasWidth * pixelRatio))
+  canvas.height = Math.max(1, Math.floor(canvasHeight * pixelRatio))
   ctx.scale(pixelRatio, pixelRatio)
   ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.translate(-x, -y)
 
-  const box = new BoundingBox({ width, height })
-
-  if (style?.color) style.color = parseColor(ctx, style.color, box)
-  if (style?.backgroundColor) style.backgroundColor = parseColor(ctx, style.backgroundColor, box)
-  if (style?.textStrokeColor) style.textStrokeColor = parseColor(ctx, style.textStrokeColor, box)
+  const colorBox = new BoundingBox({ width, height })
+  if (style?.color) style.color = parseColor(ctx, style.color, colorBox)
+  if (style?.backgroundColor) style.backgroundColor = parseColor(ctx, style.backgroundColor, colorBox)
+  if (style?.textStrokeColor) style.textStrokeColor = parseColor(ctx, style.textStrokeColor, colorBox)
   if (style?.backgroundColor) {
     ctx.fillStyle = style.backgroundColor
     ctx.fillRect(0, 0, canvas.width, canvas.height)

@@ -45,22 +45,6 @@ export class BoundingBox {
     return this
   }
 
-  flipVerticalLr(width: number, height: number) {
-    const { x, y } = this
-    this.x = y
-    this.y = x
-    this.width = width
-    this.height = height
-  }
-
-  flipVerticalRl(width: number, height: number, totalWidth: number) {
-    const { x, y } = this
-    this.x = totalWidth - y - width
-    this.y = x
-    this.width = width
-    this.height = height
-  }
-
   clone() {
     return new BoundingBox({
       x: this.x,
