@@ -5,30 +5,31 @@ import { BoundingBox } from './bounding-box'
 import type { MeasureTextOptions } from './measure-text'
 
 export interface RenderTextOptions extends MeasureTextOptions {
+  view?: HTMLCanvasElement
   pixelRatio?: number
 }
 
 export function renderText(options: RenderTextOptions) {
   const {
+    view = document.createElement('canvas'),
     style: rawStyle,
     pixelRatio = 1,
   } = options
   const style = { ...rawStyle }
   const { box, viewBox, paragraphs } = measureText(options)
   const { x, y, width, height } = viewBox
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')!
+  const ctx = view.getContext('2d')!
   const canvasWidth = -x + width
   const canvasHeight = -y + height
-  canvas.style.width = `${ canvasWidth }px`
-  canvas.style.height = `${ canvasHeight }px`
-  canvas.dataset.width = String(box.width)
-  canvas.dataset.height = String(box.height)
-  canvas.dataset.pixelRatio = String(pixelRatio)
-  canvas.width = Math.max(1, Math.floor(canvasWidth * pixelRatio))
-  canvas.height = Math.max(1, Math.floor(canvasHeight * pixelRatio))
+  view.style.width = `${ canvasWidth }px`
+  view.style.height = `${ canvasHeight }px`
+  view.dataset.width = String(box.width)
+  view.dataset.height = String(box.height)
+  view.dataset.pixelRatio = String(pixelRatio)
+  view.width = Math.max(1, Math.floor(canvasWidth * pixelRatio))
+  view.height = Math.max(1, Math.floor(canvasHeight * pixelRatio))
   ctx.scale(pixelRatio, pixelRatio)
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.clearRect(0, 0, view.width, view.height)
   ctx.translate(-x, -y)
 
   const colorBox = new BoundingBox({ width, height })
@@ -37,7 +38,7 @@ export function renderText(options: RenderTextOptions) {
   if (style?.textStrokeColor) style.textStrokeColor = parseColor(ctx, style.textStrokeColor, colorBox)
   if (style?.backgroundColor) {
     ctx.fillStyle = style.backgroundColor
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.fillRect(0, 0, view.width, view.height)
   }
   paragraphs.forEach(p => {
     if (p.style?.color) p.style.color = parseColor(ctx, p.style.color, p.contentBox)
@@ -101,5 +102,5 @@ export function renderText(options: RenderTextOptions) {
       }
     })
   })
-  return canvas
+  return view
 }
