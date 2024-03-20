@@ -1,3 +1,12 @@
+## [0.1.5](https://github.com/qq15725/modern-text/compare/v0.1.4...v0.1.5) (2024-03-20)
+
+
+### Features
+
+* support draws option in render text ([0cc6112](https://github.com/qq15725/modern-text/commit/0cc61125f034460f629f1284e271e5b7ad3485d9))
+
+
+
 ## [0.1.4](https://github.com/qq15725/modern-text/compare/v0.1.3...v0.1.4) (2024-03-19)
 
 
