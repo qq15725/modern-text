@@ -1,3 +1,12 @@
+## [0.1.7](https://github.com/qq15725/modern-text/compare/v0.1.6...v0.1.7) (2024-03-20)
+
+
+### Bug Fixes
+
+* render ([2c63f25](https://github.com/qq15725/modern-text/commit/2c63f25eaec800f7658e92440d4c6351b88e7a84))
+
+
+
 ## [0.1.6](https://github.com/qq15725/modern-text/compare/v0.1.5...v0.1.6) (2024-03-20)
 
 
