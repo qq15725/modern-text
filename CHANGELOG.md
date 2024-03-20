@@ -1,3 +1,12 @@
+## [0.1.6](https://github.com/qq15725/modern-text/compare/v0.1.5...v0.1.6) (2024-03-20)
+
+
+### Bug Fixes
+
+* textStrokeWidth ([b3024bd](https://github.com/qq15725/modern-text/commit/b3024bdd9d066ab5ef62e3770af2dc48de046ff4))
+
+
+
 ## [0.1.5](https://github.com/qq15725/modern-text/compare/v0.1.4...v0.1.5) (2024-03-20)
 
 
