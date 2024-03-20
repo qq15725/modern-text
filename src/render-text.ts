@@ -75,12 +75,11 @@ export function renderText(options: RenderTextOptions) {
       })
     })
 
-    setContextStyle(ctx, style)
     paragraphs.forEach(p => {
-      p.style && setContextStyle(ctx, p.style)
       p.fragments.forEach(f => {
+        const fStyle = { ...f.getComputedStyle(), ...drawStyle }
         setContextStyle(ctx, {
-          ...f.style,
+          ...fStyle,
           textAlign: 'left',
           verticalAlign: 'top',
         })
@@ -88,7 +87,6 @@ export function renderText(options: RenderTextOptions) {
         let { x, y, width, height } = f.contentBox
         if (drawStyle.offsetX) x += drawStyle.offsetX
         if (drawStyle.offsetY) y += drawStyle.offsetY
-        const fStyle = { ...f.getComputedStyle(), ...drawStyle }
         switch (fStyle.writingMode) {
           case 'vertical-rl':
           case 'vertical-lr': {
