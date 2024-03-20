@@ -20,7 +20,6 @@ export function setContextStyle(ctx: OffscreenCanvasRenderingContext2D | CanvasR
   if (style.textStrokeColor) ctx.strokeStyle = style.textStrokeColor
   if (style.textStrokeWidth !== undefined) ctx.lineWidth = style.textStrokeWidth
   if (style.color) ctx.fillStyle = style.color
-  if (style.direction) ctx.direction = style.direction
   if (style.textAlign) ctx.textAlign = style.textAlign
   if (style.fontKerning) ctx.fontKerning = style.fontKerning
   switch (style.verticalAlign) {

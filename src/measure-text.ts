@@ -33,7 +33,6 @@ function resolveStyle(style?: Partial<MeasureTextStyle>): MeasureTextStyle {
     textDecoration: null,
     textStrokeWidth: 0,
     textStrokeColor: null,
-    direction: 'inherit',
     lineHeight: 1,
     letterSpacing: 0,
     shadowColor: null,

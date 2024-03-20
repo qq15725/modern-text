@@ -2,20 +2,28 @@ import { measureText } from './measure-text'
 import { setContextStyle } from './canvas'
 import { parseColor } from './parse-color'
 import { BoundingBox } from './bounding-box'
+import type { TextDrawStyle } from './types'
 import type { MeasureTextOptions } from './measure-text'
 
 export interface RenderTextOptions extends MeasureTextOptions {
   view?: HTMLCanvasElement
+  draws?: Array<Partial<TextDrawStyle & { offsetX: number; offsetY: number }>>
   pixelRatio?: number
+}
+
+function uploadColor(ctx: CanvasRenderingContext2D, box: BoundingBox, style?: Partial<TextDrawStyle>) {
+  if (style?.color) style.color = parseColor(ctx, style.color, box)
+  if (style?.backgroundColor) style.backgroundColor = parseColor(ctx, style.backgroundColor, box)
+  if (style?.textStrokeColor) style.textStrokeColor = parseColor(ctx, style.textStrokeColor, box)
 }
 
 export function renderText(options: RenderTextOptions) {
   const {
     view = document.createElement('canvas'),
-    style: rawStyle,
+    style: userStyle,
+    draws = [{}],
     pixelRatio = 1,
   } = options
-  const style = { ...rawStyle }
   const { box, viewBox, paragraphs } = measureText(options)
   const { x, y, width, height } = viewBox
   const ctx = view.getContext('2d')!
@@ -32,75 +40,85 @@ export function renderText(options: RenderTextOptions) {
   ctx.clearRect(0, 0, view.width, view.height)
   ctx.translate(-x, -y)
 
-  const colorBox = new BoundingBox({ width, height })
-  if (style?.color) style.color = parseColor(ctx, style.color, colorBox)
-  if (style?.backgroundColor) style.backgroundColor = parseColor(ctx, style.backgroundColor, colorBox)
-  if (style?.textStrokeColor) style.textStrokeColor = parseColor(ctx, style.textStrokeColor, colorBox)
-  if (style?.backgroundColor) {
-    ctx.fillStyle = style.backgroundColor
-    ctx.fillRect(0, 0, view.width, view.height)
-  }
+  const defaultStyle = { ...userStyle }
+
+  uploadColor(ctx, new BoundingBox({ width, height }), defaultStyle)
   paragraphs.forEach(p => {
-    if (p.style?.color) p.style.color = parseColor(ctx, p.style.color, p.contentBox)
-    if (p.style?.backgroundColor) p.style.backgroundColor = parseColor(ctx, p.style.backgroundColor, p.contentBox)
-    if (p.style?.textStrokeColor) p.style.textStrokeColor = parseColor(ctx, p.style.textStrokeColor, p.contentBox)
-    if (p.style?.backgroundColor) {
-      ctx.fillStyle = p.style.backgroundColor
-      ctx.fillRect(p.lineBox.x, p.lineBox.y, p.lineBox.width, p.lineBox.height)
-    }
+    uploadColor(ctx, p.contentBox, p.style)
     p.fragments.forEach(f => {
-      if (f.style?.color) f.style.color = parseColor(ctx, f.style.color, f.contentBox)
-      if (f.style?.backgroundColor) f.style.backgroundColor = parseColor(ctx, f.style.backgroundColor, f.contentBox)
-      if (f.style?.textStrokeColor) f.style.textStrokeColor = parseColor(ctx, f.style.textStrokeColor, f.contentBox)
-      if (f.style?.backgroundColor) {
-        ctx.fillStyle = f.style.backgroundColor
-        ctx.fillRect(f.inlineBox.x, f.inlineBox.y, f.inlineBox.width, f.inlineBox.height)
-      }
+      uploadColor(ctx, f.contentBox, f.style)
     })
   })
 
-  setContextStyle(ctx, style)
-  paragraphs.forEach(p => {
-    p.style && setContextStyle(ctx, p.style)
-    p.fragments.forEach(f => {
-      setContextStyle(ctx, {
-        ...f.style,
-        textAlign: 'left',
-        verticalAlign: 'top',
-      })
-      const { x, y, width, height } = f.contentBox
-      const fStyle = f.getComputedStyle()
-      switch (fStyle.writingMode) {
-        case 'vertical-rl':
-        case 'vertical-lr': {
-          let offset = 0
-          for (const c of f.content) {
-            if (fStyle.textStrokeWidth) ctx.strokeText(c, x, y + offset)
-            ctx.fillText(c, x, y + offset)
-            offset += fStyle.fontSize + fStyle.letterSpacing
-          }
-          break
+  draws.forEach(userDrawStyle => {
+    const drawStyle = { ...userDrawStyle }
+    uploadColor(ctx, new BoundingBox({ width, height }), drawStyle)
+    const style = { ...defaultStyle, ...drawStyle }
+
+    if (style?.backgroundColor) {
+      ctx.fillStyle = style.backgroundColor
+      ctx.fillRect(0, 0, view.width, view.height)
+    }
+    paragraphs.forEach(p => {
+      if (p.style?.backgroundColor) {
+        ctx.fillStyle = p.style.backgroundColor
+        ctx.fillRect(p.lineBox.x, p.lineBox.y, p.lineBox.width, p.lineBox.height)
+      }
+      p.fragments.forEach(f => {
+        if (f.style?.backgroundColor) {
+          ctx.fillStyle = f.style.backgroundColor
+          ctx.fillRect(f.inlineBox.x, f.inlineBox.y, f.inlineBox.width, f.inlineBox.height)
         }
-        case 'horizontal-tb':
-          if (fStyle.textStrokeWidth) ctx.strokeText(f.content, x, y)
-          ctx.fillText(f.content, x, y)
-          break
-      }
-      switch (fStyle.textDecoration) {
-        case 'underline':
-          ctx.beginPath()
-          ctx.moveTo(x, y + height - 2)
-          ctx.lineTo(x + width, y + height - 2)
-          ctx.stroke()
-          break
-        case 'line-through':
-          ctx.beginPath()
-          ctx.moveTo(x, y + height / 2)
-          ctx.lineTo(x + width, y + height / 2)
-          ctx.stroke()
-          break
-      }
+      })
+    })
+
+    setContextStyle(ctx, style)
+    paragraphs.forEach(p => {
+      p.style && setContextStyle(ctx, p.style)
+      p.fragments.forEach(f => {
+        setContextStyle(ctx, {
+          ...f.style,
+          textAlign: 'left',
+          verticalAlign: 'top',
+        })
+        // eslint-disable-next-line prefer-const
+        let { x, y, width, height } = f.contentBox
+        if (drawStyle.offsetX) x += drawStyle.offsetX
+        if (drawStyle.offsetY) y += drawStyle.offsetY
+        const fStyle = f.getComputedStyle()
+        switch (fStyle.writingMode) {
+          case 'vertical-rl':
+          case 'vertical-lr': {
+            let offset = 0
+            for (const c of f.content) {
+              ctx.fillText(c, x, y + offset)
+              if (fStyle.textStrokeWidth) ctx.strokeText(c, x, y + offset)
+              offset += fStyle.fontSize + fStyle.letterSpacing
+            }
+            break
+          }
+          case 'horizontal-tb':
+            ctx.fillText(f.content, x, y)
+            if (fStyle.textStrokeWidth) ctx.strokeText(f.content, x, y)
+            break
+        }
+        switch (fStyle.textDecoration) {
+          case 'underline':
+            ctx.beginPath()
+            ctx.moveTo(x, y + height - 2)
+            ctx.lineTo(x + width, y + height - 2)
+            ctx.stroke()
+            break
+          case 'line-through':
+            ctx.beginPath()
+            ctx.moveTo(x, y + height / 2)
+            ctx.lineTo(x + width, y + height / 2)
+            ctx.stroke()
+            break
+        }
+      })
     })
   })
+
   return view
 }

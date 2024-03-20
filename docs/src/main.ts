@@ -1,7 +1,7 @@
 import { measureText, renderText } from '../../src'
-import type { MeasureTextOptions } from '../../src'
+import type { RenderTextOptions } from '../../src'
 
-const text: MeasureTextOptions = {
+const text: RenderTextOptions = {
   style: {
     fontSize: 39,
     height: 585,
