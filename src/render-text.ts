@@ -5,9 +5,11 @@ import { BoundingBox } from './bounding-box'
 import type { TextDrawStyle } from './types'
 import type { MeasureTextOptions } from './measure-text'
 
+export type RenderTextDraws = Array<Partial<TextDrawStyle & { offsetX: number; offsetY: number }>>
+
 export interface RenderTextOptions extends MeasureTextOptions {
   view?: HTMLCanvasElement
-  draws?: Array<Partial<TextDrawStyle & { offsetX: number; offsetY: number }>>
+  draws?: RenderTextDraws
   pixelRatio?: number
 }
 
@@ -21,9 +23,10 @@ export function renderText(options: RenderTextOptions) {
   const {
     view = document.createElement('canvas'),
     style: userStyle,
-    draws = [{}],
+    draws: userDraws = [],
     pixelRatio = 1,
   } = options
+  const draws = userDraws.length > 0 ? userDraws : [{}]
   const { box, viewBox, paragraphs } = measureText(options)
   const { x, y, width, height } = viewBox
   const ctx = view.getContext('2d')!
@@ -85,7 +88,7 @@ export function renderText(options: RenderTextOptions) {
         let { x, y, width, height } = f.contentBox
         if (drawStyle.offsetX) x += drawStyle.offsetX
         if (drawStyle.offsetY) y += drawStyle.offsetY
-        const fStyle = f.getComputedStyle()
+        const fStyle = { ...f.getComputedStyle(), ...drawStyle }
         switch (fStyle.writingMode) {
           case 'vertical-rl':
           case 'vertical-lr': {
