@@ -27,21 +27,17 @@ export function renderText(options: RenderTextOptions) {
     pixelRatio = 1,
   } = options
   const draws = userDraws.length > 0 ? userDraws : [{}]
-  const { box, viewBox, paragraphs } = measureText(options)
+  const { viewBox, paragraphs } = measureText(options)
   const { x, y, width, height } = viewBox
   const ctx = view.getContext('2d')!
-  const canvasWidth = -x + width
-  const canvasHeight = -y + height
-  view.style.width = `${ canvasWidth }px`
-  view.style.height = `${ canvasHeight }px`
-  view.dataset.width = String(box.width)
-  view.dataset.height = String(box.height)
+  view.style.width = `${ width }px`
+  view.style.height = `${ height }px`
+  view.dataset.viewbox = String(`${ x } ${ y } ${ width } ${ height }`)
   view.dataset.pixelRatio = String(pixelRatio)
-  view.width = Math.max(1, Math.floor(canvasWidth * pixelRatio))
-  view.height = Math.max(1, Math.floor(canvasHeight * pixelRatio))
+  view.width = Math.max(1, Math.floor(width * pixelRatio))
+  view.height = Math.max(1, Math.floor(height * pixelRatio))
   ctx.scale(pixelRatio, pixelRatio)
   ctx.clearRect(0, 0, view.width, view.height)
-  ctx.translate(-x, -y)
 
   const defaultStyle = { ...userStyle }
 
@@ -81,10 +77,22 @@ export function renderText(options: RenderTextOptions) {
         setContextStyle(ctx, {
           ...fStyle,
           textAlign: 'left',
-          verticalAlign: 'top',
+          verticalAlign: 'baseline',
         })
-        // eslint-disable-next-line prefer-const
-        let { x, y, width, height } = f.contentBox
+        const { width, height } = f.contentBox
+        let x = -viewBox.x
+        let y = -viewBox.y
+        switch (fStyle.writingMode) {
+          case 'vertical-rl':
+          case 'vertical-lr':
+            x += f.contentBox.x
+            y += (fStyle.fontSize - p.xHeight) / 2 + p.xHeight + 1
+            break
+          case 'horizontal-tb':
+            x += f.contentBox.x
+            y += f.baseline
+            break
+        }
         if (drawStyle.offsetX) x += drawStyle.offsetX
         if (drawStyle.offsetY) y += drawStyle.offsetY
         switch (fStyle.writingMode) {

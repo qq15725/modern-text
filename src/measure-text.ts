@@ -111,8 +111,11 @@ export function measureText(options: MeasureTextOptions) {
           })
           const fHeight = fStyle.fontSize
           const fLineHeight = fHeight * fStyle.lineHeight
+          const fFontHeight = fontBoundingBoxAscent + fontBoundingBoxDescent
+          const fGlyphHeight = actualBoundingBoxAscent + actualBoundingBoxDescent
+          const fGlyphWidth = actualBoundingBoxLeft + actualBoundingBoxRight
           const baseline = fy
-            + (fLineHeight - (fontBoundingBoxAscent + fontBoundingBoxDescent)) / 2
+            + (fLineHeight - fFontHeight) / 2
             + fontBoundingBoxAscent
           f.contentBox.x = fx
           f.contentBox.y = fy + (fLineHeight - fHeight) / 2
@@ -124,8 +127,8 @@ export function measureText(options: MeasureTextOptions) {
           f.inlineBox.height = fLineHeight
           f.glyphBox.x = fx
           f.glyphBox.y = baseline - actualBoundingBoxAscent
-          f.glyphBox.width = actualBoundingBoxLeft + actualBoundingBoxRight
-          f.glyphBox.height = actualBoundingBoxAscent + actualBoundingBoxDescent
+          f.glyphBox.width = fGlyphWidth
+          f.glyphBox.height = fGlyphHeight
           f.baseline = baseline
           f.centerX = fx + actualBoundingBoxLeft
           contentBoxes.push(f.contentBox)
@@ -236,12 +239,13 @@ export function measureText(options: MeasureTextOptions) {
   })
 
   const contentBox = BoundingBox.from(...paragraphs.map(p => p.contentBox))
+  const glyphBox = BoundingBox.from(...paragraphs.map(p => p.glyphBox))
 
   return {
     box,
     contentBox,
-    viewBox: BoundingBox.from(box, contentBox),
-    glyphBox: BoundingBox.from(...paragraphs.map(p => p.glyphBox)),
+    glyphBox,
     paragraphs,
+    viewBox: BoundingBox.from(box, glyphBox),
   }
 }
