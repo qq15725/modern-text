@@ -82,6 +82,9 @@ export function renderText(options: RenderTextOptions) {
         const { width, height } = f.contentBox
         let x = -viewBox.x
         let y = -viewBox.y
+        if (drawStyle.offsetX) x += drawStyle.offsetX
+        if (drawStyle.offsetY) y += drawStyle.offsetY
+        let baseline = y
         switch (fStyle.writingMode) {
           case 'vertical-rl':
           case 'vertical-lr':
@@ -90,11 +93,10 @@ export function renderText(options: RenderTextOptions) {
             break
           case 'horizontal-tb':
             x += f.contentBox.x
-            y += f.baseline
+            y += f.contentBox.y
+            baseline += f.baseline
             break
         }
-        if (drawStyle.offsetX) x += drawStyle.offsetX
-        if (drawStyle.offsetY) y += drawStyle.offsetY
         switch (fStyle.writingMode) {
           case 'vertical-rl':
           case 'vertical-lr': {
@@ -107,18 +109,22 @@ export function renderText(options: RenderTextOptions) {
             break
           }
           case 'horizontal-tb':
-            ctx.fillText(f.content, x, y)
-            if (fStyle.textStrokeWidth) ctx.strokeText(f.content, x, y)
+            ctx.fillText(f.content, x, baseline)
+            if (fStyle.textStrokeWidth) ctx.strokeText(f.content, x, baseline)
             break
         }
         switch (fStyle.textDecoration) {
           case 'underline':
+            ctx.strokeStyle = ctx.fillStyle
+            ctx.lineWidth = fStyle.fontSize / 15
             ctx.beginPath()
-            ctx.moveTo(x, y + height - 2)
-            ctx.lineTo(x + width, y + height - 2)
+            ctx.moveTo(x, y + height)
+            ctx.lineTo(x + width, y + height)
             ctx.stroke()
             break
           case 'line-through':
+            ctx.strokeStyle = ctx.fillStyle
+            ctx.lineWidth = fStyle.fontSize / 15
             ctx.beginPath()
             ctx.moveTo(x, y + height / 2)
             ctx.lineTo(x + width, y + height / 2)
