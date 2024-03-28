@@ -1,9 +1,7 @@
 import { canvasMeasureText } from './canvas'
+import { punctuationRe } from './reg-exp'
 import type { Fragment } from './fragment'
 import type { Paragraph } from './paragraph'
-
-// eslint-disable-next-line no-misleading-character-class
-const punctuationRE = /[\s\n\t\u200B\u200C\u200D\u200E\u200F.,?!:;"'(){}\[\]<>\/\\|~#\$%\*\+=&^，。？！：；“”‘’（）【】《》……——]/
 
 export function wrapParagraphs(
   paragraphs: Array<Paragraph>,
@@ -32,7 +30,7 @@ export function wrapParagraphs(
           canvasMeasureText(c, { ...fStyle, letterSpacing: 0 }).width,
         )
         word += c
-        if (punctuationRE.test(f.content[++index])) continue
+        if (punctuationRe.test(f.content[++index])) continue
         let size
         let cSize
         switch (fStyle.writingMode) {

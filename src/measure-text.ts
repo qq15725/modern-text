@@ -2,7 +2,7 @@ import { parseParagraphs } from './parse-paragraphs'
 import { wrapParagraphs } from './wrap-paragraphs'
 import { canvasMeasureText } from './canvas'
 import { BoundingBox } from './bounding-box'
-import type { TextContent, TextStyle } from './types'
+import type { TextContent, TextEffect, TextStyle } from './types'
 import type { Fragment } from './fragment'
 
 export interface MeasureTextStyle extends TextStyle {
@@ -13,6 +13,7 @@ export interface MeasureTextStyle extends TextStyle {
 export interface MeasureTextOptions {
   content: TextContent
   style?: Partial<MeasureTextStyle>
+  effects?: Array<TextEffect>
 }
 
 function resolveStyle(style?: Partial<MeasureTextStyle>): MeasureTextStyle {
@@ -45,7 +46,7 @@ function resolveStyle(style?: Partial<MeasureTextStyle>): MeasureTextStyle {
 }
 
 export function measureText(options: MeasureTextOptions) {
-  const { content } = options
+  const { content, effects = [{}] } = options
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { width: userWidth, height: userHeight, ...style } = resolveStyle(options.style)
   let paragraphs = parseParagraphs(content, style)
@@ -241,11 +242,31 @@ export function measureText(options: MeasureTextOptions) {
   const contentBox = BoundingBox.from(...paragraphs.map(p => p.contentBox))
   const glyphBox = BoundingBox.from(...paragraphs.map(p => p.glyphBox))
 
+  const viewBoxes: Array<BoundingBox> = []
+  paragraphs.forEach(p => {
+    p.fragments.forEach(f => {
+      const fStyle = f.getComputedStyle()
+      effects.forEach(eStyle => {
+        const style = { ...fStyle, ...eStyle }
+        const { textStrokeWidth = 0, offsetX = 0, offsetY = 0 } = style
+        if (textStrokeWidth || offsetX || offsetY) {
+          const { x, y, width, height } = f.contentBox
+          viewBoxes.push(new BoundingBox({
+            x: Math.min(x, x + offsetX - textStrokeWidth / 2),
+            y: Math.min(y, y + offsetY - textStrokeWidth / 2),
+            width: Math.max(width, width + offsetX + textStrokeWidth),
+            height: Math.max(height, height + offsetY + textStrokeWidth),
+          }))
+        }
+      })
+    })
+  })
+
   return {
     box,
     contentBox,
     glyphBox,
     paragraphs,
-    viewBox: BoundingBox.from(box, glyphBox),
+    viewBox: BoundingBox.from(box, glyphBox, ...viewBoxes),
   }
 }

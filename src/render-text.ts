@@ -5,11 +5,8 @@ import { BoundingBox } from './bounding-box'
 import type { TextDrawStyle } from './types'
 import type { MeasureTextOptions } from './measure-text'
 
-export type RenderTextDraws = Array<Partial<TextDrawStyle & { offsetX: number; offsetY: number }>>
-
 export interface RenderTextOptions extends MeasureTextOptions {
   view?: HTMLCanvasElement
-  draws?: RenderTextDraws
   pixelRatio?: number
 }
 
@@ -23,10 +20,10 @@ export function renderText(options: RenderTextOptions) {
   const {
     view = document.createElement('canvas'),
     style: userStyle,
-    draws: userDraws = [],
+    effects: userEffects = [],
     pixelRatio = 1,
   } = options
-  const draws = userDraws.length > 0 ? userDraws : [{}]
+  const effects = userEffects.length > 0 ? userEffects : [{}]
   const { viewBox, paragraphs } = measureText(options)
   const { x, y, width, height } = viewBox
   const ctx = view.getContext('2d')!
@@ -49,10 +46,10 @@ export function renderText(options: RenderTextOptions) {
     })
   })
 
-  draws.forEach(userDrawStyle => {
-    const drawStyle = { ...userDrawStyle }
-    uploadColor(ctx, new BoundingBox({ width, height }), drawStyle)
-    const style = { ...defaultStyle, ...drawStyle }
+  effects.forEach(effect => {
+    const effectStyle = { ...effect }
+    uploadColor(ctx, new BoundingBox({ width, height }), effectStyle)
+    const style = { ...defaultStyle, ...effectStyle }
 
     if (style?.backgroundColor) {
       ctx.fillStyle = style.backgroundColor
@@ -73,30 +70,20 @@ export function renderText(options: RenderTextOptions) {
 
     paragraphs.forEach(p => {
       p.fragments.forEach(f => {
-        const fStyle = { ...f.getComputedStyle(), ...drawStyle }
+        const fStyle = { ...f.getComputedStyle(), ...effectStyle }
         setContextStyle(ctx, {
           ...fStyle,
           textAlign: 'left',
-          verticalAlign: 'baseline',
+          verticalAlign: fStyle.writingMode === 'horizontal-tb' ? 'baseline' : 'top',
         })
         const { width, height } = f.contentBox
         let x = -viewBox.x
         let y = -viewBox.y
-        if (drawStyle.offsetX) x += drawStyle.offsetX
-        if (drawStyle.offsetY) y += drawStyle.offsetY
-        let baseline = y
-        switch (fStyle.writingMode) {
-          case 'vertical-rl':
-          case 'vertical-lr':
-            x += f.contentBox.x
-            y += (fStyle.fontSize - p.xHeight) / 2 + p.xHeight + 1
-            break
-          case 'horizontal-tb':
-            x += f.contentBox.x
-            y += f.contentBox.y
-            baseline += f.baseline
-            break
-        }
+        if (effectStyle.offsetX) x += effectStyle.offsetX
+        if (effectStyle.offsetY) y += effectStyle.offsetY
+        const baseline = y + f.baseline
+        x += f.contentBox.x
+        y += f.contentBox.y
         switch (fStyle.writingMode) {
           case 'vertical-rl':
           case 'vertical-lr': {
