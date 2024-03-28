@@ -1,3 +1,12 @@
+## [0.1.10](https://github.com/qq15725/modern-text/compare/v0.1.9...v0.1.10) (2024-03-28)
+
+
+### Bug Fixes
+
+* viewBox ([066e386](https://github.com/qq15725/modern-text/commit/066e3867b5a506b747a4f669e225ef18c0fa2737))
+
+
+
 ## [0.1.9](https://github.com/qq15725/modern-text/compare/v0.1.8...v0.1.9) (2024-03-27)
 
 
