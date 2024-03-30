@@ -31,16 +31,13 @@ export class Paragraph {
   }
 
   clone(fragments?: Array<Fragment>) {
-    const p = new Paragraph()
-    p.style = this.style
-    p.parent = this.parent
+    const p = new Paragraph(this.style, this.parent)
     p.contentBox = this.contentBox.clone()
     p.lineBox = this.lineBox.clone()
     p.glyphBox = this.glyphBox.clone()
     p.baseline = this.baseline
     p.xHeight = this.xHeight
     p.fragments = fragments ?? this.fragments.map(f => f.clone())
-    p.computedStyle = this.computedStyle
     return p
   }
 }

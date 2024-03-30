@@ -61,11 +61,11 @@ export function renderText(options: RenderTextOptions) {
     }
     paragraphs.forEach(p => {
       if (p.style?.backgroundColor) {
-        fillBackground(p.style.backgroundColor, ...p.lineBox.toArray())
+        fillBackground(p.computedStyle.backgroundColor, ...p.lineBox.toArray())
       }
       p.fragments.forEach(f => {
         if (f.style?.backgroundColor) {
-          fillBackground(f.style.backgroundColor, ...f.inlineBox.toArray())
+          fillBackground(f.computedStyle.backgroundColor, ...f.inlineBox.toArray())
         }
       })
     })
@@ -84,9 +84,8 @@ export function renderText(options: RenderTextOptions) {
           case 'vertical-rl':
           case 'vertical-lr': {
             f.characters.forEach(c => {
-              let { x, y } = c.contentBox
-              x += tx
-              y += ty
+              const x = tx + c.contentBox.x
+              const y = ty + c.contentBox.y
               switch (c.verticalOrientation) {
                 case 'R':
                 case 'Tr': {
@@ -95,6 +94,7 @@ export function renderText(options: RenderTextOptions) {
                   ctx.fillText(c.content, 0, 0)
                   if (fStyle.textStrokeWidth) ctx.strokeText(c.content, 0, 0)
                   ctx.setTransform(1, 0, 0, 1, 0, 0)
+                  ctx.scale(pixelRatio, pixelRatio)
                   break
                 }
                 default:
