@@ -1,0 +1,25 @@
+{
+  "content": "安全教育日",
+  "style": {
+    "width": 1014,
+    "height": 190.4449920654297,
+    "fontStyle": "italic",
+    "textAlign": "left",
+    "fontSize": 185,
+    "color": "rgba(254,233,12,255)",
+    "fontWeight": "bold",
+    "textDecoration": "underline"
+  },
+  "effects": [
+    {
+      "offsetX": 9.051229543292607,
+      "offsetY": 9.05122954329261,
+      "color": "#000000FF"
+    },
+    {
+      "offsetX": 0,
+      "offsetY": 0,
+      "color": "#FEE90CFF"
+    }
+  ]
+}

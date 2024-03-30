@@ -1,6 +1,4 @@
-import { canvasMeasureText } from './canvas'
-import { punctuationRe } from './reg-exp'
-import type { Fragment } from './fragment'
+import { Fragment } from './fragment'
 import type { Paragraph } from './paragraph'
 
 export function wrapParagraphs(
@@ -19,66 +17,55 @@ export function wrapParagraphs(
     const fragments = []
     // eslint-disable-next-line no-cond-assign
     while (f = restFragments.shift()) {
-      const fStyle = f.getComputedStyle()
+      const style = f.computedStyle
       let content = ''
       let wrap = false
       let index = 0
-      let word = ''
-      for (const c of f.content) {
-        p.maxCharWidth = Math.max(
-          p.maxCharWidth,
-          canvasMeasureText(c, { ...fStyle, letterSpacing: 0 }).width,
-        )
-        word += c
-        if (punctuationRe.test(f.content[++index])) continue
+      const tempF = new Fragment('', f.style, f.parent)
+      for (const c of f.characters) {
+        tempF.content += c.content
+        if (f.characters[++index]?.isPunctuation) continue
+        const isEOL = c.isEOL
         let size
         let cSize
-        switch (fStyle.writingMode) {
+        switch (style.writingMode) {
           case 'vertical-lr':
           case 'vertical-rl':
             size = height
-            cSize = word.length * fStyle.fontSize
+            cSize = tempF.update().measure().contentBox.height
             break
           case 'horizontal-tb':
           default:
             size = width
-            cSize = canvasMeasureText(word, { ...fStyle, letterSpacing: 0 }).width
+            cSize = tempF.update().measure().contentBox.width
             break
         }
-        cSize += word.length * fStyle.letterSpacing
-        const isNewline = /^[\r\n]$/.test(word)
         if (
-          isNewline
-          || (
-            fStyle.textWrap === 'wrap'
-            && size && pSize + cSize > size
-          )
+          isEOL
+          || (size && pSize + cSize > size)
         ) {
-          let pos = isNewline ? content.length + 1 : content.length
+          let pos = isEOL ? content.length + 1 : content.length
           if (!pSize && !pos) {
-            content += word
-            pos += word.length
+            content += tempF.content
+            pos += tempF.content.length
           }
-          if (content.length) fragments.push(f.clone({ content }))
+          if (content.length) {
+            fragments.push(f.clone(content))
+          }
           if (fragments.length) {
-            newParagraphs.push(
-              p.clone({
-                fragments: fragments.slice(),
-              }),
-            )
+            newParagraphs.push(p.clone(fragments.slice()))
             fragments.length = 0
           }
           const restContent = f.content.substring(pos)
           if (restContent.length || restFragments.length) {
             restParagraphs.unshift(
-              p.clone({
-                maxCharWidth: 0,
-                fragments: (
+              p.clone(
+                (
                   restContent.length
-                    ? [f.clone({ content: restContent })]
+                    ? [f.clone(restContent)]
                     : []
                 ).concat(restFragments.slice()),
-              }),
+              ),
             )
           }
           restFragments.length = 0
@@ -87,13 +74,15 @@ export function wrapParagraphs(
         } else {
           pSize += cSize
         }
-        content += word
-        word = ''
+        content += tempF.content
+        tempF.content = ''
       }
-      if (!wrap) fragments.push(f.clone())
+      if (!wrap) {
+        fragments.push(f.clone())
+      }
     }
     if (fragments.length) {
-      newParagraphs.push(p.clone({ fragments }))
+      newParagraphs.push(p.clone(fragments))
     }
   }
   return newParagraphs

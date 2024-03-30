@@ -20,7 +20,7 @@ function resolveStyle(style?: Partial<MeasureTextStyle>): MeasureTextStyle {
   return {
     width: 0,
     height: 0,
-    color: null,
+    color: '#000',
     backgroundColor: null,
     fontSize: 14,
     fontWeight: 'normal',
@@ -33,7 +33,7 @@ function resolveStyle(style?: Partial<MeasureTextStyle>): MeasureTextStyle {
     textTransform: 'none',
     textDecoration: null,
     textStrokeWidth: 0,
-    textStrokeColor: null,
+    textStrokeColor: '#000',
     lineHeight: 1,
     letterSpacing: 0,
     shadowColor: null,
@@ -41,6 +41,7 @@ function resolveStyle(style?: Partial<MeasureTextStyle>): MeasureTextStyle {
     shadowOffsetY: 0,
     shadowBlur: 0,
     writingMode: 'horizontal-tb',
+    textOrientation: 'mixed',
     ...style,
   }
 }
@@ -52,124 +53,86 @@ export function measureText(options: MeasureTextOptions) {
   let paragraphs = parseParagraphs(content, style)
   paragraphs = wrapParagraphs(paragraphs, userWidth, userHeight)
 
-  let vWidth = paragraphs.reduce((w, p) => {
-    return w + p.maxCharWidth * p.getComputedStyle().lineHeight
-  }, 0)
   let px = 0
   let py = 0
   paragraphs.forEach(p => {
-    const contentBoxes: Array<BoundingBox> = []
     let highestF: Fragment | null = null
+
+    p.fragments.forEach((f) => {
+      f.update().measure()
+      if (!highestF || highestF.contentBox.height < f.contentBox.height) highestF = f
+    })
+
+    const {
+      typoHeight,
+      typoAscent,
+      lineHeight,
+    } = canvasMeasureText('x', (highestF ?? p).computedStyle)
+    p.xHeight = typoHeight
+    p.baseline = py + (lineHeight - typoHeight) / 2 + typoAscent
+
     let fx = px
     let fy = py
-    p.fragments.forEach((f, i) => {
-      const fStyle = f.getComputedStyle()
-      switch (fStyle.writingMode) {
+    let maxHeight = 0
+    p.fragments.forEach((f, fi) => {
+      const style = f.computedStyle
+      switch (style.writingMode) {
         case 'vertical-rl':
         case 'vertical-lr': {
-          const fWidth = p.maxCharWidth
-          const fLineWidth = fWidth * fStyle.lineHeight
-          if (!i) {
-            fy = 0
-            if (fStyle.writingMode === 'vertical-rl') {
-              vWidth -= fLineWidth
-              fx = vWidth
-            }
-          }
-          const len = f.content.length
-          const fHeight = len * fStyle.fontSize + (len - 1) * fStyle.letterSpacing
-          f.contentBox.x = fx + (fLineWidth - fWidth) / 2
-          f.contentBox.y = fy
-          f.contentBox.width = fWidth
-          f.contentBox.height = fHeight
-          f.inlineBox.x = fx
-          f.inlineBox.y = fy
-          f.inlineBox.width = fLineWidth
-          f.inlineBox.height = fHeight
-          f.glyphBox.x = fx + (fLineWidth - fWidth) / 2
-          f.glyphBox.y = fy
-          f.glyphBox.width = fWidth
-          f.glyphBox.height = fHeight
-          f.baseline = 0
-          f.centerX = fx + fLineWidth / 2
-          fy += fHeight + fStyle.letterSpacing
+          if (!fi) fy = 0
+          f.inlineBox.translate(fx, fy)
+          f.contentBox.translate(fx, fy)
+          f.glyphBox.translate(fx, fy)
+          f.baseline += fy
+          f.centerX += fx
+          let cy = fy
+          f.characters.forEach((c, ci) => {
+            c.contentBox.x = fx + (f.inlineBox.width - c.contentBox.width) / 2
+            c.contentBox.y = cy
+            c.glyphBox.x = fx + (f.inlineBox.width - c.glyphBox.width) / 2
+            c.glyphBox.y = cy
+            cy += c.contentBox.height
+            if (ci !== f.characters.length - 1) cy += style.letterSpacing
+          })
+          fy += f.inlineBox.height
+          if (fi === p.fragments.length - 1) fx += f.inlineBox.width
           break
         }
         case 'horizontal-tb': {
-          if (!i) fx = 0
-          const {
-            fontBoundingBoxAscent,
-            fontBoundingBoxDescent,
-            actualBoundingBoxAscent,
-            actualBoundingBoxDescent,
-            actualBoundingBoxLeft,
-            actualBoundingBoxRight,
-            width: fWidth,
-          } = canvasMeasureText(f.content, {
-            ...fStyle,
-            textAlign: 'center',
-            verticalAlign: 'baseline',
-          })
-          const fHeight = fStyle.fontSize
-          const fLineHeight = fHeight * fStyle.lineHeight
-          const fFontHeight = fontBoundingBoxAscent + fontBoundingBoxDescent
-          const fGlyphHeight = actualBoundingBoxAscent + actualBoundingBoxDescent
-          const fGlyphWidth = actualBoundingBoxLeft + actualBoundingBoxRight
-          const baseline = fy
-            + (fLineHeight - fFontHeight) / 2
-            + fontBoundingBoxAscent
-          f.contentBox.x = fx
-          f.contentBox.y = fy + (fLineHeight - fHeight) / 2
-          f.contentBox.width = fWidth
-          f.contentBox.height = fHeight
-          f.inlineBox.x = fx
-          f.inlineBox.y = fy
-          f.inlineBox.width = fWidth
-          f.inlineBox.height = fLineHeight
-          f.glyphBox.x = fx
-          f.glyphBox.y = baseline - actualBoundingBoxAscent
-          f.glyphBox.width = fGlyphWidth
-          f.glyphBox.height = fGlyphHeight
-          f.baseline = baseline
-          f.centerX = fx + actualBoundingBoxLeft
-          contentBoxes.push(f.contentBox)
-          p.contentBox = BoundingBox.from(...contentBoxes)
-          if (p.contentBox.height < f.contentBox.height) highestF = f
-          fx += fWidth
+          if (!fi) fx = 0
+          f.inlineBox.translate(fx, fy)
+          f.contentBox.translate(fx, fy)
+          f.glyphBox.translate(fx, fy)
+          f.baseline += fy
+          f.centerX += fx
+          fx += f.inlineBox.width
+          maxHeight = Math.max(maxHeight, f.inlineBox.height)
+          if (fi === p.fragments.length - 1) fy += maxHeight
           break
         }
       }
     })
+    px = fx
+    py = fy
+
     p.lineBox = BoundingBox.from(...p.fragments.map(f => f.inlineBox))
-    px += p.lineBox.width
-    py += p.lineBox.height
-    const xMetrics = canvasMeasureText('x', {
-      ...(highestF ?? p).getComputedStyle(),
-      textAlign: 'left',
-      verticalAlign: 'baseline',
-    })
-    p.xHeight = xMetrics.actualBoundingBoxAscent
-    p.baseline = p.lineBox.y
-      + (p.lineBox.height - (xMetrics.fontBoundingBoxAscent + xMetrics.fontBoundingBoxDescent)) / 2
-      + xMetrics.fontBoundingBoxAscent
   })
 
   const box = BoundingBox.from(
     ...paragraphs.map(p => p.lineBox),
-    new BoundingBox({ width: userWidth, height: userHeight }),
+    new BoundingBox(0, 0, userWidth, userHeight),
   )
   const { width, height } = box
 
   // align
   paragraphs.forEach(p => {
+    p.lineBox.width = Math.max(p.lineBox.width, width)
     p.contentBox = BoundingBox.from(...p.fragments.map(f => f.contentBox))
     p.glyphBox = BoundingBox.from(...p.fragments.map(f => f.glyphBox))
     p.fragments.forEach(f => {
-      const fStyle = f.getComputedStyle()
-      const oldX = f.inlineBox.x
-      const oldY = f.inlineBox.y
-      let newX = oldX
-      let newY = oldY
+      const fStyle = f.computedStyle
+      let tx = 0
+      let ty = 0
 
       switch (fStyle.writingMode) {
         case 'vertical-rl':
@@ -177,10 +140,10 @@ export function measureText(options: MeasureTextOptions) {
           switch (fStyle.textAlign) {
             case 'end':
             case 'right':
-              newY += height - p.contentBox.height
+              ty = height - p.contentBox.height
               break
             case 'center':
-              newY += (height - p.contentBox.height) / 2
+              ty = (height - p.contentBox.height) / 2
               break
           }
           break
@@ -188,38 +151,38 @@ export function measureText(options: MeasureTextOptions) {
           switch (fStyle.textAlign) {
             case 'end':
             case 'right':
-              newX += (width - p.contentBox.width)
+              tx = (width - p.contentBox.width)
               break
             case 'center':
-              newX += (width - p.contentBox.width) / 2
+              tx = (width - p.contentBox.width) / 2
               break
           }
           switch (fStyle.verticalAlign) {
             case 'top':
-              newY += p.lineBox.y - f.inlineBox.y
+              ty = p.lineBox.y - f.inlineBox.y
               break
             case 'middle':
-              newY = (p.baseline - p.xHeight / 2) - f.inlineBox.height / 2
+              ty = f.inlineBox.y - ((p.baseline - p.xHeight / 2) - f.inlineBox.height / 2)
               break
             case 'bottom':
-              newY += p.lineBox.bottom - f.inlineBox.bottom
+              ty = p.lineBox.bottom - f.inlineBox.bottom
               break
             case 'sub':
-              newY += p.baseline - f.glyphBox.bottom
+              ty = p.baseline - f.glyphBox.bottom
               break
             case 'super':
-              newY += p.baseline - f.glyphBox.y
+              ty = p.baseline - f.glyphBox.y
               break
             case 'text-top':
-              newY += p.glyphBox.y - f.inlineBox.y
+              ty = p.glyphBox.y - f.inlineBox.y
               break
             case 'text-bottom':
-              newY += p.glyphBox.bottom - f.inlineBox.bottom
+              ty = p.glyphBox.bottom - f.inlineBox.bottom
               break
             case 'baseline':
             default:
               if (f.inlineBox.height < p.lineBox.height) {
-                newY += p.baseline - f.baseline
+                ty = p.baseline - f.baseline
               }
               break
           }
@@ -227,13 +190,11 @@ export function measureText(options: MeasureTextOptions) {
         }
       }
 
-      const diffX = newX - oldX
-      const diffY = newY - oldY
-      f.inlineBox.move(diffX, diffY)
-      f.contentBox.move(diffX, diffY)
-      f.glyphBox.move(diffX, diffY)
-      f.baseline += diffY
-      f.centerX += diffX
+      f.inlineBox.translate(tx, ty)
+      f.contentBox.translate(tx, ty)
+      f.glyphBox.translate(tx, ty)
+      f.baseline += ty
+      f.centerX += tx
     })
     p.contentBox = BoundingBox.from(...p.fragments.map(f => f.contentBox))
     p.glyphBox = BoundingBox.from(...p.fragments.map(f => f.glyphBox))
@@ -245,18 +206,18 @@ export function measureText(options: MeasureTextOptions) {
   const viewBoxes: Array<BoundingBox> = []
   paragraphs.forEach(p => {
     p.fragments.forEach(f => {
-      const fStyle = f.getComputedStyle()
+      const fStyle = f.computedStyle
       effects.forEach(eStyle => {
         const style = { ...fStyle, ...eStyle }
         const { textStrokeWidth = 0, offsetX = 0, offsetY = 0 } = style
         if (textStrokeWidth || offsetX || offsetY) {
           const { x, y, width, height } = f.contentBox
-          viewBoxes.push(new BoundingBox({
-            x: Math.min(x, x + offsetX - textStrokeWidth / 2),
-            y: Math.min(y, y + offsetY - textStrokeWidth / 2),
-            width: Math.max(width, width + offsetX + textStrokeWidth),
-            height: Math.max(height, height + offsetY + textStrokeWidth),
-          }))
+          viewBoxes.push(new BoundingBox(
+            Math.min(x, x + offsetX - textStrokeWidth / 2),
+            Math.min(y, y + offsetY - textStrokeWidth / 2),
+            Math.max(width, width + offsetX + textStrokeWidth),
+            Math.max(height, height + offsetY + textStrokeWidth),
+          ))
         }
       })
     })

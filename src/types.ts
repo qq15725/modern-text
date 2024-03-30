@@ -1,4 +1,5 @@
 export type WritingMode = 'horizontal-tb' | 'vertical-lr' | 'vertical-rl'
+export type TextOrientation = 'mixed' | 'upright' | 'sideways-right' | 'sideways' /* | 'use-glyph-orientation' */
 export type FontWeight = 'normal' | 'bold' | 'lighter' | 'bolder' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
 export type FontStyle = 'normal' | 'italic' | 'oblique' | `oblique ${ string }`
 export type FontKerning = 'auto' | 'none' | 'normal'
@@ -10,6 +11,7 @@ export type TextDecoration = 'underline' | 'line-through'
 
 export interface TextLayoutStyle {
   writingMode: WritingMode
+  textOrientation: TextOrientation
   fontSize: number
   fontWeight: FontWeight
   fontFamily: string

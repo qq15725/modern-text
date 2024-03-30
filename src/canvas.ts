@@ -17,9 +17,9 @@ export function setContextStyle(ctx: OffscreenCanvasRenderingContext2D | CanvasR
   if (style.shadowOffsetX !== undefined) ctx.shadowOffsetX = style.shadowOffsetX
   if (style.shadowOffsetY !== undefined) ctx.shadowOffsetY = style.shadowOffsetY
   if (style.shadowBlur !== undefined) ctx.shadowBlur = style.shadowBlur
-  if (style.textStrokeColor) ctx.strokeStyle = style.textStrokeColor
+  ctx.strokeStyle = style.textStrokeColor ?? '#000'
   if (style.textStrokeWidth !== undefined) ctx.lineWidth = style.textStrokeWidth
-  if (style.color) ctx.fillStyle = style.color
+  ctx.fillStyle = style.color ?? '#000'
   if (style.textAlign) ctx.textAlign = style.textAlign
   if (style.fontKerning) ctx.fontKerning = style.fontKerning
   switch (style.verticalAlign) {
@@ -48,8 +48,41 @@ export function setContextStyle(ctx: OffscreenCanvasRenderingContext2D | CanvasR
   }
 }
 
-export function canvasMeasureText(text: string, style: TextStyle): TextMetrics {
+export function canvasMeasureText(text: string, style: TextStyle) {
   const ctx = getCurrentCanvas().getContext('2d') as CanvasRenderingContext2D
-  setContextStyle(ctx, style)
-  return ctx.measureText(text)
+  setContextStyle(ctx, {
+    ...style,
+    textAlign: 'center',
+    verticalAlign: 'baseline',
+  })
+  const {
+    width,
+    actualBoundingBoxAscent: glyphAscent,
+    actualBoundingBoxDescent: glyphDescent,
+    actualBoundingBoxLeft: glyphLeft,
+    actualBoundingBoxRight: glyphRight,
+    fontBoundingBoxAscent: typoAscent,
+    fontBoundingBoxDescent: typoDescent,
+  } = ctx.measureText(text)
+  const typoHeight = typoAscent + typoDescent
+  const lineHeight = style.fontSize * style.lineHeight
+  const glyphHeight = glyphAscent + glyphDescent
+  const baseline = (lineHeight - typoHeight) / 2 + typoAscent
+  return {
+    typoAscent,
+    typoDescent,
+    width,
+    height: style.fontSize,
+    typoHeight,
+    lineHeight,
+    leading: lineHeight - typoHeight,
+    glyphLeft,
+    glyphRight,
+    glyphAscent,
+    glyphDescent,
+    glyphWidth: glyphLeft + glyphRight,
+    glyphHeight,
+    baseline,
+    centerX: glyphLeft,
+  }
 }

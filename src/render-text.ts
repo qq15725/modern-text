@@ -36,87 +36,102 @@ export function renderText(options: RenderTextOptions) {
   ctx.scale(pixelRatio, pixelRatio)
   ctx.clearRect(0, 0, view.width, view.height)
 
+  const fillBackground = (color: any, x: number, y: number, width: number, height: number) => {
+    ctx.fillStyle = color
+    ctx.fillRect(-viewBox.x + x, -viewBox.y + y, width, height)
+  }
+
   const defaultStyle = { ...userStyle }
 
-  uploadColor(ctx, new BoundingBox({ width, height }), defaultStyle)
+  uploadColor(ctx, new BoundingBox(0, 0, width, height), defaultStyle)
   paragraphs.forEach(p => {
-    uploadColor(ctx, p.contentBox, p.style)
+    uploadColor(ctx, p.contentBox, p.computedStyle)
     p.fragments.forEach(f => {
-      uploadColor(ctx, f.contentBox, f.style)
+      uploadColor(ctx, f.contentBox, f.computedStyle)
     })
   })
 
   effects.forEach(effect => {
     const effectStyle = { ...effect }
-    uploadColor(ctx, new BoundingBox({ width, height }), effectStyle)
+    uploadColor(ctx, new BoundingBox(0, 0, width, height), effectStyle)
     const style = { ...defaultStyle, ...effectStyle }
 
     if (style?.backgroundColor) {
-      ctx.fillStyle = style.backgroundColor
-      ctx.fillRect(0, 0, view.width, view.height)
+      fillBackground(style.backgroundColor, 0, 0, view.width, view.height)
     }
     paragraphs.forEach(p => {
       if (p.style?.backgroundColor) {
-        ctx.fillStyle = p.style.backgroundColor
-        ctx.fillRect(p.lineBox.x, p.lineBox.y, p.lineBox.width, p.lineBox.height)
+        fillBackground(p.style.backgroundColor, ...p.lineBox.toArray())
       }
       p.fragments.forEach(f => {
         if (f.style?.backgroundColor) {
-          ctx.fillStyle = f.style.backgroundColor
-          ctx.fillRect(f.inlineBox.x, f.inlineBox.y, f.inlineBox.width, f.inlineBox.height)
+          fillBackground(f.style.backgroundColor, ...f.inlineBox.toArray())
         }
       })
     })
 
     paragraphs.forEach(p => {
       p.fragments.forEach(f => {
-        const fStyle = { ...f.getComputedStyle(), ...effectStyle }
+        const tx = -viewBox.x + (effectStyle.offsetX ?? 0)
+        const ty = -viewBox.y + (effectStyle.offsetY ?? 0)
+        const fStyle = { ...f.computedStyle, ...effectStyle }
         setContextStyle(ctx, {
           ...fStyle,
           textAlign: 'left',
           verticalAlign: fStyle.writingMode === 'horizontal-tb' ? 'baseline' : 'top',
         })
-        const { width, height } = f.contentBox
-        let x = -viewBox.x
-        let y = -viewBox.y
-        if (effectStyle.offsetX) x += effectStyle.offsetX
-        if (effectStyle.offsetY) y += effectStyle.offsetY
-        const baseline = y + f.baseline
-        x += f.contentBox.x
-        y += f.contentBox.y
         switch (fStyle.writingMode) {
           case 'vertical-rl':
           case 'vertical-lr': {
-            let offset = 0
-            for (const c of f.content) {
-              ctx.fillText(c, x, y + offset)
-              if (fStyle.textStrokeWidth) ctx.strokeText(c, x, y + offset)
-              offset += fStyle.fontSize + fStyle.letterSpacing
+            f.characters.forEach(c => {
+              let { x, y } = c.contentBox
+              x += tx
+              y += ty
+              switch (c.verticalOrientation) {
+                case 'R':
+                case 'Tr': {
+                  ctx.translate(x + c.contentBox.width, y)
+                  ctx.rotate(Math.PI / 2)
+                  ctx.fillText(c.content, 0, 0)
+                  if (fStyle.textStrokeWidth) ctx.strokeText(c.content, 0, 0)
+                  ctx.setTransform(1, 0, 0, 1, 0, 0)
+                  break
+                }
+                default:
+                  ctx.fillText(c.content, x, y)
+                  if (fStyle.textStrokeWidth) ctx.strokeText(c.content, x, y)
+                  break
+              }
+            })
+            break
+          }
+          case 'horizontal-tb': {
+            const x = tx + f.contentBox.x
+            const y = ty + f.contentBox.y
+            const baseline = ty + f.baseline
+            ctx.fillText(f.content, x, baseline)
+            if (fStyle.textStrokeWidth) ctx.strokeText(f.content, x, baseline)
+            const { width, height } = f.contentBox
+            switch (fStyle.textDecoration) {
+              case 'underline':
+                ctx.strokeStyle = ctx.fillStyle
+                ctx.lineWidth = fStyle.fontSize / 15
+                ctx.beginPath()
+                ctx.moveTo(x, y + height)
+                ctx.lineTo(x + width, y + height)
+                ctx.stroke()
+                break
+              case 'line-through':
+                ctx.strokeStyle = ctx.fillStyle
+                ctx.lineWidth = fStyle.fontSize / 15
+                ctx.beginPath()
+                ctx.moveTo(x, y + height / 2)
+                ctx.lineTo(x + width, y + height / 2)
+                ctx.stroke()
+                break
             }
             break
           }
-          case 'horizontal-tb':
-            ctx.fillText(f.content, x, baseline)
-            if (fStyle.textStrokeWidth) ctx.strokeText(f.content, x, baseline)
-            break
-        }
-        switch (fStyle.textDecoration) {
-          case 'underline':
-            ctx.strokeStyle = ctx.fillStyle
-            ctx.lineWidth = fStyle.fontSize / 15
-            ctx.beginPath()
-            ctx.moveTo(x, y + height)
-            ctx.lineTo(x + width, y + height)
-            ctx.stroke()
-            break
-          case 'line-through':
-            ctx.strokeStyle = ctx.fillStyle
-            ctx.lineWidth = fStyle.fontSize / 15
-            ctx.beginPath()
-            ctx.moveTo(x, y + height / 2)
-            ctx.lineTo(x + width, y + height / 2)
-            ctx.stroke()
-            break
         }
       })
     })

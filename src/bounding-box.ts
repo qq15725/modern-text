@@ -1,25 +1,16 @@
-export interface BoundingBoxOptions {
-  x?: number
-  y?: number
-  width?: number
-  height?: number
-}
-
 export class BoundingBox {
-  x: number
-  y: number
-  width: number
-  height: number
   get left() { return this.x }
   get top() { return this.y }
   get right() { return this.x + this.width }
   get bottom() { return this.y + this.height }
 
-  constructor({ x = 0, y = 0, width = 0, height = 0 }: BoundingBoxOptions = {}) {
-    this.x = x
-    this.y = y
-    this.width = width
-    this.height = height
+  constructor(
+    public x = 0,
+    public y = 0,
+    public width = 0,
+    public height = 0,
+  ) {
+    //
   }
 
   static from(...boxes: Array<BoundingBox>): BoundingBox {
@@ -31,27 +22,37 @@ export class BoundingBox {
       merged.bottom = Math.max(merged.bottom, box.bottom)
       return merged
     }, { x: firstBox.x, y: firstBox.y, right: firstBox.right, bottom: firstBox.bottom })
-    return new BoundingBox({
-      x: merged.x,
-      y: merged.y,
-      width: merged.right - merged.x,
-      height: merged.bottom - merged.y,
-    })
+    return new BoundingBox(
+      merged.x,
+      merged.y,
+      merged.right - merged.x,
+      merged.bottom - merged.y,
+    )
   }
 
-  move(tx: number, ty: number): this {
+  rotate90deg() {
+    const { width, height } = this
+    this.width = height
+    this.height = width
+  }
+
+  translate(tx: number, ty: number): this {
     this.x += tx
     this.y += ty
     return this
   }
 
   clone() {
-    return new BoundingBox({
-      x: this.x,
-      y: this.y,
-      width: this.width,
-      height: this.height,
-    })
+    return new BoundingBox(
+      this.x,
+      this.y,
+      this.width,
+      this.height,
+    )
+  }
+
+  toArray(): [number, number, number, number] {
+    return [this.x, this.y, this.width, this.height]
   }
 }
 
