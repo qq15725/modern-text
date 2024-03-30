@@ -1,3 +1,12 @@
+## [0.1.11](https://github.com/qq15725/modern-text/compare/v0.1.10...v0.1.11) (2024-03-30)
+
+
+### Features
+
+* support textOrientation ([a641416](https://github.com/qq15725/modern-text/commit/a6414160ba112d60009c56621627570672a65b7d))
+
+
+
 ## [0.1.10](https://github.com/qq15725/modern-text/compare/v0.1.9...v0.1.10) (2024-03-28)
 
 
