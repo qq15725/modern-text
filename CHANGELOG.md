@@ -1,3 +1,12 @@
+## [0.1.14](https://github.com/qq15725/modern-text/compare/v0.1.13...v0.1.14) (2024-03-30)
+
+
+### Bug Fixes
+
+* textTransform ([a7fa6eb](https://github.com/qq15725/modern-text/commit/a7fa6ebff6edc54ffa046e0a0cf94f2e0857a4c0))
+
+
+
 ## [0.1.13](https://github.com/qq15725/modern-text/compare/v0.1.12...v0.1.13) (2024-03-30)
 
 
