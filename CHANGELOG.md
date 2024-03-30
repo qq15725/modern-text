@@ -1,3 +1,12 @@
+## [0.1.12](https://github.com/qq15725/modern-text/compare/v0.1.11...v0.1.12) (2024-03-30)
+
+
+### Bug Fixes
+
+* setContextStyle ([71de4b6](https://github.com/qq15725/modern-text/commit/71de4b6896b6f57b306987120e91bc0a4254375b))
+
+
+
 ## [0.1.11](https://github.com/qq15725/modern-text/compare/v0.1.10...v0.1.11) (2024-03-30)
 
 
