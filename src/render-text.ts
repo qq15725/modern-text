@@ -109,8 +109,8 @@ export function renderText(options: RenderTextOptions) {
             const x = tx + f.contentBox.x
             const y = ty + f.contentBox.y
             const baseline = ty + f.baseline
-            ctx.fillText(f.content, x, baseline)
-            if (fStyle.textStrokeWidth) ctx.strokeText(f.content, x, baseline)
+            ctx.fillText(f.computedContent, x, baseline)
+            if (fStyle.textStrokeWidth) ctx.strokeText(f.computedContent, x, baseline)
             const { width, height } = f.contentBox
             switch (fStyle.textDecoration) {
               case 'underline':

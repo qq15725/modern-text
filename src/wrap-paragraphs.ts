@@ -46,8 +46,8 @@ export function wrapParagraphs(
         ) {
           let pos = isEOL ? content.length + 1 : content.length
           if (!pSize && !pos) {
-            content += tempF.content
-            pos += tempF.content.length
+            content += tempF.computedContent
+            pos += tempF.computedContent.length
           }
           if (content.length) {
             fragments.push(f.clone(content))
@@ -56,7 +56,7 @@ export function wrapParagraphs(
             newParagraphs.push(p.clone(fragments.slice()))
             fragments.length = 0
           }
-          const restContent = f.content.substring(pos)
+          const restContent = f.computedContent.substring(pos)
           if (restContent.length || restFragments.length) {
             restParagraphs.unshift(
               p.clone(
@@ -74,7 +74,7 @@ export function wrapParagraphs(
         } else {
           pSize += cSize
         }
-        content += tempF.content
+        content += tempF.computedContent
         tempF.content = ''
       }
       if (!wrap) {
