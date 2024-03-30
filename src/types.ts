@@ -7,7 +7,7 @@ export type TextWrap = 'wrap' | 'nowrap'
 export type TextAlign = 'center' | 'end' | 'left' | 'right' | 'start'
 export type VerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom' | 'sub' | 'super' | 'text-top' | 'text-bottom'
 export type TextTransform = 'uppercase' | 'lowercase' | 'none'
-export type TextDecoration = 'underline' | 'line-through'
+export type TextDecoration = 'none' | 'underline' | 'line-through'
 
 export interface TextLayoutStyle {
   writingMode: WritingMode
@@ -26,12 +26,12 @@ export interface TextLayoutStyle {
 }
 
 export interface TextDrawStyle {
-  color: string | CanvasGradient | CanvasPattern | null
-  backgroundColor: string | CanvasGradient | CanvasPattern | null
+  color: string | CanvasGradient | CanvasPattern
+  backgroundColor: string | CanvasGradient | CanvasPattern
   textStrokeWidth: number
-  textStrokeColor: string | CanvasGradient | CanvasPattern | null
-  textDecoration: TextDecoration | null
-  shadowColor: string | null
+  textStrokeColor: string | CanvasGradient | CanvasPattern
+  textDecoration: TextDecoration
+  shadowColor: string
   shadowOffsetX: number
   shadowOffsetY: number
   shadowBlur: number

@@ -13,39 +13,33 @@ export function getCurrentCanvas() {
 }
 
 export function setContextStyle(ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D, style: Partial<TextStyle>) {
-  if (style.shadowColor) ctx.shadowColor = style.shadowColor
-  if (style.shadowOffsetX !== undefined) ctx.shadowOffsetX = style.shadowOffsetX
-  if (style.shadowOffsetY !== undefined) ctx.shadowOffsetY = style.shadowOffsetY
-  if (style.shadowBlur !== undefined) ctx.shadowBlur = style.shadowBlur
-  ctx.strokeStyle = style.textStrokeColor ?? '#000'
-  if (style.textStrokeWidth !== undefined) ctx.lineWidth = style.textStrokeWidth
-  ctx.fillStyle = style.color ?? '#000'
-  if (style.textAlign) ctx.textAlign = style.textAlign
-  if (style.fontKerning) ctx.fontKerning = style.fontKerning
+  ctx.shadowColor = style.shadowColor || 'rgba(0, 0, 0, 0)'
+  ctx.shadowOffsetX = style.shadowOffsetX || 0
+  ctx.shadowOffsetY = style.shadowOffsetY || 0
+  ctx.shadowBlur = style.shadowBlur || 0
+  ctx.strokeStyle = style.textStrokeColor || '#000'
+  ctx.lineWidth = style.textStrokeWidth || 0
+  ctx.fillStyle = style.color || '#000'
+  ctx.textAlign = style.textAlign || 'start'
+  ctx.fontKerning = style.fontKerning || 'normal'
   switch (style.verticalAlign) {
-    case 'baseline':
-      ctx.textBaseline = 'alphabetic'
-      break
     case 'top':
     case 'middle':
     case 'bottom':
       ctx.textBaseline = style.verticalAlign
       break
+    case 'baseline':
+    default:
+      ctx.textBaseline = 'alphabetic'
+      break
   }
-  if (style.letterSpacing !== undefined) (ctx as any).letterSpacing = `${ style.letterSpacing }px`
-  if (
-    style.fontStyle
-    || style.fontWeight !== undefined
-    || style.fontSize !== undefined
-    || style.fontFamily
-  ) {
-    ctx.font = [
-      style.fontStyle || 'normal',
-      style.fontWeight || 'normal',
-      `${ style.fontSize || 14 }px`,
-      style.fontFamily || 'sans-serif',
-    ].join(' ')
-  }
+  ctx.font = [
+    style.fontStyle || 'normal',
+    style.fontWeight || 'normal',
+    `${ style.fontSize || 14 }px`,
+    style.fontFamily || 'sans-serif',
+  ].join(' ')
+  ;(ctx as any).letterSpacing = `${ style.letterSpacing || 0 }px`
 }
 
 export function canvasMeasureText(text: string, style: TextStyle) {
