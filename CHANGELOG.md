@@ -1,3 +1,12 @@
+## [0.1.16](https://github.com/qq15725/modern-text/compare/v0.1.15...v0.1.16) (2024-04-02)
+
+
+### Bug Fixes
+
+* vertical-rl ([1b5c15b](https://github.com/qq15725/modern-text/commit/1b5c15beb48661c6c59ed527e919d24d355cdf6b))
+
+
+
 ## [0.1.15](https://github.com/qq15725/modern-text/compare/v0.1.14...v0.1.15) (2024-04-02)
 
 
