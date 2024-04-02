@@ -1,3 +1,12 @@
+## [0.1.15](https://github.com/qq15725/modern-text/compare/v0.1.14...v0.1.15) (2024-04-02)
+
+
+### Bug Fixes
+
+* Tr Ur render ([b78da32](https://github.com/qq15725/modern-text/commit/b78da326ac2ab383264eab8a57d937a63d593fe2))
+
+
+
 ## [0.1.14](https://github.com/qq15725/modern-text/compare/v0.1.13...v0.1.14) (2024-03-30)
 
 
