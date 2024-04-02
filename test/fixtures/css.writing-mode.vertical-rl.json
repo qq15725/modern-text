@@ -1,4 +1,8 @@
 {
+  "content": [
+    "一束flower，一面春光",
+    "欣于所遇，快然自足"
+  ],
   "style": {
     "fontSize": 39,
     "height": 585,
@@ -6,9 +10,5 @@
     "lineHeight": 2,
     "letterSpacing": 13,
     "writingMode": "vertical-rl"
-  },
-  "content": [
-    "一束flower，一面春光",
-    "欣于所遇，快然自足"
-  ]
+  }
 }

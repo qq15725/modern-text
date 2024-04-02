@@ -77,6 +77,6 @@ export function canvasMeasureText(text: string, style: TextStyle) {
     glyphWidth: glyphLeft + glyphRight,
     glyphHeight,
     baseline,
-    centerX: glyphLeft,
+    centerX: width / 2,
   }
 }

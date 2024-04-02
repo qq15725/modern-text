@@ -63,9 +63,11 @@ export class Character {
       width,
       height,
       typoHeight,
+      glyphLeft,
       glyphWidth,
       glyphHeight,
       baseline,
+      centerX,
     } = canvasMeasureText(this.content, {
       ...style,
       letterSpacing: 0,
@@ -80,20 +82,24 @@ export class Character {
     if (style.writingMode.startsWith('vertical')) {
       const inlineSize = style.fontSize * style.lineHeight
       switch (this.verticalOrientation) {
-        case 'R':
         case 'Tr':
+        case 'R':
           this.contentBox.rotate90deg()
           this.glyphBox.rotate90deg()
           this.contentBox.x = (inlineSize - height) / 2
-          this.contentBox.y = 0
           this.glyphBox.x = (inlineSize - glyphHeight) / 2
-          this.glyphBox.y = 0
           break
-        default:
+        case 'U':
           this.contentBox.x = (inlineSize - width) / 2
           this.contentBox.y = (typoHeight - glyphHeight) / 2
           this.glyphBox.x = (inlineSize - glyphWidth) / 2
           this.glyphBox.y = 0
+          break
+        case 'Tu':
+          this.contentBox.x = (inlineSize - width) / 2
+          this.contentBox.y = 0
+          this.glyphBox.x = this.contentBox.x + centerX - glyphLeft
+          this.glyphBox.y = height - glyphHeight
           break
       }
     }

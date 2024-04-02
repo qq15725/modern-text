@@ -83,32 +83,32 @@ export function renderText(options: RenderTextOptions) {
           case 'vertical-rl':
           case 'vertical-lr': {
             f.characters.forEach(c => {
-              let x = tx + c.contentBox.x
-              let y = ty + c.contentBox.y
+              let x = 0
+              let y = 0
               switch (c.verticalOrientation) {
                 case 'Tr':
                 case 'R': {
                   ctx.rotate(Math.PI / 2)
                   ctx.textBaseline = 'alphabetic'
-                  ctx.fillText(c.content, y, -(f.inlineBox.width - c.baseline))
-                  if (fStyle.textStrokeWidth) ctx.strokeText(c.content, 0, 0)
-                  ctx.setTransform(1, 0, 0, 1, 0, 0)
-                  ctx.scale(pixelRatio, pixelRatio)
+                  y = -(tx + f.inlineBox.x + f.inlineBox.width - c.baseline)
+                  x = ty + c.contentBox.y
                   break
                 }
                 case 'Tu':
                   ctx.textBaseline = 'top'
-                  x += (c.contentBox.width - c.glyphBox.width * 2)
-                  y -= (c.contentBox.height - c.glyphBox.height * 2)
-                  ctx.fillText(c.content, x, y)
-                  if (fStyle.textStrokeWidth) ctx.strokeText(c.content, x, y)
+                  x = tx + c.contentBox.x + c.contentBox.right - c.glyphBox.right
+                  y = ty + c.contentBox.y + c.contentBox.y - c.glyphBox.y
                   break
                 case 'U':
+                  x = tx + c.contentBox.x
+                  y = ty + c.contentBox.y
                   ctx.textBaseline = 'top'
-                  ctx.fillText(c.content, x, y)
-                  if (fStyle.textStrokeWidth) ctx.strokeText(c.content, x, y)
                   break
               }
+              ctx.fillText(c.content, x, y)
+              if (fStyle.textStrokeWidth) ctx.strokeText(c.content, x, y)
+              ctx.setTransform(1, 0, 0, 1, 0, 0)
+              ctx.scale(pixelRatio, pixelRatio)
             })
             break
           }
