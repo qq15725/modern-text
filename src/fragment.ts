@@ -54,18 +54,20 @@ export class Fragment {
         let contentWidth = 0
         let glyphWidth = 0
         this.characters.forEach((c, i) => {
-          c.measure()
+          c.update().measure()
           contentWidth = Math.max(contentWidth, c.contentBox.width)
           glyphWidth = Math.max(glyphWidth, c.glyphBox.width)
-          height += c.contentBox.height
+          height += c.contentBox.y + c.contentBox.height
           if (i !== this.characters.length - 1) height += style.letterSpacing
         })
+        this.inlineBox.width = style.fontSize * style.lineHeight
+        this.inlineBox.height = height
         this.contentBox.width = contentWidth
         this.contentBox.height = height
         this.glyphBox.width = glyphWidth
         this.glyphBox.height = height
-        this.inlineBox.width = style.fontSize * style.lineHeight
-        this.inlineBox.height = height
+        this.baseline = this.characters[0]?.baseline
+        this.centerX = height / 2
         break
       }
       case 'horizontal-tb': {

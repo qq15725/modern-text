@@ -78,26 +78,33 @@ export function renderText(options: RenderTextOptions) {
         setContextStyle(ctx, {
           ...fStyle,
           textAlign: 'left',
-          verticalAlign: fStyle.writingMode === 'horizontal-tb' ? 'baseline' : 'top',
         })
         switch (fStyle.writingMode) {
           case 'vertical-rl':
           case 'vertical-lr': {
             f.characters.forEach(c => {
-              const x = tx + c.contentBox.x
-              const y = ty + c.contentBox.y
+              let x = tx + c.contentBox.x
+              let y = ty + c.contentBox.y
               switch (c.verticalOrientation) {
-                case 'R':
-                case 'Tr': {
-                  ctx.translate(x + c.contentBox.width, y)
+                case 'Tr':
+                case 'R': {
                   ctx.rotate(Math.PI / 2)
-                  ctx.fillText(c.content, 0, 0)
+                  ctx.textBaseline = 'alphabetic'
+                  ctx.fillText(c.content, y, -(f.inlineBox.width - c.baseline))
                   if (fStyle.textStrokeWidth) ctx.strokeText(c.content, 0, 0)
                   ctx.setTransform(1, 0, 0, 1, 0, 0)
                   ctx.scale(pixelRatio, pixelRatio)
                   break
                 }
-                default:
+                case 'Tu':
+                  ctx.textBaseline = 'top'
+                  x += (c.contentBox.width - c.glyphBox.width * 2)
+                  y -= (c.contentBox.height - c.glyphBox.height * 2)
+                  ctx.fillText(c.content, x, y)
+                  if (fStyle.textStrokeWidth) ctx.strokeText(c.content, x, y)
+                  break
+                case 'U':
+                  ctx.textBaseline = 'top'
                   ctx.fillText(c.content, x, y)
                   if (fStyle.textStrokeWidth) ctx.strokeText(c.content, x, y)
                   break
@@ -108,7 +115,8 @@ export function renderText(options: RenderTextOptions) {
           case 'horizontal-tb': {
             const x = tx + f.contentBox.x
             const y = ty + f.contentBox.y
-            const baseline = ty + f.baseline
+            const baseline = ty + f.inlineBox.y + f.baseline
+            ctx.textBaseline = 'alphabetic'
             ctx.fillText(f.computedContent, x, baseline)
             if (fStyle.textStrokeWidth) ctx.strokeText(f.computedContent, x, baseline)
             const { width, height } = f.contentBox
