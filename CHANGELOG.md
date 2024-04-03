@@ -1,3 +1,12 @@
+## [0.1.18](https://github.com/qq15725/modern-text/compare/v0.1.17...v0.1.18) (2024-04-03)
+
+
+### Bug Fixes
+
+* horizontal character position ([4501210](https://github.com/qq15725/modern-text/commit/45012102ee6b5d3b66c9e7f07c659cfc66274a3b))
+
+
+
 ## [0.1.17](https://github.com/qq15725/modern-text/compare/v0.1.16...v0.1.17) (2024-04-03)
 
 
