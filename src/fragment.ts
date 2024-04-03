@@ -1,5 +1,4 @@
 import { BoundingBox } from './bounding-box'
-import { canvasMeasureText } from './canvas'
 import { Character } from './character'
 import type { Paragraph } from './paragraph'
 import type { TextStyle } from './types'
@@ -66,37 +65,39 @@ export class Fragment {
         this.contentBox.height = height
         this.glyphBox.width = glyphWidth
         this.glyphBox.height = height
-        this.baseline = this.characters[0]?.baseline
+        this.baseline = this.characters[0]?.baseline ?? 0
         this.centerX = height / 2
         break
       }
       case 'horizontal-tb': {
-        const {
-          width,
-          height,
-          lineHeight,
-          glyphAscent,
-          glyphWidth,
-          glyphHeight,
-          baseline,
-          centerX,
-        } = canvasMeasureText(this.computedContent, style)
-        this.inlineBox.width = width
-        this.inlineBox.height = lineHeight
-        this.contentBox.width = width
-        this.contentBox.height = height
-        this.glyphBox.width = glyphWidth
-        this.glyphBox.height = glyphHeight
-        this.baseline = baseline
+        let width = 0
+        let contentHeight = 0
+        let glyphHeight = 0
+        this.characters.forEach((c, i) => {
+          c.update().measure()
+          contentHeight = Math.max(contentHeight, c.contentBox.height)
+          glyphHeight = Math.max(glyphHeight, c.glyphBox.height)
+          width += c.contentBox.x + c.contentBox.width
+          if (i !== this.characters.length - 1) width += style.letterSpacing
+        })
 
-        // relative
+        this.inlineBox.width = width
+        this.inlineBox.height = style.fontSize * style.lineHeight
+        this.contentBox.width = width
+        this.contentBox.height = contentHeight
+        this.glyphBox.width = width
+        this.glyphBox.height = glyphHeight
+        this.centerX = width / 2
         this.inlineBox.x = 0
         this.inlineBox.y = 0
-        this.contentBox.x = 0
+        const first = this.characters[0]
+        if (first) {
+          this.baseline = first.baseline
+          this.contentBox.x = first.contentBox.x
+          this.glyphBox.x = first.glyphBox.x
+        }
         this.contentBox.y = (this.inlineBox.height - this.contentBox.height) / 2
-        this.glyphBox.x = 0
-        this.glyphBox.y = baseline - glyphAscent
-        this.centerX = centerX
+        this.glyphBox.y = (this.inlineBox.height - this.glyphBox.height) / 2
         break
       }
     }

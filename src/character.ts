@@ -1,5 +1,6 @@
 import { BoundingBox } from './bounding-box'
-import { canvasMeasureText } from './canvas'
+import { canvasMeasureText } from './canvas-measure-text'
+import { domMeasureText } from './dom-measure-text'
 import type { Fragment } from './fragment'
 
 // https://www.unicode.org/reports/tr50/#vo
@@ -62,10 +63,11 @@ export class Character {
     const {
       width,
       height,
-      typoHeight,
+      glyphAscent,
       glyphLeft,
       glyphWidth,
       glyphHeight,
+      lineHeight,
       baseline,
       centerX,
     } = canvasMeasureText(this.content, {
@@ -79,29 +81,44 @@ export class Character {
     this.glyphBox.height = glyphHeight
     this.baseline = baseline
 
-    if (style.writingMode.startsWith('vertical')) {
-      const inlineSize = style.fontSize * style.lineHeight
-      switch (this.verticalOrientation) {
-        case 'Tr':
-        case 'R':
-          this.contentBox.rotate90deg()
-          this.glyphBox.rotate90deg()
-          this.contentBox.x = (inlineSize - height) / 2
-          this.glyphBox.x = (inlineSize - glyphHeight) / 2
-          break
-        case 'U':
-          this.contentBox.x = (inlineSize - width) / 2
-          this.contentBox.y = (typoHeight - glyphHeight) / 2
-          this.glyphBox.x = (inlineSize - glyphWidth) / 2
-          this.glyphBox.y = 0
-          break
-        case 'Tu':
-          this.contentBox.x = (inlineSize - width) / 2
-          this.contentBox.y = 0
-          this.glyphBox.x = this.contentBox.x + centerX - glyphLeft
-          this.glyphBox.y = height - glyphHeight
-          break
+    switch (style.writingMode) {
+      case 'vertical-lr':
+      case 'vertical-rl': {
+        const lineWidth = style.fontSize * style.lineHeight
+        switch (this.verticalOrientation) {
+          case 'Tr':
+          case 'R':
+            this.contentBox.rotate90deg()
+            this.glyphBox.rotate90deg()
+            this.contentBox.x = (lineWidth - height) / 2
+            this.glyphBox.x = (lineWidth - glyphHeight) / 2
+            break
+          case 'U': {
+            const { leading } = domMeasureText(this.content, {
+              ...style,
+              letterSpacing: 0,
+            })
+            this.contentBox.x = (lineWidth - width) / 2
+            this.contentBox.y = leading
+            this.glyphBox.x = (lineWidth - glyphWidth) / 2
+            this.glyphBox.y = 0
+            break
+          }
+          case 'Tu':
+            this.contentBox.x = (lineWidth - width) / 2
+            this.contentBox.y = 0
+            this.glyphBox.x = this.contentBox.x + centerX - glyphLeft
+            this.glyphBox.y = height - glyphHeight
+            break
+        }
+        break
       }
+      case 'horizontal-tb':
+        this.contentBox.x = 0
+        this.contentBox.y = (lineHeight - height) / 2
+        this.glyphBox.x = centerX - glyphLeft
+        this.glyphBox.y = baseline - glyphAscent
+        break
     }
 
     return this

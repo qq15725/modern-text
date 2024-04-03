@@ -1,6 +1,6 @@
 import { parseParagraphs } from './parse-paragraphs'
 import { wrapParagraphs } from './wrap-paragraphs'
-import { canvasMeasureText } from './canvas'
+import { canvasMeasureText } from './canvas-measure-text'
 import { BoundingBox } from './bounding-box'
 import type { TextContent, TextEffect, TextStyle } from './types'
 import type { Fragment } from './fragment'
@@ -64,12 +64,12 @@ export function measureText(options: MeasureTextOptions) {
     })
 
     const {
-      typoHeight,
-      typoAscent,
-      lineHeight,
+      glyphHeight,
+      baseline,
     } = canvasMeasureText('x', (highestF ?? p).computedStyle)
-    p.xHeight = typoHeight
-    p.baseline = (lineHeight - typoHeight) / 2 + typoAscent
+    p.xHeight = glyphHeight
+    p.baseline = baseline
+
     const pStyle = p.computedStyle
 
     let fx = px
@@ -101,6 +101,14 @@ export function measureText(options: MeasureTextOptions) {
           f.inlineBox.translate(fx, fy)
           f.contentBox.translate(fx, fy)
           f.glyphBox.translate(fx, fy)
+          let cx = fx
+          f.characters.forEach((c, ci) => {
+            const width = c.contentBox.x + c.contentBox.width
+            c.contentBox.translate(cx, fy)
+            c.glyphBox.translate(cx, fy)
+            cx += width
+            if (ci !== f.characters.length - 1) cx += fStyle.letterSpacing
+          })
           fx += f.inlineBox.width
           maxHeight = Math.max(maxHeight, f.inlineBox.height)
           if (fi === p.fragments.length - 1) fy += maxHeight
@@ -221,6 +229,7 @@ export function measureText(options: MeasureTextOptions) {
       f.contentBox.translate(fDx, fDy)
       f.glyphBox.translate(fDx, fDy)
     })
+    p.lineBox = BoundingBox.from(p.lineBox, ...p.fragments.map(f => f.inlineBox))
     p.contentBox = BoundingBox.from(...p.fragments.map(f => f.contentBox))
     p.glyphBox = BoundingBox.from(...p.fragments.map(f => f.glyphBox))
   })

@@ -1,5 +1,5 @@
 import { measureText } from './measure-text'
-import { setContextStyle } from './canvas'
+import { setContextStyle } from './set-context-style'
 import { parseColor } from './parse-color'
 import { BoundingBox } from './bounding-box'
 import type { TextDrawStyle } from './types'
