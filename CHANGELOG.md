@@ -1,3 +1,12 @@
+## [0.1.17](https://github.com/qq15725/modern-text/compare/v0.1.16...v0.1.17) (2024-04-03)
+
+
+### Bug Fixes
+
+* leading ([af540c2](https://github.com/qq15725/modern-text/commit/af540c286101fdb17cb5a70997846ee64a6fce98))
+
+
+
 ## [0.1.16](https://github.com/qq15725/modern-text/compare/v0.1.15...v0.1.16) (2024-04-02)
 
 
