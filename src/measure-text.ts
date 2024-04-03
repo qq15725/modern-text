@@ -16,32 +16,36 @@ export interface MeasureTextOptions {
   effects?: Array<TextEffect>
 }
 
+export const defaultTextStyles: MeasureTextStyle = {
+  width: 0,
+  height: 0,
+  color: '#000',
+  backgroundColor: 'rgba(0, 0, 0, 0)',
+  fontSize: 14,
+  fontWeight: 'normal',
+  fontFamily: 'sans-serif',
+  fontStyle: 'normal',
+  fontKerning: 'normal',
+  textWrap: 'wrap',
+  textAlign: 'start',
+  verticalAlign: 'baseline',
+  textTransform: 'none',
+  textDecoration: 'none',
+  textStrokeWidth: 0,
+  textStrokeColor: '#000',
+  lineHeight: 1,
+  letterSpacing: 0,
+  shadowColor: 'rgba(0, 0, 0, 0)',
+  shadowOffsetX: 0,
+  shadowOffsetY: 0,
+  shadowBlur: 0,
+  writingMode: 'horizontal-tb',
+  textOrientation: 'mixed',
+}
+
 function resolveStyle(style?: Partial<MeasureTextStyle>): MeasureTextStyle {
   return {
-    width: 0,
-    height: 0,
-    color: '#000',
-    backgroundColor: 'rgba(0, 0, 0, 0)',
-    fontSize: 14,
-    fontWeight: 'normal',
-    fontFamily: 'sans-serif',
-    fontStyle: 'normal',
-    fontKerning: 'normal',
-    textWrap: 'wrap',
-    textAlign: 'start',
-    verticalAlign: 'baseline',
-    textTransform: 'none',
-    textDecoration: 'none',
-    textStrokeWidth: 0,
-    textStrokeColor: '#000',
-    lineHeight: 1,
-    letterSpacing: 0,
-    shadowColor: 'rgba(0, 0, 0, 0)',
-    shadowOffsetX: 0,
-    shadowOffsetY: 0,
-    shadowBlur: 0,
-    writingMode: 'horizontal-tb',
-    textOrientation: 'mixed',
+    ...defaultTextStyles,
     ...style,
   }
 }
@@ -225,6 +229,10 @@ export function measureText(options: MeasureTextOptions) {
           break
         }
       }
+      f.characters.forEach(c => {
+        c.contentBox.translate(fDx, fDy)
+        c.glyphBox.translate(fDx, fDy)
+      })
       f.inlineBox.translate(fDx, fDy)
       f.contentBox.translate(fDx, fDy)
       f.glyphBox.translate(fDx, fDy)
