@@ -1,3 +1,12 @@
+## [0.1.19](https://github.com/qq15725/modern-text/compare/v0.1.18...v0.1.19) (2024-04-07)
+
+
+### Bug Fixes
+
+* wrap ([c82a4c7](https://github.com/qq15725/modern-text/commit/c82a4c7230b19147510fe1a70dcc43b69188faf1))
+
+
+
 ## [0.1.18](https://github.com/qq15725/modern-text/compare/v0.1.17...v0.1.18) (2024-04-03)
 
 
