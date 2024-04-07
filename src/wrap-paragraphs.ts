@@ -25,7 +25,6 @@ export function wrapParagraphs(
       for (const c of f.characters) {
         tempF.content += c.content
         if (f.characters[++index]?.isPunctuation) continue
-        const isEOL = c.isEOL
         let size
         let cSize
         switch (style.writingMode) {
@@ -40,11 +39,12 @@ export function wrapParagraphs(
             cSize = tempF.update().measure().contentBox.width
             break
         }
+        cSize += style.letterSpacing
         if (
-          isEOL
+          c.isEOL
           || (size && pSize + cSize > size)
         ) {
-          let pos = isEOL ? content.length + 1 : content.length
+          let pos = c.isEOL ? content.length + 1 : content.length
           if (!pSize && !pos) {
             content += tempF.computedContent
             pos += tempF.computedContent.length

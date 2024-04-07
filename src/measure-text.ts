@@ -226,13 +226,13 @@ export function measureText(options: MeasureTextOptions) {
               }
               break
           }
+          f.characters.forEach(c => {
+            c.contentBox.translate(fDx, fDy)
+            c.glyphBox.translate(fDx, fDy)
+          })
           break
         }
       }
-      f.characters.forEach(c => {
-        c.contentBox.translate(fDx, fDy)
-        c.glyphBox.translate(fDx, fDy)
-      })
       f.inlineBox.translate(fDx, fDy)
       f.contentBox.translate(fDx, fDy)
       f.glyphBox.translate(fDx, fDy)
