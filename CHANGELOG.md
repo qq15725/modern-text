@@ -1,3 +1,12 @@
+## [0.1.20](https://github.com/qq15725/modern-text/compare/v0.1.19...v0.1.20) (2024-04-09)
+
+
+### Bug Fixes
+
+* fragment position ([39574ec](https://github.com/qq15725/modern-text/commit/39574eceb0cb1e966369027f799ffc23d1c4bdcf))
+
+
+
 ## [0.1.19](https://github.com/qq15725/modern-text/compare/v0.1.18...v0.1.19) (2024-04-07)
 
 
