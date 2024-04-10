@@ -34,7 +34,6 @@ export function renderText(options: RenderTextOptions) {
   view.width = Math.max(1, Math.floor(width * pixelRatio))
   view.height = Math.max(1, Math.floor(height * pixelRatio))
   ctx.scale(pixelRatio, pixelRatio)
-  ctx.clearRect(0, 0, view.width, view.height)
 
   const fillBackground = (color: any, x: number, y: number, width: number, height: number) => {
     ctx.fillStyle = color
@@ -77,12 +76,19 @@ export function renderText(options: RenderTextOptions) {
         const fStyle = { ...f.computedStyle, ...effectStyle }
         setContextStyle(ctx, {
           ...fStyle,
+          fontSize: fStyle.fontSize * pixelRatio,
+          letterSpacing: fStyle.letterSpacing * pixelRatio,
+          textStrokeWidth: fStyle.textStrokeWidth * pixelRatio,
+          shadowOffsetX: fStyle.shadowOffsetX * pixelRatio,
+          shadowOffsetY: fStyle.shadowOffsetY * pixelRatio,
+          shadowBlur: fStyle.shadowBlur * pixelRatio,
           textAlign: 'left',
         })
         switch (fStyle.writingMode) {
           case 'vertical-rl':
           case 'vertical-lr': {
             f.characters.forEach(c => {
+              ctx.setTransform(1, 0, 0, 1, 0, 0)
               let x = 0
               let y = 0
               switch (c.verticalOrientation) {
@@ -105,10 +111,8 @@ export function renderText(options: RenderTextOptions) {
                   ctx.textBaseline = 'top'
                   break
               }
-              ctx.fillText(c.content, x, y)
-              if (fStyle.textStrokeWidth) ctx.strokeText(c.content, x, y)
-              ctx.setTransform(1, 0, 0, 1, 0, 0)
-              ctx.scale(pixelRatio, pixelRatio)
+              ctx.fillText(c.content, x * pixelRatio, y * pixelRatio)
+              if (fStyle.textStrokeWidth) ctx.strokeText(c.content, x * pixelRatio, y * pixelRatio)
             })
             break
           }
@@ -116,10 +120,12 @@ export function renderText(options: RenderTextOptions) {
             const x = tx + f.contentBox.x
             const y = ty + f.contentBox.y
             const baseline = ty + f.inlineBox.y + f.baseline
-            ctx.textBaseline = 'alphabetic'
-            ctx.fillText(f.computedContent, x, baseline)
-            if (fStyle.textStrokeWidth) ctx.strokeText(f.computedContent, x, baseline)
             const { width, height } = f.contentBox
+            ctx.textBaseline = 'alphabetic'
+            ctx.setTransform(1, 0, 0, 1, 0, 0)
+            ctx.fillText(f.computedContent, x * pixelRatio, baseline * pixelRatio)
+            if (fStyle.textStrokeWidth) ctx.strokeText(f.computedContent, x * pixelRatio, baseline * pixelRatio)
+            ctx.scale(pixelRatio, pixelRatio)
             switch (fStyle.textDecoration) {
               case 'underline':
                 ctx.strokeStyle = ctx.fillStyle
