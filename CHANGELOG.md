@@ -1,3 +1,12 @@
+## [0.1.21](https://github.com/qq15725/modern-text/compare/v0.1.20...v0.1.21) (2024-04-10)
+
+
+### Bug Fixes
+
+* text pixelRatio ([da59391](https://github.com/qq15725/modern-text/commit/da593912ea4c2facb5fa9bf37e02bed5b23a2134))
+
+
+
 ## [0.1.20](https://github.com/qq15725/modern-text/compare/v0.1.19...v0.1.20) (2024-04-09)
 
 
