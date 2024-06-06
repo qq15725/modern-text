@@ -1,5 +1,6 @@
 import { BoundingBox } from './bounding-box'
 import { Character } from './character'
+import { filterEmpty } from './utils'
 import type { Paragraph } from './paragraph'
 import type { TextStyle } from './types'
 
@@ -24,7 +25,7 @@ export class Fragment {
   update(): this {
     this.computedStyle = {
       ...this.parent?.computedStyle,
-      ...this.style,
+      ...filterEmpty(this.style) as Partial<TextStyle>,
     } as TextStyle
 
     const style = this.computedStyle

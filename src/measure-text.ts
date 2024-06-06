@@ -97,7 +97,11 @@ export function measureText(options: MeasureTextOptions) {
             if (ci !== f.characters.length - 1) cy += fStyle.letterSpacing
           })
           fy += f.inlineBox.height
-          if (fi === p.fragments.length - 1) fx += f.inlineBox.width
+          if (fi === p.fragments.length - 1) {
+            fx += f.inlineBox.width
+          } else {
+            fx += fStyle.letterSpacing
+          }
           break
         }
         case 'horizontal-tb': {
@@ -115,7 +119,11 @@ export function measureText(options: MeasureTextOptions) {
           })
           fx += f.inlineBox.width
           maxHeight = Math.max(maxHeight, f.inlineBox.height)
-          if (fi === p.fragments.length - 1) fy += maxHeight
+          if (fi === p.fragments.length - 1) {
+            fy += maxHeight
+          } else {
+            fx += fStyle.letterSpacing
+          }
           break
         }
       }
