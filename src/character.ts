@@ -111,11 +111,13 @@ export class Character {
             this.glyphBox.y = height - glyphHeight
             break
         }
+        this.contentBox.height += style.letterSpacing
         break
       }
       case 'horizontal-tb':
         this.contentBox.x = 0
         this.contentBox.y = (lineHeight - height) / 2
+        this.contentBox.width += style.letterSpacing
         this.glyphBox.x = centerX - glyphLeft
         this.glyphBox.y = baseline - glyphAscent
         break

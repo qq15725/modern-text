@@ -53,14 +53,13 @@ export class Fragment {
         let height = 0
         const contentBox = { left: 0, right: 0 }
         const glyphBox = { left: 0, right: 0 }
-        this.characters.forEach((c, i) => {
+        this.characters.forEach(c => {
           c.update().measure()
           contentBox.left = Math.min(contentBox.left, c.contentBox.left)
           contentBox.right = Math.max(contentBox.right, c.contentBox.right)
           glyphBox.left = Math.min(glyphBox.left, c.glyphBox.left)
           glyphBox.right = Math.max(glyphBox.right, c.glyphBox.right)
           height += c.contentBox.y + c.contentBox.height
-          if (i !== this.characters.length - 1) height += style.letterSpacing
         })
         this.inlineBox.width = style.fontSize * style.lineHeight
         this.inlineBox.height = height
@@ -78,14 +77,13 @@ export class Fragment {
         let width = 0
         const contentBox = { top: 0, bottom: 0 }
         const glyphBox = { top: 0, bottom: 0 }
-        this.characters.forEach((c, i) => {
+        this.characters.forEach(c => {
           c.update().measure()
           contentBox.top = Math.min(contentBox.top, c.contentBox.top)
           contentBox.bottom = Math.max(contentBox.bottom, c.contentBox.bottom)
           glyphBox.top = Math.min(glyphBox.top, c.glyphBox.top)
           glyphBox.bottom = Math.max(glyphBox.bottom, c.glyphBox.bottom)
           width += c.contentBox.x + c.contentBox.width
-          if (i !== this.characters.length - 1) width += style.letterSpacing
         })
         this.inlineBox.width = width
         this.inlineBox.height = style.fontSize * style.lineHeight

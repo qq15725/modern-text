@@ -80,7 +80,6 @@ export function measureText(options: MeasureTextOptions) {
     let fy = py
     let maxHeight = 0
     p.fragments.forEach((f, fi) => {
-      const fStyle = f.computedStyle
       switch (pStyle.writingMode) {
         case 'vertical-rl':
         case 'vertical-lr': {
@@ -89,18 +88,15 @@ export function measureText(options: MeasureTextOptions) {
           f.contentBox.translate(fx, fy)
           f.glyphBox.translate(fx, fy)
           let cy = fy
-          f.characters.forEach((c, ci) => {
+          f.characters.forEach(c => {
             const height = c.contentBox.y + c.contentBox.height
             c.contentBox.translate(fx, cy)
             c.glyphBox.translate(fx, cy)
             cy += height
-            if (ci !== f.characters.length - 1) cy += fStyle.letterSpacing
           })
           fy += f.inlineBox.height
           if (fi === p.fragments.length - 1) {
             fx += f.inlineBox.width
-          } else {
-            fx += fStyle.letterSpacing
           }
           break
         }
@@ -110,19 +106,16 @@ export function measureText(options: MeasureTextOptions) {
           f.contentBox.translate(fx, fy)
           f.glyphBox.translate(fx, fy)
           let cx = fx
-          f.characters.forEach((c, ci) => {
+          f.characters.forEach(c => {
             const width = c.contentBox.x + c.contentBox.width
             c.contentBox.translate(cx, fy)
             c.glyphBox.translate(cx, fy)
             cx += width
-            if (ci !== f.characters.length - 1) cx += fStyle.letterSpacing
           })
           fx += f.inlineBox.width
           maxHeight = Math.max(maxHeight, f.inlineBox.height)
           if (fi === p.fragments.length - 1) {
             fy += maxHeight
-          } else {
-            fx += fStyle.letterSpacing
           }
           break
         }

@@ -39,7 +39,6 @@ export function wrapParagraphs(
             cSize = tempF.update().measure().contentBox.width
             break
         }
-        cSize += style.letterSpacing
         if (
           c.isEOL
           || (size && pSize + cSize > size)
