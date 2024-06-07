@@ -1,3 +1,12 @@
+## [0.1.24](https://github.com/qq15725/modern-text/compare/v0.1.23...v0.1.24) (2024-06-07)
+
+
+### Features
+
+* export parseParagraphs ([7f2256a](https://github.com/qq15725/modern-text/commit/7f2256a0dd3c376d72202a59fee1524a554552de))
+
+
+
 ## [0.1.23](https://github.com/qq15725/modern-text/compare/v0.1.22...v0.1.23) (2024-06-07)
 
 
