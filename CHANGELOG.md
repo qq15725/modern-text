@@ -1,3 +1,12 @@
+## [0.1.23](https://github.com/qq15725/modern-text/compare/v0.1.22...v0.1.23) (2024-06-07)
+
+
+### Bug Fixes
+
+* letterSpacing ([e8246cf](https://github.com/qq15725/modern-text/commit/e8246cfc38086a67e2050bfa00f38a36bf6e8ce3))
+
+
+
 ## [0.1.22](https://github.com/qq15725/modern-text/compare/v0.1.21...v0.1.22) (2024-06-06)
 
 
