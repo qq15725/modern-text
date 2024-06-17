@@ -17,7 +17,7 @@ export function parseParagraphs(content: TextContent, style: TextStyle): Array<P
             paragraph.addFragment(f)
           } else {
             const { content, ...fStyle } = f
-            paragraph.addFragment(content, fStyle)
+            content !== undefined && paragraph.addFragment(content, fStyle)
           }
         })
         paragraphs.push(paragraph)
@@ -26,12 +26,12 @@ export function parseParagraphs(content: TextContent, style: TextStyle): Array<P
         const paragraph = new Paragraph(pStyle, style)
         fragments.forEach(f => {
           const { content, ...fStyle } = f
-          paragraph.addFragment(content, fStyle)
+          content !== undefined && paragraph.addFragment(content, fStyle)
         })
         paragraphs.push(paragraph)
       } else if ('content' in p) {
         const { content: pData, ...pStyle } = p
-        paragraphs.push(new Paragraph(pStyle, style).addFragment(pData))
+        pData !== undefined && paragraphs.push(new Paragraph(pStyle, style).addFragment(pData))
       }
     }
   }
