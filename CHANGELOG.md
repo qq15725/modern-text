@@ -1,3 +1,12 @@
+## [0.1.25](https://github.com/qq15725/modern-text/compare/v0.1.24...v0.1.25) (2024-06-17)
+
+
+### Bug Fixes
+
+* parse ([1a806b7](https://github.com/qq15725/modern-text/commit/1a806b7c930087957ee8ea45dcc4793c2b581e72))
+
+
+
 ## [0.1.24](https://github.com/qq15725/modern-text/compare/v0.1.23...v0.1.24) (2024-06-07)
 
 
