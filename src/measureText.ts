@@ -1,9 +1,10 @@
-import { parseParagraphs } from './parse-paragraphs'
-import { wrapParagraphs } from './wrap-paragraphs'
-import { canvasMeasureText } from './canvas-measure-text'
-import { BoundingBox } from './bounding-box'
+import { Context } from './Context'
+import { paragraphsParse } from './paragraphsParse'
+import { paragraphsAutoWrap } from './paragraphsAutoWrap'
+import { measureTextByCanvas } from './measureTextByCanvas'
+import { BoundingBox } from './BoundingBox'
 import type { TextContent, TextEffect, TextStyle } from './types'
-import type { Fragment } from './fragment'
+import type { Fragment } from './Fragment'
 
 export interface MeasureTextStyle extends TextStyle {
   width: number
@@ -16,46 +17,17 @@ export interface MeasureTextOptions {
   effects?: Array<TextEffect>
 }
 
-export const defaultTextStyles: MeasureTextStyle = {
-  width: 0,
-  height: 0,
-  color: '#000',
-  backgroundColor: 'rgba(0, 0, 0, 0)',
-  fontSize: 14,
-  fontWeight: 'normal',
-  fontFamily: 'sans-serif',
-  fontStyle: 'normal',
-  fontKerning: 'normal',
-  textWrap: 'wrap',
-  textAlign: 'start',
-  verticalAlign: 'baseline',
-  textTransform: 'none',
-  textDecoration: 'none',
-  textStrokeWidth: 0,
-  textStrokeColor: '#000',
-  lineHeight: 1,
-  letterSpacing: 0,
-  shadowColor: 'rgba(0, 0, 0, 0)',
-  shadowOffsetX: 0,
-  shadowOffsetY: 0,
-  shadowBlur: 0,
-  writingMode: 'horizontal-tb',
-  textOrientation: 'mixed',
-}
-
-function resolveStyle(style?: Partial<MeasureTextStyle>): MeasureTextStyle {
-  return {
-    ...defaultTextStyles,
-    ...style,
-  }
-}
-
 export function measureText(options: MeasureTextOptions) {
-  const { content, effects = [{}] } = options
+  const {
+    content,
+    effects = [{}],
+    style = {},
+  } = options
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { width: userWidth, height: userHeight, ...style } = resolveStyle(options.style)
-  let paragraphs = parseParagraphs(content, style)
-  paragraphs = wrapParagraphs(paragraphs, userWidth, userHeight)
+  const { width: userWidth = 0, height: userHeight = 0, ..._style } = style
+  const context = new Context(_style)
+  let paragraphs = paragraphsParse(content, context)
+  paragraphs = paragraphsAutoWrap(paragraphs, userWidth, userHeight)
 
   let px = 0
   let py = 0
@@ -70,7 +42,7 @@ export function measureText(options: MeasureTextOptions) {
     const {
       glyphHeight,
       baseline,
-    } = canvasMeasureText('x', (highestF ?? p).computedStyle)
+    } = measureTextByCanvas('x', (highestF ?? p).computedStyle)
     p.xHeight = glyphHeight
     p.baseline = baseline
 

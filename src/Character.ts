@@ -1,7 +1,7 @@
-import { BoundingBox } from './bounding-box'
-import { canvasMeasureText } from './canvas-measure-text'
-import { domMeasureText } from './dom-measure-text'
-import type { Fragment } from './fragment'
+import { BoundingBox } from './BoundingBox'
+import { measureTextByCanvas } from './measureTextByCanvas'
+import { measureTextByDom } from './measureTextByDom'
+import type { Fragment } from './Fragment'
 
 // https://www.unicode.org/reports/tr50/#vo
 // eslint-disable-next-line no-misleading-character-class
@@ -29,6 +29,10 @@ export class Character {
     return this.parent.computedStyle
   }
 
+  get context() {
+    return this.parent?.context
+  }
+
   constructor(
     public content: string,
     public parent: Fragment,
@@ -37,7 +41,8 @@ export class Character {
   }
 
   update(): this {
-    switch (this.computedStyle.textOrientation) {
+    const style = this.computedStyle
+    switch (style.textOrientation) {
       case 'upright':
         this.verticalOrientation = 'U'
         break
@@ -70,7 +75,7 @@ export class Character {
       lineHeight,
       baseline,
       centerX,
-    } = canvasMeasureText(this.content, {
+    } = measureTextByCanvas(this.content, {
       ...style,
       letterSpacing: 0,
     })
@@ -94,7 +99,7 @@ export class Character {
             this.glyphBox.x = (lineWidth - glyphHeight) / 2
             break
           case 'U': {
-            const { leading } = domMeasureText(this.content, {
+            const { leading } = measureTextByDom(this.content, {
               ...style,
               letterSpacing: 0,
             })

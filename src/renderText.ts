@@ -1,9 +1,9 @@
-import { measureText } from './measure-text'
-import { setContextStyle } from './set-context-style'
-import { parseColor } from './parse-color'
-import { BoundingBox } from './bounding-box'
+import { measureText } from './measureText'
+import { setContextStyle } from './setContextStyle'
+import { parseColor } from './parseColor'
+import { BoundingBox } from './BoundingBox'
 import type { TextDrawStyle } from './types'
-import type { MeasureTextOptions } from './measure-text'
+import type { MeasureTextOptions } from './measureText'
 
 export interface RenderTextOptions extends MeasureTextOptions {
   view?: HTMLCanvasElement

@@ -1,7 +1,7 @@
 import { Fragment } from './fragment'
 import type { Paragraph } from './paragraph'
 
-export function wrapParagraphs(
+export function paragraphsAutoWrap(
   paragraphs: Array<Paragraph>,
   width?: number,
   height?: number,

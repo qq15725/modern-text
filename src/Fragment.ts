@@ -1,7 +1,7 @@
-import { BoundingBox } from './bounding-box'
-import { Character } from './character'
+import { BoundingBox } from './BoundingBox'
+import { Character } from './Character'
 import { filterEmpty } from './utils'
-import type { Paragraph } from './paragraph'
+import type { Paragraph } from './Paragraph'
 import type { TextStyle } from './types'
 
 export class Fragment {
@@ -13,6 +13,10 @@ export class Fragment {
   declare characters: Array<Character>
   declare computedStyle: TextStyle
   declare computedContent: string
+
+  get context() {
+    return this.parent?.context
+  }
 
   constructor(
     public content: string,

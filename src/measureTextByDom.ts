@@ -1,6 +1,6 @@
 import type { TextStyle } from './types'
 
-export function domMeasureText(textContent: string, style: TextStyle) {
+export function measureTextByDom(textContent: string, style: TextStyle) {
   const fragment = document.createDocumentFragment()
   const div = document.createElement('div')
   div.style.position = 'absolute'

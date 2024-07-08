@@ -1,4 +1,4 @@
-import { setContextStyle } from './set-context-style'
+import { setContextStyle } from './setContextStyle'
 import type { TextStyle } from './types'
 
 const SUPPORTS_OFFSCREEN_CANVAS = 'OffscreenCanvas' in globalThis
@@ -13,7 +13,7 @@ export function getCurrentCanvas() {
   )
 }
 
-export function canvasMeasureText(textContent: string, style: TextStyle) {
+export function measureTextByCanvas(textContent: string, style: TextStyle) {
   const ctx = getCurrentCanvas().getContext('2d') as CanvasRenderingContext2D
   setContextStyle(ctx, {
     ...style,

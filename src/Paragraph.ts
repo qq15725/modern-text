@@ -1,6 +1,7 @@
-import { BoundingBox } from './bounding-box'
-import { Fragment } from './fragment'
+import { BoundingBox } from './BoundingBox'
+import { Fragment } from './Fragment'
 import { filterEmpty } from './utils'
+import type { Context } from './Context'
 import type { TextStyle } from './types'
 
 export class Paragraph {
@@ -14,14 +15,14 @@ export class Paragraph {
 
   constructor(
     public style?: Partial<TextStyle>,
-    public parent?: TextStyle,
+    public context?: Context,
   ) {
     this.update()
   }
 
   update() {
     this.computedStyle = {
-      ...filterEmpty(this.parent) as TextStyle,
+      ...filterEmpty(this.context?.style) as TextStyle,
       ...filterEmpty(this.style) as Partial<TextStyle>,
     } as TextStyle
   }
@@ -32,7 +33,7 @@ export class Paragraph {
   }
 
   clone(fragments?: Array<Fragment>) {
-    const p = new Paragraph(this.style, this.parent)
+    const p = new Paragraph(this.style, this.context)
     p.contentBox = this.contentBox.clone()
     p.lineBox = this.lineBox.clone()
     p.glyphBox = this.glyphBox.clone()

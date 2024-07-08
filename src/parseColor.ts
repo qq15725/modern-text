@@ -1,4 +1,4 @@
-import type { BoundingBox } from './bounding-box'
+import type { BoundingBox } from './BoundingBox'
 
 export function parseColor(
   ctx: CanvasRenderingContext2D,

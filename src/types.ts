@@ -37,7 +37,10 @@ export interface TextDrawStyle {
   shadowBlur: number
 }
 
-export type TextEffect = Partial<TextDrawStyle & { offsetX: number; offsetY: number }>
+export type TextEffect = Partial<TextDrawStyle & {
+  offsetX: number
+  offsetY: number
+}>
 
 export interface TextStyle extends TextLayoutStyle, TextDrawStyle {
   //
