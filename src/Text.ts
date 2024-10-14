@@ -101,6 +101,7 @@ export class Text {
     if (!ctx) {
       return this
     }
+    this.update()
     if (this.effects?.length) {
       this.renderBoundingBox = BoundingBox.from(
         this.boundingBox,

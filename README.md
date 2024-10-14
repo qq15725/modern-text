@@ -60,7 +60,9 @@ const text = new Text({
   ],
 })
 
-document.body.append(text.render()) // canvas 2d
+const view = document.createElement('canvas')
+text.render({ view })
+document.body.append(view) // canvas 2d
 
 console.log(text.measure()) // boundingBox with computed paragraphs
 ```

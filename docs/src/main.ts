@@ -10,7 +10,6 @@ async function loadFallbackFont(): Promise<void> {
 function loadFixture(fixture: Record<string, any>): void {
   const text = new Text(fixture as any)
   const view = document.createElement('canvas')
-  text.update()
   text.render({ view, pixelRatio: 2 })
   console.warn(text, text.measure())
   document.body.append(view)
