@@ -77,7 +77,7 @@ export class Measurer extends Feature {
    * </div>
    */
   createDom(): { dom: HTMLElement, destory: () => void } {
-    const { paragraphs, style } = this._text
+    const { paragraphs, computedStyle: style } = this._text
     const documentFragment = document.createDocumentFragment()
     const dom = document.createElement('div')
     Object.assign(dom.style, this._styleToDomStyle(style))
@@ -176,7 +176,7 @@ export class Measurer extends Feature {
   }
 
   measureDom(dom: HTMLElement): MeasuredResult {
-    const paragraphs = this._text.paragraphs
+    const { paragraphs } = this._text
     const rect = dom.getBoundingClientRect()
     const innerEl = dom.querySelector('ul')!
     const isVertical = window.getComputedStyle(dom).writingMode.includes('vertical')

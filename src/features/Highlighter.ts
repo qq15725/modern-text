@@ -25,7 +25,7 @@ export class Highlighter extends Feature {
   }
 
   highlight(): void {
-    const { characters, style } = this._text
+    const { characters, computedStyle: style } = this._text
     const fontSize = style.fontSize
     let group: Character[]
     const groups: Character[][] = []
@@ -119,7 +119,7 @@ export class Highlighter extends Feature {
     drawPaths({
       ctx,
       paths: this.paths,
-      fontSize: this._text.style.fontSize,
+      fontSize: this._text.computedStyle.fontSize,
       fill: false,
     })
     return this

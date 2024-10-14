@@ -29,7 +29,7 @@ export class Renderer2D extends Feature {
 
   uploadColors(options: Pick<Render2dOptions, 'ctx'>): this {
     const { ctx } = options
-    const { paragraphs, style, renderBoundingBox } = this._text
+    const { paragraphs, computedStyle: style, renderBoundingBox } = this._text
     const { width, height } = renderBoundingBox
     uploadColor(style, new BoundingBox(0, 0, width, height), ctx)
     paragraphs.forEach((paragraph) => {
@@ -43,7 +43,7 @@ export class Renderer2D extends Feature {
 
   fillBackground(options: Pick<Render2dOptions, 'ctx'>): this {
     const { ctx } = options
-    const { style, paragraphs } = this._text
+    const { computedStyle: style, paragraphs } = this._text
     function fillBackground(color: any, x: number, y: number, width: number, height: number): void {
       ctx.fillStyle = color
       ctx.fillRect(x, y, width, height)

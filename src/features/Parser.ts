@@ -1,10 +1,9 @@
-import type { TextContent } from '../types'
 import { Paragraph } from '../content'
 import { Feature } from './Feature'
 
 export class Parser extends Feature {
-  parse(content: TextContent): Paragraph[] {
-    const { style } = this._text
+  parse(): Paragraph[] {
+    let { content, computedStyle: style } = this._text
     const paragraphs: Paragraph[] = []
     if (typeof content === 'string') {
       const paragraph = new Paragraph({}, style)

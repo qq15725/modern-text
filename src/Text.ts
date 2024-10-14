@@ -49,10 +49,14 @@ export const defaultTextStyles: TextStyle = {
 }
 
 export class Text {
-  style: TextStyle
-  paragraphs: Paragraph[]
+  content: TextContent
+  style: Partial<TextStyle>
   effects?: TextEffect[]
   deformation?: TextDeformation
+
+  needsUpdate = true
+  computedStyle = { ...defaultTextStyles }
+  paragraphs: Paragraph[] = []
   boundingBox = new BoundingBox()
   renderBoundingBox = new BoundingBox()
 
@@ -68,15 +72,22 @@ export class Text {
   }
 
   constructor(options: TextOptions) {
-    const { content, style, effects, deformation } = options
-    this.style = { ...defaultTextStyles, ...style }
+    const { content, style = {}, effects, deformation } = options
+    this.content = content
+    this.style = style
     this.effects = effects
     this.deformation = deformation
-    this.paragraphs = this._parser.parse(content)
   }
 
   measure(dom?: HTMLElement): MeasuredResult {
+    this.computedStyle = { ...defaultTextStyles, ...this.style }
+    this.paragraphs = this._parser.parse()
     return this._measurer.measure(dom)
+  }
+
+  requestUpdate(): this {
+    this.needsUpdate = true
+    return this
   }
 
   update(): this {
@@ -101,7 +112,9 @@ export class Text {
     if (!ctx) {
       return this
     }
-    this.update()
+    if (this.needsUpdate) {
+      this.update()
+    }
     if (this.effects?.length) {
       this.renderBoundingBox = BoundingBox.from(
         this.boundingBox,
