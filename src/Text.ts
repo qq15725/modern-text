@@ -17,7 +17,7 @@ export interface TextRenderOptions {
 }
 
 export interface TextOptions {
-  content: TextContent
+  content?: TextContent
   style?: Partial<TextStyle>
   effects?: TextEffect[]
   deformation?: TextDeformation
@@ -71,8 +71,8 @@ export class Text {
     return this.paragraphs.flatMap(p => p.fragments.flatMap(f => f.characters))
   }
 
-  constructor(options: TextOptions) {
-    const { content, style = {}, effects, deformation } = options
+  constructor(options: TextOptions = {}) {
+    const { content = '', style = {}, effects, deformation } = options
     this.content = content
     this.style = style
     this.effects = effects
