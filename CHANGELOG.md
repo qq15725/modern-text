@@ -1,3 +1,12 @@
+## [0.2.1](https://github.com/qq15725/modern-text/compare/v0.2.0...v0.2.1) (2024-10-14)
+
+
+### Features
+
+* add requestUpdate method ([6ed6a4b](https://github.com/qq15725/modern-text/commit/6ed6a4b42670560f1d5806077a1d6a7661968bc8))
+
+
+
 # [0.2.0](https://github.com/qq15725/modern-text/compare/v0.1.25...v0.2.0) (2024-10-14)
 
 
