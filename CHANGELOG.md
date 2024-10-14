@@ -1,3 +1,12 @@
+## [0.2.2](https://github.com/qq15725/modern-text/compare/v0.2.1...v0.2.2) (2024-10-14)
+
+
+### Features
+
+* optional construction parameters ([0275a41](https://github.com/qq15725/modern-text/commit/0275a41dfff50c263a3432f31e89f13c88fc2fce))
+
+
+
 ## [0.2.1](https://github.com/qq15725/modern-text/compare/v0.2.0...v0.2.1) (2024-10-14)
 
 
