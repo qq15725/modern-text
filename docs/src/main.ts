@@ -1,14 +1,25 @@
-import { measureText, renderText } from '../../src'
+import { fonts, Text } from '../../src'
+
+// @ts-expect-error import.meta.glob
 const fixtures = import.meta.glob('../../test/fixtures/*.json')
 
+async function loadFallbackFont(): Promise<void> {
+  fonts.fallbackFont = await fonts.load({ family: '_fallback', url: '/fallback.woff' })
+}
+
 function loadFixture(fixture: Record<string, any>): void {
-  console.log(fixture, measureText(fixture))
-  document.body.append(renderText({ ...fixture, pixelRatio: 2 }))
+  const text = new Text(fixture as any)
+  const view = document.createElement('canvas')
+  text.update()
+  text.render({ view, pixelRatio: 2 })
+  console.warn(text, text.measure())
+  document.body.append(view)
 }
 
 window.onload = async () => {
+  await loadFallbackFont()
   for (const importJson of Object.values(fixtures)) {
-    const fixture = await importJson().then(rep => rep.default)
+    const fixture = await (importJson as () => Promise<any>)().then(rep => rep.default)
     loadFixture(fixture)
   }
 }

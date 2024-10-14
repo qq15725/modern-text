@@ -1,4 +1,2 @@
-export * from './paragraphsParse'
-export * from './measureText'
-export * from './renderText'
-export * from './types'
+export * from './Text'
+export * from 'modern-font'

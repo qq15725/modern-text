@@ -1,7 +1,7 @@
 export type WritingMode = 'horizontal-tb' | 'vertical-lr' | 'vertical-rl'
 export type TextOrientation = 'mixed' | 'upright' | 'sideways-right' | 'sideways' /* | 'use-glyph-orientation' */
 export type FontWeight = 'normal' | 'bold' | 'lighter' | 'bolder' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
-export type FontStyle = 'normal' | 'italic' | 'oblique' | `oblique ${ string }`
+export type FontStyle = 'normal' | 'italic' | 'oblique' | `oblique ${string}`
 export type FontKerning = 'auto' | 'none' | 'normal'
 export type TextWrap = 'wrap' | 'nowrap'
 export type TextAlign = 'center' | 'end' | 'left' | 'right' | 'start'
@@ -37,23 +37,37 @@ export interface TextDrawStyle {
   shadowBlur: number
 }
 
-export type TextEffect = Partial<TextDrawStyle & {
-  offsetX: number
-  offsetY: number
-}>
-
 export interface TextStyle extends TextLayoutStyle, TextDrawStyle {
   //
 }
 
 export interface FragmentContent extends Partial<TextStyle> {
   content: string
+  highlight?: FragmentHighlight
 }
 
 export interface ParagraphContent extends Partial<TextStyle> {
-  fragments: Array<FragmentContent>
+  fragments: FragmentContent[]
 }
 
 export type TextContent =
-  | string | FragmentContent | ParagraphContent
-  | Array<string | Array<string | FragmentContent> | FragmentContent | ParagraphContent>
+  | string
+  | FragmentContent
+  | ParagraphContent
+  | (string | FragmentContent | ParagraphContent | (string | FragmentContent)[])[]
+
+export type TextEffect = Partial<
+  TextDrawStyle & {
+    offsetX: number
+    offsetY: number
+  }
+>
+
+export interface TextDeformation {
+  type: string
+  intensities?: number[]
+}
+
+export interface FragmentHighlight {
+  url: string // svg url
+}

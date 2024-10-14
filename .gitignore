@@ -8,7 +8,6 @@ types/
 package-lock.json
 
 # IDE user config
-.vscode/
 .idea/
 .vs/
 

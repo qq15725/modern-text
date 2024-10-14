@@ -1,4 +1,5 @@
-import type { BoundingBox } from './BoundingBox'
+import type { BoundingBox } from 'modern-path2d'
+import type { TextDrawStyle } from '../types'
 
 export function parseColor(
   ctx: CanvasRenderingContext2D,
@@ -14,15 +15,33 @@ export function parseColor(
   return source
 }
 
-function parseCssLinearGradient(css: string, x: number, y: number, width: number, height: number) {
+export function uploadColor(style: Partial<TextDrawStyle>, box: BoundingBox, ctx: CanvasRenderingContext2D): void {
+  if (style?.color) {
+    style.color = parseColor(ctx, style.color, box)
+  }
+  if (style?.backgroundColor) {
+    style.backgroundColor = parseColor(ctx, style.backgroundColor, box)
+  }
+  if (style?.textStrokeColor) {
+    style.textStrokeColor = parseColor(ctx, style.textStrokeColor, box)
+  }
+}
+
+export interface LinearGradient {
+  x0: number
+  y0: number
+  x1: number
+  y1: number
+  stops: { offset: number, color: string }[]
+}
+
+function parseCssLinearGradient(css: string, x: number, y: number, width: number, height: number): LinearGradient {
   const str = css.match(/linear-gradient\((.+)\)$/)?.[1] ?? ''
   const first = str.split(',')[0]
   const cssDeg = first.includes('deg') ? first : '0deg'
-  const matched = str
-    .replace(cssDeg, '')
-    .matchAll(/(#|rgba|rgb)(.+?) ([\d.]+?%)/gi)
+  const matched = str.replace(cssDeg, '').matchAll(/(#|rgba|rgb)(.+?) ([\d.]+%)/gi)
   const deg = Number(cssDeg.replace('deg', '')) || 0
-  const rad = deg * Math.PI / 180
+  const rad = (deg * Math.PI) / 180
   const offsetX = width * Math.sin(rad)
   const offsetY = height * Math.cos(rad)
   return {
@@ -33,9 +52,10 @@ function parseCssLinearGradient(css: string, x: number, y: number, width: number
     stops: Array.from(matched).map((res) => {
       let color = res[2]
       if (color.startsWith('(')) {
-        color = color.split(',').length > 3 ? `rgba${ color }` : `rgb${ color }`
-      } else {
-        color = `#${ color }`
+        color = color.split(',').length > 3 ? `rgba${color}` : `rgb${color}`
+      }
+      else {
+        color = `#${color}`
       }
       return {
         offset: Number(res[3].replace('%', '')) / 100,
