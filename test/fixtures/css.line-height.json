@@ -3,16 +3,34 @@
     {
       "backgroundColor": "blue",
       "fragments": [
-        {"content": "冬", "backgroundColor": "red"},
-        {"content": "天", "fontSize": 89, "backgroundColor": "yellow"}
+        {
+          "content": "冬",
+          "backgroundColor": "red"
+        },
+        {
+          "content": "天",
+          "fontSize": 89,
+          "backgroundColor": "yellow"
+        }
       ]
     },
     {
       "backgroundColor": "green",
       "fragments": [
-        {"content": " ", "backgroundColor": "salmon"},
-        {"content": "你", "fontSize": 71, "backgroundColor": "sienna"},
-        {"content": "好", "fontSize": 100, "backgroundColor": "silver"}
+        {
+          "content": " ",
+          "backgroundColor": "salmon"
+        },
+        {
+          "content": "你",
+          "fontSize": 71,
+          "backgroundColor": "sienna"
+        },
+        {
+          "content": "好",
+          "fontSize": 100,
+          "backgroundColor": "silver"
+        }
       ]
     }
   ],
