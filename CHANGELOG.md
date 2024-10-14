@@ -1,3 +1,13 @@
+# [0.2.0](https://github.com/qq15725/modern-text/compare/v0.1.25...v0.2.0) (2024-10-14)
+
+
+### Features
+
+* update ([d026ea6](https://github.com/qq15725/modern-text/commit/d026ea6df72a6b725f344e242691c942ff17e50a))
+* update ([928c92f](https://github.com/qq15725/modern-text/commit/928c92ff8decfd39fa4b26d266629487144649de))
+
+
+
 ## [0.1.25](https://github.com/qq15725/modern-text/compare/v0.1.24...v0.1.25) (2024-06-17)
 
 
