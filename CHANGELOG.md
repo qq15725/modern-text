@@ -1,3 +1,12 @@
+## [0.2.4](https://github.com/qq15725/modern-text/compare/v0.2.3...v0.2.4) (2024-10-15)
+
+
+### Features
+
+* deformation ([c49b3c6](https://github.com/qq15725/modern-text/commit/c49b3c6f393f7391b9b7f3ed32bc7de60e179d66))
+
+
+
 ## [0.2.3](https://github.com/qq15725/modern-text/compare/v0.2.2...v0.2.3) (2024-10-15)
 
 
