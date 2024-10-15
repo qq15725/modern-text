@@ -2,7 +2,7 @@ import type { GlyphPathCommand, Sfnt } from 'modern-font'
 import type { TextEffect, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
 import { fonts, Ttf, Woff } from 'modern-font'
-import { BoundingBox, Path2D } from 'modern-path2d'
+import { BoundingBox, Path2D, Point2D } from 'modern-path2d'
 import { drawPaths } from '../canvas'
 import { getPointPosition, getSkewPoint } from '../utils'
 
@@ -27,7 +27,7 @@ export class Character {
   textHeight = 0
 
   // glyph
-  declare font: Sfnt
+  declare commands: GlyphPathCommand[]
   declare glyphHeight: number
   declare glyphWidth: number
   declare underlinePosition: number
@@ -59,12 +59,12 @@ export class Character {
     //
   }
 
-  protected _updateFont(): this {
+  protected _font(): Sfnt | undefined {
     const font = fonts.get(this.computedStyle.fontFamily)?.font
     if (font instanceof Woff || font instanceof Ttf) {
-      this.font = font.sfnt
+      return font.sfnt
     }
-    return this
+    return undefined
   }
 
   protected _updateGlyph(font: Sfnt): this {
@@ -95,8 +95,95 @@ export class Character {
     return this
   }
 
+  protected _decoration(): GlyphPathCommand[] {
+    const { isVertical, underlinePosition, yStrikeoutPosition } = this
+    const { textDecoration, fontSize } = this.computedStyle
+    const { left, top, width, height } = this.boundingBox
+    const lineWidth = 0.1 * fontSize
+
+    let start: number
+    switch (textDecoration) {
+      case 'underline':
+        if (isVertical) {
+          start = left
+        }
+        else {
+          start = top + underlinePosition
+        }
+        break
+      case 'line-through':
+        if (isVertical) {
+          start = left + width / 2
+        }
+        else {
+          start = top + yStrikeoutPosition
+        }
+        break
+      case 'none':
+      default:
+        return []
+    }
+
+    if (isVertical) {
+      return [
+        { type: 'M', x: start, y: top },
+        { type: 'L', x: start, y: top + height },
+        { type: 'L', x: start + lineWidth, y: top + height },
+        { type: 'L', x: start + lineWidth, y: top },
+        { type: 'Z' },
+      ]
+    }
+    else {
+      return [
+        { type: 'M', x: left, y: start },
+        { type: 'L', x: left + width, y: start },
+        { type: 'L', x: left + width, y: start + lineWidth },
+        { type: 'L', x: left, y: start + lineWidth },
+        { type: 'Z' },
+      ]
+    }
+  }
+
+  protected _transform(commands: GlyphPathCommand[], cb: (x: number, y: number) => number[]): GlyphPathCommand[] {
+    return commands.map((rawCmd) => {
+      const cmd = { ...rawCmd }
+      switch (cmd.type) {
+        case 'L':
+        case 'M':
+          [cmd.x, cmd.y] = cb(cmd.x, cmd.y)
+          break
+        case 'Q':
+          [cmd.x1, cmd.y1] = cb(cmd.x1, cmd.y1)
+          ;[cmd.x, cmd.y] = cb(cmd.x, cmd.y)
+          break
+      }
+      return cmd
+    })
+  }
+
+  protected _italic(commands: GlyphPathCommand[], startPoint?: { x: number, y: number }): GlyphPathCommand[] {
+    // if (e.style === 'italic') return
+    const { baseline, glyphWidth } = this
+    const { left, top } = this.boundingBox
+    const _startPoint = startPoint || {
+      y: top + baseline,
+      x: left + glyphWidth / 2,
+    }
+    return this._transform(commands, (x, y) => {
+      const p = getSkewPoint({ x, y }, _startPoint, -0.24, 0)
+      return [p.x, p.y]
+    })
+  }
+
+  protected _rotation90(commands: GlyphPathCommand[], point: { x: number, y: number }): GlyphPathCommand[] {
+    return this._transform(commands, (x, y) => {
+      const p = getPointPosition({ x, y }, point, 90)
+      return [p.x, p.y]
+    })
+  }
+
   updatePath(): this {
-    const font = this._updateFont().font
+    const font = this._font()
 
     if (!font) {
       return this
@@ -112,8 +199,6 @@ export class Character {
       baseline,
       glyphHeight,
       glyphWidth,
-      yStrikeoutPosition,
-      underlinePosition,
     } = this._updateGlyph(font)
 
     const { os2, ascender, descender } = font
@@ -121,8 +206,8 @@ export class Character {
     const usWinDescent = descender
     const typoAscender = os2.sTypoAscender
 
-    const { left, top, width, height } = boundingBox
-    const { fontSize, fontStyle, textDecoration } = computedStyle
+    const { left, top } = boundingBox
+    const { fontSize, fontStyle } = computedStyle
 
     let x = left
     let y = top + baseline
@@ -146,136 +231,86 @@ export class Character {
         x: x + glyphWidth / 2,
       }
       if (fontStyle === 'italic') {
-        setItalic(
+        commands = this._italic(
           commands,
           isVertical
             ? {
                 x: point.x,
                 y: top - (glyphHeight - glyphWidth) / 2 + baseline,
               }
-            : null,
+            : undefined,
         )
       }
-      set90Rotation(commands, point)
+      commands = this._rotation90(commands, point)
     }
     else {
       if (glyphIndex !== undefined) {
         commands = font.glyf.glyphs.get(glyphIndex).getPathCommands(x, y, fontSize)
         if (fontStyle === 'italic') {
-          setItalic(
+          commands = this._italic(
             commands,
             isVertical
               ? {
                   x: x + glyphWidth / 2,
                   y: top + (typoAscender / (usWinAscent + Math.abs(usWinDescent))) * glyphHeight,
                 }
-              : null,
+              : undefined,
           )
         }
       }
       else {
         commands = font.getPathCommands(content, x, y, fontSize) ?? []
         if (fontStyle === 'italic') {
-          setItalic(
+          commands = this._italic(
             commands,
             isVertical
               ? { x: x + glyphHeight / 2, y }
-              : null,
+              : undefined,
           )
         }
       }
     }
 
-    const lineWidth = 0.1 * fontSize
-    if (isVertical) {
-      const create = (start: number, len: number): GlyphPathCommand[] =>
-        [
-          { type: 'M', x: start, y: top },
-          { type: 'L', x: start, y: top + height },
-          { type: 'L', x: start + len, y: top + height },
-          { type: 'L', x: start + len, y: top },
-          { type: 'Z' },
-        ] as GlyphPathCommand[]
-      switch (textDecoration) {
-        case 'underline':
-          commands.push(...create(left, lineWidth))
-          break
-        case 'line-through':
-          commands.push(...create(left + width / 2, lineWidth))
-          break
-      }
-    }
-    else {
-      const create = (start: number, len: number): GlyphPathCommand[] =>
-        [
-          { type: 'M', x: left, y: start },
-          { type: 'L', x: left + width, y: start },
-          { type: 'L', x: left + width, y: start + len },
-          { type: 'L', x: left, y: start + len },
-          { type: 'Z' },
-        ] as GlyphPathCommand[]
-      switch (textDecoration) {
-        case 'underline':
-          commands.push(...create(top + underlinePosition, lineWidth))
-          break
-        case 'line-through':
-          commands.push(...create(top + yStrikeoutPosition, lineWidth))
-          break
-      }
-    }
+    commands.push(...this._decoration())
 
+    this.commands = commands
     this.path = new Path2D(commands)
 
     return this
-
-    function setItalic(commands: GlyphPathCommand[], startPoint?: any): void {
-      // if (e.style === 'italic') return
-      const _startPoint = startPoint || {
-        y: top + baseline,
-        x: left + glyphWidth / 2,
-      }
-      commands.forEach((command: any) => {
-        ['', '1', '2'].forEach((arg) => {
-          if (command[`x${arg}`]) {
-            const pos = getSkewPoint(
-              {
-                x: command[`x${arg}`],
-                y: command[`y${arg}`],
-              },
-              _startPoint,
-              -0.24,
-              0,
-            )
-            command[`x${arg}`] = pos.x
-            command[`y${arg}`] = pos.y
-          }
-        })
-      })
-    }
-
-    function set90Rotation(commands: GlyphPathCommand[], point: any): void {
-      commands.forEach((command: any) => {
-        ['', '1', '2'].forEach((arg) => {
-          if (command[`x${arg}`]) {
-            const pos = getPointPosition(
-              {
-                x: command[`x${arg}`],
-                y: command[`y${arg}`],
-              },
-              point,
-              90,
-            )
-            command[`x${arg}`] = pos.x
-            command[`y${arg}`] = pos.y
-          }
-        })
-      })
-    }
   }
 
   update(): this {
     this.updatePath()
     return this
+  }
+
+  getMinMax(min = Point2D.MAX, max = Point2D.MIN): { min: Point2D, max: Point2D } {
+    let last = { x: 0, y: 0 }
+    this.commands.forEach((cmd) => {
+      switch (cmd.type) {
+        case 'L':
+        case 'M':
+          min.x = Math.min(min.x, cmd.x)
+          min.y = Math.min(min.y, cmd.y)
+          max.x = Math.max(max.x, cmd.x)
+          max.y = Math.max(max.y, cmd.y)
+          last = { x: cmd.x, y: cmd.y }
+          break
+        case 'Q': {
+          const x1 = 0.5 * (last.x + cmd.x1)
+          const y1 = 0.5 * (last.y + cmd.y1)
+          const x2 = 0.5 * (last.x + cmd.x)
+          const y2 = 0.5 * (last.y + cmd.y)
+          min.x = Math.min(min.x, last.x, cmd.x, x1, x2)
+          min.y = Math.min(min.y, last.y, cmd.y, y1, y2)
+          max.x = Math.max(max.x, last.x, cmd.x, x1, x2)
+          max.y = Math.max(max.y, last.y, cmd.y, y1, y2)
+          last = { x: cmd.x, y: cmd.y }
+          break
+        }
+      }
+    })
+    return { min, max }
   }
 
   drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextEffect> = {}): void {

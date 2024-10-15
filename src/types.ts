@@ -63,10 +63,7 @@ export type TextEffect = Partial<
   }
 >
 
-export interface TextDeformation {
-  type: string
-  intensities?: number[]
-}
+export type TextDeformation = () => void
 
 export interface FragmentHighlight {
   url: string // svg url

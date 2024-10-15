@@ -84,8 +84,11 @@ export class Text {
 
   measure(dom = this.measureDom): MeasuredResult {
     this.computedStyle = { ...defaultTextStyles, ...this.style }
+    const old = this.paragraphs
     this.paragraphs = this._parser.parse()
-    return this._measurer.measure(dom)
+    const result = this._measurer.measure(dom)
+    this.paragraphs = old
+    return result
   }
 
   requestUpdate(): this {
@@ -104,7 +107,7 @@ export class Text {
     this._highlighter.highlight()
     const min = Point2D.MAX
     const max = Point2D.MIN
-    this.characters.forEach(c => c.path.getMinMax(min, max))
+    this.characters.forEach(c => c.getMinMax(min, max))
     this.renderBoundingBox = new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
     return this
   }
