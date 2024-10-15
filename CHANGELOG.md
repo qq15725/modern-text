@@ -1,3 +1,12 @@
+## [0.2.3](https://github.com/qq15725/modern-text/compare/v0.2.2...v0.2.3) (2024-10-15)
+
+
+### Features
+
+* exports ([904a04b](https://github.com/qq15725/modern-text/commit/904a04be42f6dccf51273dfca548b3297815e4d7))
+
+
+
 ## [0.2.2](https://github.com/qq15725/modern-text/compare/v0.2.1...v0.2.2) (2024-10-14)
 
 
