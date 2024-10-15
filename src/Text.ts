@@ -21,6 +21,7 @@ export interface TextOptions {
   style?: Partial<TextStyle>
   effects?: TextEffect[]
   deformation?: TextDeformation
+  measureDom?: HTMLElement
 }
 
 export const defaultTextStyles: TextStyle = {
@@ -53,6 +54,7 @@ export class Text {
   style: Partial<TextStyle>
   effects?: TextEffect[]
   deformation?: TextDeformation
+  measureDom?: HTMLElement
 
   needsUpdate = true
   computedStyle = { ...defaultTextStyles }
@@ -72,14 +74,15 @@ export class Text {
   }
 
   constructor(options: TextOptions = {}) {
-    const { content = '', style = {}, effects, deformation } = options
+    const { content = '', style = {}, effects, deformation, measureDom } = options
     this.content = content
     this.style = style
     this.effects = effects
     this.deformation = deformation
+    this.measureDom = measureDom
   }
 
-  measure(dom?: HTMLElement): MeasuredResult {
+  measure(dom = this.measureDom): MeasuredResult {
     this.computedStyle = { ...defaultTextStyles, ...this.style }
     this.paragraphs = this._parser.parse()
     return this._measurer.measure(dom)
@@ -122,10 +125,6 @@ export class Text {
         this._effector.getBoundingBox(),
         this._highlighter.getBoundingBox(),
       )
-      this._renderer2D.setupView({ pixelRatio, ctx })
-      this._renderer2D.uploadColors({ ctx })
-      this._highlighter.draw({ ctx })
-      this._effector.draw({ ctx })
     }
     else {
       this.renderBoundingBox = BoundingBox.from(
@@ -133,9 +132,14 @@ export class Text {
         this.renderBoundingBox,
         this._highlighter.getBoundingBox(),
       )
-      this._renderer2D.setupView({ pixelRatio, ctx })
-      this._renderer2D.uploadColors({ ctx })
-      this._highlighter.draw({ ctx })
+    }
+    this._renderer2D.setupView({ pixelRatio, ctx })
+    this._renderer2D.uploadColors({ ctx })
+    this._highlighter.draw({ ctx })
+    if (this.effects?.length) {
+      this._effector.draw({ ctx })
+    }
+    else {
       this._renderer2D.draw({ ctx })
     }
     return this

@@ -65,45 +65,44 @@ export class Measurer extends Feature {
   }
 
   /**
-   * <div style="...">
+   * <section style="...">
    *   <ul>
    *     <li style="...">
-   *       <div>
-   *         <span style="...">...</span>
-   *         <span>...</span>
-   *       </div>
+   *       <span style="...">...</span>
+   *       <span>...</span>
    *     </li>
    *   </ul>
-   * </div>
+   * </section>
    */
   createDom(): { dom: HTMLElement, destory: () => void } {
-    const { paragraphs, computedStyle: style } = this._text
+    const { paragraphs, computedStyle } = this._text
     const documentFragment = document.createDocumentFragment()
-    const dom = document.createElement('div')
-    Object.assign(dom.style, this._styleToDomStyle(style))
-    dom.style.position = 'absolute'
-    dom.style.visibility = 'hidden'
+    const dom = document.createElement('section')
+    Object.assign(dom.style, {
+      ...this._styleToDomStyle(computedStyle),
+      position: 'absolute',
+      visibility: 'hidden',
+    })
     const ul = document.createElement('ul')
-    ul.style.listStyle = 'none'
-    ul.style.padding = '0'
-    ul.style.margin = '0'
+    Object.assign(ul.style, {
+      listStyle: 'none',
+      padding: '0',
+      margin: '0',
+    })
     paragraphs.forEach((paragraph) => {
       const li = document.createElement('li')
-      const div = document.createElement('div')
       Object.assign(li.style, this._styleToDomStyle(paragraph.style))
       paragraph.fragments.forEach((fragment) => {
         const span = document.createElement('span')
         Object.assign(span.style, this._styleToDomStyle(fragment.style))
         span.appendChild(document.createTextNode(fragment.content))
-        div.appendChild(span)
+        li.appendChild(span)
       })
       ul.appendChild(li)
-      li.appendChild(div)
     })
     dom.appendChild(ul)
     documentFragment.appendChild(dom)
     document.body.appendChild(documentFragment)
-
     return {
       dom,
       destory: () => dom.parentNode?.removeChild(dom),
