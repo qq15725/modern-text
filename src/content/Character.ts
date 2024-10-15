@@ -27,7 +27,7 @@ export class Character {
   textHeight = 0
 
   // glyph
-  declare commands: GlyphPathCommand[]
+  commands: GlyphPathCommand[] = []
   declare glyphHeight: number
   declare glyphWidth: number
   declare underlinePosition: number
