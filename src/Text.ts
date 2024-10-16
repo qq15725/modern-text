@@ -62,12 +62,12 @@ export class Text {
   boundingBox = new BoundingBox()
   renderBoundingBox = new BoundingBox()
 
-  protected _parser = new Parser(this)
-  protected _measurer = new Measurer(this)
-  protected _deformer = new Deformer(this)
-  protected _effector = new Effector(this)
-  protected _highlighter = new Highlighter(this)
-  protected _renderer2D = new Renderer2D(this)
+  parser = new Parser(this)
+  measurer = new Measurer(this)
+  deformer = new Deformer(this)
+  effector = new Effector(this)
+  highlighter = new Highlighter(this)
+  renderer2D = new Renderer2D(this)
 
   get characters(): Character[] {
     return this.paragraphs.flatMap(p => p.fragments.flatMap(f => f.characters))
@@ -85,8 +85,8 @@ export class Text {
   measure(dom = this.measureDom): MeasuredResult {
     this.computedStyle = { ...defaultTextStyles, ...this.style }
     const old = this.paragraphs
-    this.paragraphs = this._parser.parse()
-    const result = this._measurer.measure(dom)
+    this.paragraphs = this.parser.parse()
+    const result = this.measurer.measure(dom)
     this.paragraphs = old
     return result
   }
@@ -102,9 +102,9 @@ export class Text {
     this.boundingBox = boundingBox
     const characters = this.characters
     characters.forEach(c => c.update())
-    this._highlighter.highlight()
+    this.highlighter.highlight()
     if (this.deformation) {
-      this._deformer.deform()
+      this.deformer.deform()
     }
     const min = Vector2.MAX
     const max = Vector2.MIN
@@ -126,25 +126,25 @@ export class Text {
       this.renderBoundingBox = BoundingBox.from(
         this.boundingBox,
         this.renderBoundingBox,
-        this._effector.getBoundingBox(),
-        this._highlighter.getBoundingBox(),
+        this.effector.getBoundingBox(),
+        this.highlighter.getBoundingBox(),
       )
     }
     else {
       this.renderBoundingBox = BoundingBox.from(
         this.boundingBox,
         this.renderBoundingBox,
-        this._highlighter.getBoundingBox(),
+        this.highlighter.getBoundingBox(),
       )
     }
-    this._renderer2D.setupView({ pixelRatio, ctx })
-    this._renderer2D.uploadColors({ ctx })
-    this._highlighter.draw({ ctx })
+    this.renderer2D.setupView({ pixelRatio, ctx })
+    this.renderer2D.uploadColors({ ctx })
+    this.highlighter.draw({ ctx })
     if (this.effects?.length) {
-      this._effector.draw({ ctx })
+      this.effector.draw({ ctx })
     }
     else {
-      this._renderer2D.draw({ ctx })
+      this.renderer2D.draw({ ctx })
     }
     return this
   }

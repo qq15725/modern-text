@@ -1,9 +1,9 @@
 import type { GlyphPathCommand, Sfnt } from 'modern-font'
-import type { VectorLike } from 'modern-path2d'
+import type { Vector2, VectorLike } from 'modern-path2d'
 import type { TextEffect, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
 import { fonts, Ttf, Woff } from 'modern-font'
-import { BoundingBox, Path2D, Vector2 } from 'modern-path2d'
+import { BoundingBox, Path2D } from 'modern-path2d'
 import { drawPaths } from '../canvas'
 import { getPointPosition, getSkewPoint } from '../utils'
 
@@ -28,7 +28,6 @@ export class Character {
   path = new Path2D()
 
   // glyph
-  commands: GlyphPathCommand[] = []
   declare glyphHeight: number
   declare glyphWidth: number
   declare underlinePosition: number
@@ -99,7 +98,7 @@ export class Character {
     return this
   }
 
-  updateCommands(): this {
+  updatePath(): this {
     const font = this._font()
 
     if (!font) {
@@ -190,18 +189,12 @@ export class Character {
 
     commands.push(...this._decoration())
 
-    this.commands = commands
-    return this
-  }
-
-  updatePath(): this {
-    this.path?.copy(new Path2D(this.commands))
+    this.path = new Path2D(commands)
     return this
   }
 
   update(): this {
     this
-      .updateCommands()
       .updatePath()
     return this
   }
@@ -293,81 +286,12 @@ export class Character {
     })
   }
 
-  forEachCommand(
-    cb: (
-      command: GlyphPathCommand,
-      index: number,
-      context: { first: VectorLike, last: VectorLike }
-    ) => void | GlyphPathCommand,
-  ): this {
-    const commands = this.commands
-    const last = { x: 0, y: 0 }
-    const first = { x: 0, y: 0 }
-    let isFirst = true
-    let doSetFirstPoint = false
-    for (let i = 0, len = commands.length; i < len; i++) {
-      if (isFirst) {
-        doSetFirstPoint = true
-        isFirst = false
-      }
-      let command = commands[i]
-      command = cb(command, i, { last, first }) ?? command
-      switch (command.type) {
-        case 'M':
-        case 'L':
-        case 'Q':
-          last.x = command.x
-          last.y = command.y
-          if (doSetFirstPoint) {
-            first.x = last.x
-            first.y = last.y
-          }
-          break
-        case 'Z':
-          last.x = first.x
-          last.y = first.y
-          isFirst = true
-          break
-      }
-    }
-    return this
-  }
-
-  getMinMax(min = Vector2.MAX, max = Vector2.MIN): { min: Vector2, max: Vector2 } {
-    let last = { x: 0, y: 0 }
-    this.commands.forEach((cmd) => {
-      switch (cmd.type) {
-        case 'L':
-        case 'M':
-          min.x = Math.min(min.x, cmd.x)
-          min.y = Math.min(min.y, cmd.y)
-          max.x = Math.max(max.x, cmd.x)
-          max.y = Math.max(max.y, cmd.y)
-          last = { x: cmd.x, y: cmd.y }
-          break
-        case 'Q': {
-          const x1 = 0.5 * (last.x + cmd.x1)
-          const y1 = 0.5 * (last.y + cmd.y1)
-          const x2 = 0.5 * (last.x + cmd.x)
-          const y2 = 0.5 * (last.y + cmd.y)
-          min.x = Math.min(min.x, last.x, cmd.x, x1, x2)
-          min.y = Math.min(min.y, last.y, cmd.y, y1, y2)
-          max.x = Math.max(max.x, last.x, cmd.x, x1, x2)
-          max.y = Math.max(max.y, last.y, cmd.y, y1, y2)
-          last = { x: cmd.x, y: cmd.y }
-          break
-        }
-      }
-    })
-    return { min, max }
+  getMinMax(min?: Vector2, max?: Vector2): { min: Vector2, max: Vector2 } {
+    return this.path.getMinMax(min, max)
   }
 
   getBoundingBox(): BoundingBox {
-    const min = Vector2.MAX
-    const max = Vector2.MIN
-    this.getMinMax(min, max)
-    this.path.getMinMax(min, max)
-    return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
+    return this.path.getBoundingBox()
   }
 
   drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextEffect> = {}): void {
