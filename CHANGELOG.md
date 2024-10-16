@@ -1,3 +1,12 @@
+## [0.2.6](https://github.com/qq15725/modern-text/compare/v0.2.5...v0.2.6) (2024-10-16)
+
+
+### Features
+
+* remove character path prop ([1a84615](https://github.com/qq15725/modern-text/commit/1a8461506cd05e1405905ee8b0e1ec48a9d90494))
+
+
+
 ## [0.2.5](https://github.com/qq15725/modern-text/compare/v0.2.4...v0.2.5) (2024-10-15)
 
 
