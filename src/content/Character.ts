@@ -1,8 +1,9 @@
 import type { GlyphPathCommand, Sfnt } from 'modern-font'
-import type { PointLike, TextEffect, TextStyle } from '../types'
+import type { VectorLike } from 'modern-path2d'
+import type { TextEffect, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
 import { fonts, Ttf, Woff } from 'modern-font'
-import { BoundingBox, Path2D, Point2D } from 'modern-path2d'
+import { BoundingBox, Path2D, Vector2 } from 'modern-path2d'
 import { drawPaths } from '../canvas'
 import { getPointPosition, getSkewPoint } from '../utils'
 
@@ -24,6 +25,7 @@ export class Character {
   boundingBox = new BoundingBox()
   textWidth = 0
   textHeight = 0
+  path = new Path2D()
 
   // glyph
   commands: GlyphPathCommand[] = []
@@ -36,7 +38,7 @@ export class Character {
   declare baseline: number
   declare centerDiviation: number
   declare glyphBox: BoundingBox
-  declare centerPoint: PointLike
+  declare centerPoint: VectorLike
 
   get computedStyle(): TextStyle {
     return this.parent.computedStyle
@@ -192,8 +194,15 @@ export class Character {
     return this
   }
 
+  updatePath(): this {
+    this.path?.copy(new Path2D(this.commands))
+    return this
+  }
+
   update(): this {
-    this.updateCommands()
+    this
+      .updateCommands()
+      .updatePath()
     return this
   }
 
@@ -246,7 +255,7 @@ export class Character {
     }
   }
 
-  protected _italic(commands: GlyphPathCommand[], startPoint?: PointLike): GlyphPathCommand[] {
+  protected _italic(commands: GlyphPathCommand[], startPoint?: VectorLike): GlyphPathCommand[] {
     // if (e.style === 'italic') return
     const { baseline, glyphWidth } = this
     const { left, top } = this.boundingBox
@@ -260,7 +269,7 @@ export class Character {
     })
   }
 
-  protected _rotation90(commands: GlyphPathCommand[], point: PointLike): GlyphPathCommand[] {
+  protected _rotation90(commands: GlyphPathCommand[], point: VectorLike): GlyphPathCommand[] {
     return this._transform(commands, (x, y) => {
       const p = getPointPosition({ x, y }, point, 90)
       return [p.x, p.y]
@@ -288,7 +297,7 @@ export class Character {
     cb: (
       command: GlyphPathCommand,
       index: number,
-      context: { first: PointLike, last: PointLike }
+      context: { first: VectorLike, last: VectorLike }
     ) => void | GlyphPathCommand,
   ): this {
     const commands = this.commands
@@ -324,7 +333,7 @@ export class Character {
     return this
   }
 
-  getMinMax(min = Point2D.MAX, max = Point2D.MIN): { min: Point2D, max: Point2D } {
+  getMinMax(min = Vector2.MAX, max = Vector2.MIN): { min: Vector2, max: Vector2 } {
     let last = { x: 0, y: 0 }
     this.commands.forEach((cmd) => {
       switch (cmd.type) {
@@ -353,10 +362,18 @@ export class Character {
     return { min, max }
   }
 
+  getBoundingBox(): BoundingBox {
+    const min = Vector2.MAX
+    const max = Vector2.MIN
+    this.getMinMax(min, max)
+    this.path.getMinMax(min, max)
+    return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
+  }
+
   drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextEffect> = {}): void {
     drawPaths({
       ctx,
-      paths: [new Path2D(this.commands)],
+      paths: [this.path],
       fontSize: this.computedStyle.fontSize,
       color: this.computedStyle.color,
       ...config,

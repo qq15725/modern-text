@@ -1,7 +1,7 @@
 import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
 import type { FragmentHighlight } from '../types'
-import { BoundingBox, Matrix3, parseSvg, parseSvgToDom, Point2D } from 'modern-path2d'
+import { BoundingBox, Matrix3, parseSvg, parseSvgToDom, Vector2 } from 'modern-path2d'
 import { drawPaths } from '../canvas'
 import { Feature } from './Feature'
 
@@ -18,8 +18,8 @@ export class Highlighter extends Feature {
     if (!this.paths.length) {
       return new BoundingBox()
     }
-    const min = Point2D.MAX
-    const max = Point2D.MIN
+    const min = Vector2.MAX
+    const max = Vector2.MIN
     this.paths.forEach(path => path.getMinMax(min, max))
     return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
   }
@@ -60,8 +60,8 @@ export class Highlighter extends Feature {
   protected _parseSvg(url: string): { paths: Path2D[], box: BoundingBox, viewBox: BoundingBox } {
     const svg = parseSvgToDom(url)
     const paths = parseSvg(svg)
-    const min = Point2D.MAX
-    const max = Point2D.MIN
+    const min = Vector2.MAX
+    const max = Vector2.MIN
     paths.forEach(path => path.getMinMax(min, max))
     const { x, y, width, height } = new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
     const viewBox = svg.getAttribute('viewBox')!.split(' ').map(Number)

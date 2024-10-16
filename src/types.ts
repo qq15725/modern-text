@@ -9,11 +9,6 @@ export type VerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom' | 'sub' | '
 export type TextTransform = 'uppercase' | 'lowercase' | 'none'
 export type TextDecoration = 'none' | 'underline' | 'line-through'
 
-export interface PointLike {
-  x: number
-  y: number
-}
-
 export interface TextLayoutStyle {
   writingMode: WritingMode
   textOrientation: TextOrientation
