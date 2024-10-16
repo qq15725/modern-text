@@ -49,7 +49,7 @@ export class Highlighter extends Feature {
       .map((characters) => {
         return {
           url: characters[0]!.parent.highlight!.url,
-          box: BoundingBox.from(...characters.map(c => c.glyphBox)),
+          box: BoundingBox.from(...characters.map(c => c.boundingBox)),
           baseline: Math.max(...characters.map(c => c.baseline)),
         }
       })

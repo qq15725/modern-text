@@ -33,7 +33,6 @@ export function drawPaths(options: DrawShapePathsOptions): void {
     ctx.shadowColor = options.shadowColor ?? 'rgba(0, 0, 0, 0)'
     const offsetX = (options.offsetX ?? 0) * fontSize
     const offsetY = (options.offsetY ?? 0) * fontSize
-    // { x: offsetX, y: offsetY }
     ctx.translate(offsetX, offsetY)
     path.drawTo(ctx)
     if (fillStyle !== 'none') {

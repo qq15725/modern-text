@@ -100,14 +100,15 @@ export class Text {
     const { paragraphs, boundingBox } = this.measure()
     this.paragraphs = paragraphs
     this.boundingBox = boundingBox
-    this.characters.forEach(c => c.update())
+    const characters = this.characters
+    characters.forEach(c => c.update())
     if (this.deformation) {
       this._deformer.deform()
     }
     this._highlighter.highlight()
     const min = Point2D.MAX
     const max = Point2D.MIN
-    this.characters.forEach(c => c.getMinMax(min, max))
+    characters.forEach(c => c.getMinMax(min, max))
     this.renderBoundingBox = new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
     return this
   }
