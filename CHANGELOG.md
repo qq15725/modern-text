@@ -1,3 +1,12 @@
+## [0.2.8](https://github.com/qq15725/modern-text/compare/v0.2.7...v0.2.8) (2024-10-16)
+
+
+### Features
+
+* update ([527b9cb](https://github.com/qq15725/modern-text/commit/527b9cb9f386e2d02a085ebe726d13f6c19de830))
+
+
+
 ## [0.2.7](https://github.com/qq15725/modern-text/compare/v0.2.6...v0.2.7) (2024-10-16)
 
 
