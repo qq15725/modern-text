@@ -124,7 +124,6 @@ export class Text {
     }
     if (this.effects?.length) {
       this.renderBoundingBox = BoundingBox.from(
-        this.boundingBox,
         this.renderBoundingBox,
         this.effector.getBoundingBox(),
         this.highlighter.getBoundingBox(),
@@ -132,7 +131,6 @@ export class Text {
     }
     else {
       this.renderBoundingBox = BoundingBox.from(
-        this.boundingBox,
         this.renderBoundingBox,
         this.highlighter.getBoundingBox(),
       )

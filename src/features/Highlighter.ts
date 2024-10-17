@@ -33,7 +33,10 @@ export class Highlighter extends Feature {
     characters.forEach((character) => {
       const highlight = character.parent.highlight
       if (highlight?.url) {
-        if (prevHighlight?.url === highlight.url) {
+        if (
+          prevHighlight?.url === highlight.url
+          && (group.length && group[0].boundingBox.top === character.boundingBox.top)
+        ) {
           group.push(character)
         }
         else {
@@ -93,12 +96,12 @@ export class Highlighter extends Feature {
       })
     }
     else if (type === 1) {
-      const scale = (fontSize / box.width) * 2
+      const scale = fontSize / box.width
       const width = box.width * scale
       const length = Math.ceil(groupBox.width / width)
       const totalWidth = width * length
       const offset = {
-        x: groupBox.left + (groupBox.width - totalWidth) / 2 + fontSize * 0.1,
+        x: groupBox.left + (groupBox.width - totalWidth) / 2,
         y: groupBox.top + baseline + fontSize * 0.1,
       }
       const m = new Matrix3()
