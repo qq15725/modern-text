@@ -4,7 +4,7 @@ import type { TextEffect, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
 import { fonts, Ttf, Woff } from 'modern-font'
 import { BoundingBox, Path2D } from 'modern-path2d'
-import { drawPaths } from '../canvas'
+import { drawPath } from '../canvas'
 import { getPointPosition, getSkewPoint } from '../utils'
 
 const set1 = new Set(['\xA9', '\xAE', '\xF7'])
@@ -38,9 +38,6 @@ export class Character {
   declare centerDiviation: number
   declare glyphBox: BoundingBox
   declare centerPoint: VectorLike
-
-  // font
-  declare fontMinGlyphWidth: number
 
   get computedStyle(): TextStyle {
     return this.parent.computedStyle
@@ -98,8 +95,6 @@ export class Character {
       ? new BoundingBox(left, top, glyphHeight, glyphWidth)
       : new BoundingBox(left, top, glyphWidth, glyphHeight)
     this.centerPoint = this.glyphBox.getCenterPoint()
-    // TODO
-    this.fontMinGlyphWidth = font.getAdvanceWidth('i', fontSize)
     return this
   }
 
@@ -311,9 +306,9 @@ export class Character {
   }
 
   drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextEffect> = {}): void {
-    drawPaths({
+    drawPath({
       ctx,
-      paths: [this.path],
+      path: this.path,
       fontSize: this.computedStyle.fontSize,
       color: this.computedStyle.color,
       ...config,

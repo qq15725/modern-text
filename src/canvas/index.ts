@@ -1,2 +1,2 @@
 export * from './color'
-export * from './drawPaths'
+export * from './drawPath'

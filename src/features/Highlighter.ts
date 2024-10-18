@@ -2,7 +2,7 @@ import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
 import type { FragmentHighlight } from '../types'
 import { BoundingBox, Matrix3, parseSvg, parseSvgToDom, Vector2 } from 'modern-path2d'
-import { drawPaths } from '../canvas'
+import { drawPath } from '../canvas'
 import { Feature } from './Feature'
 
 interface HighlightGroup {
@@ -10,11 +10,10 @@ interface HighlightGroup {
   box: BoundingBox
   baseline: number
   fontSize: number
-  fontMinGlyphWidth: number
 }
 
 export class Highlighter extends Feature {
-  paths: Path2D[] = []
+  paths: { clipRect?: BoundingBox, path: Path2D }[] = []
 
   getBoundingBox(): BoundingBox {
     if (!this.paths.length) {
@@ -22,7 +21,7 @@ export class Highlighter extends Feature {
     }
     const min = Vector2.MAX
     const max = Vector2.MIN
-    this.paths.forEach(path => path.getMinMax(min, max))
+    this.paths.forEach(v => v.path.getMinMax(min, max))
     return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
   }
 
@@ -59,7 +58,6 @@ export class Highlighter extends Feature {
           url: characters[0]!.parent.highlight!.url,
           box: BoundingBox.from(...characters.map(c => c.boundingBox)),
           baseline: Math.max(...characters.map(c => c.baseline)),
-          fontMinGlyphWidth: characters[0].fontMinGlyphWidth,
           fontSize: characters[0].fontSize,
         }
       })
@@ -80,25 +78,25 @@ export class Highlighter extends Feature {
     }
   }
 
-  protected _parseGroup(group: HighlightGroup): Path2D[] {
-    const { url, box: groupBox, baseline, fontSize, fontMinGlyphWidth } = group
+  protected _parseGroup(group: HighlightGroup): { clipRect?: BoundingBox, path: Path2D }[] {
+    const { url, box: groupBox, baseline, fontSize } = group
     const { box, viewBox, paths } = this._parseSvg(url)
-    const result: Path2D[] = []
-    const type = box.height / viewBox.height > 0.3 ? 0 : 1
+    const centerY = viewBox.top + viewBox.height / 2
+    const result: { clipRect?: BoundingBox, path: Path2D }[] = []
+    const type = centerY > box.top ? 0 : 1
 
-    function transformPathStyle(path: Path2D): void {
-      const rate = fontSize * 0.03
+    function transformPathStyle(path: Path2D, scale: number): void {
       if (path.style.strokeWidth) {
-        path.style.strokeWidth *= rate
+        path.style.strokeWidth *= scale
       }
       if (path.style.strokeMiterlimit) {
-        path.style.strokeMiterlimit *= rate
+        path.style.strokeMiterlimit *= scale
       }
       if (path.style.strokeDashoffset) {
-        path.style.strokeDashoffset *= rate
+        path.style.strokeDashoffset *= scale
       }
       if (path.style.strokeDasharray) {
-        path.style.strokeDasharray = path.style.strokeDasharray.map(v => v * rate)
+        path.style.strokeDasharray = path.style.strokeDasharray.map(v => v * scale)
       }
     }
 
@@ -115,17 +113,16 @@ export class Highlighter extends Feature {
         .translate(offset.x, offset.y)
       paths.forEach((original) => {
         const path = original.clone().transform(m)
-        transformPathStyle(path)
-        result.push(path)
+        transformPathStyle(path, scaleX)
+        result.push({ path })
       })
     }
     else if (type === 1) {
-      const scale = fontMinGlyphWidth / box.width
+      const scale = fontSize / box.width
       const width = box.width * scale
       const length = Math.ceil(groupBox.width / width)
-      const totalWidth = width * length
       const offset = {
-        x: groupBox.left + (groupBox.width - totalWidth) / 2,
+        x: groupBox.left,
         y: groupBox.top + baseline + fontSize * 0.1,
       }
       const m = new Matrix3()
@@ -136,8 +133,8 @@ export class Highlighter extends Feature {
         const _m = m.clone().translate(i * width, 0)
         paths.forEach((original) => {
           const path = original.clone().transform(_m)
-          transformPathStyle(path)
-          result.push(path)
+          transformPathStyle(path, scale)
+          result.push({ clipRect: groupBox, path })
         })
       }
     }
@@ -145,10 +142,13 @@ export class Highlighter extends Feature {
   }
 
   draw({ ctx }: { ctx: CanvasRenderingContext2D }): this {
-    drawPaths({
-      ctx,
-      paths: this.paths,
-      fontSize: this._text.computedStyle.fontSize,
+    this.paths.forEach((v) => {
+      drawPath({
+        ctx,
+        path: v.path,
+        clipRect: v.clipRect,
+        fontSize: this._text.computedStyle.fontSize,
+      })
     })
     return this
   }
