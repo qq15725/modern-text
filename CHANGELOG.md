@@ -1,3 +1,12 @@
+## [0.2.13](https://github.com/qq15725/modern-text/compare/v0.2.12...v0.2.13) (2024-10-18)
+
+
+### Features
+
+* fontMinGlyphWidth ([6207e74](https://github.com/qq15725/modern-text/commit/6207e74118d87e2b1d98607558889d81849155ea))
+
+
+
 ## [0.2.12](https://github.com/qq15725/modern-text/compare/v0.2.11...v0.2.12) (2024-10-18)
 
 
