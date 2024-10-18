@@ -1,3 +1,12 @@
+## [0.2.14](https://github.com/qq15725/modern-text/compare/v0.2.13...v0.2.14) (2024-10-18)
+
+
+### Bug Fixes
+
+* highlight ([8ecd2e3](https://github.com/qq15725/modern-text/commit/8ecd2e384398849a96dca99c7103cd9a129188cb))
+
+
+
 ## [0.2.13](https://github.com/qq15725/modern-text/compare/v0.2.12...v0.2.13) (2024-10-18)
 
 
