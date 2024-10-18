@@ -80,6 +80,23 @@ export class Highlighter extends Feature {
     const { box, viewBox, paths } = this._parseSvg(url)
     const result: Path2D[] = []
     const type = box.height / viewBox.height > 0.3 ? 0 : 1
+
+    function transformPathStyle(path: Path2D): void {
+      const rate = fontSize * 0.03
+      if (path.style.strokeWidth) {
+        path.style.strokeWidth *= rate
+      }
+      if (path.style.strokeMiterlimit) {
+        path.style.strokeMiterlimit *= rate
+      }
+      if (path.style.strokeDashoffset) {
+        path.style.strokeDashoffset *= rate
+      }
+      if (path.style.strokeDasharray) {
+        path.style.strokeDasharray = path.style.strokeDasharray.map(v => v * rate)
+      }
+    }
+
     if (type === 0) {
       const offset = {
         x: groupBox.left - fontSize * 0.2,
@@ -93,9 +110,7 @@ export class Highlighter extends Feature {
         .translate(offset.x, offset.y)
       paths.forEach((original) => {
         const path = original.clone().transform(m)
-        if (path.style.strokeWidth) {
-          path.style.strokeWidth *= fontSize * 0.03
-        }
+        transformPathStyle(path)
         result.push(path)
       })
     }
@@ -116,9 +131,7 @@ export class Highlighter extends Feature {
         const _m = m.clone().translate(i * width, 0)
         paths.forEach((original) => {
           const path = original.clone().transform(_m)
-          if (path.style.strokeWidth) {
-            path.style.strokeWidth *= fontSize * 0.03
-          }
+          transformPathStyle(path)
           result.push(path)
         })
       }
