@@ -39,6 +39,9 @@ export class Character {
   declare glyphBox: BoundingBox
   declare centerPoint: VectorLike
 
+  // font
+  declare fontMinGlyphWidth: number
+
   get computedStyle(): TextStyle {
     return this.parent.computedStyle
   }
@@ -95,6 +98,8 @@ export class Character {
       ? new BoundingBox(left, top, glyphHeight, glyphWidth)
       : new BoundingBox(left, top, glyphWidth, glyphHeight)
     this.centerPoint = this.glyphBox.getCenterPoint()
+    // TODO
+    this.fontMinGlyphWidth = font.getAdvanceWidth('i', fontSize)
     return this
   }
 

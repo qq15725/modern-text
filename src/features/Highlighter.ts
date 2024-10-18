@@ -9,6 +9,8 @@ interface HighlightGroup {
   url: string
   box: BoundingBox
   baseline: number
+  fontSize: number
+  fontMinGlyphWidth: number
 }
 
 export class Highlighter extends Feature {
@@ -25,8 +27,7 @@ export class Highlighter extends Feature {
   }
 
   highlight(): void {
-    const { characters, computedStyle: style } = this._text
-    const fontSize = style.fontSize
+    const { characters } = this._text
     let group: Character[]
     const groups: Character[][] = []
     let prevHighlight: FragmentHighlight | undefined
@@ -35,7 +36,11 @@ export class Highlighter extends Feature {
       if (highlight?.url) {
         if (
           prevHighlight?.url === highlight.url
-          && (group.length && group[0].boundingBox.top === character.boundingBox.top)
+          && (
+            group.length
+            && group[0].boundingBox.top === character.boundingBox.top
+            && group[0].fontSize === character.fontSize
+          )
         ) {
           group.push(character)
         }
@@ -54,9 +59,11 @@ export class Highlighter extends Feature {
           url: characters[0]!.parent.highlight!.url,
           box: BoundingBox.from(...characters.map(c => c.boundingBox)),
           baseline: Math.max(...characters.map(c => c.baseline)),
+          fontMinGlyphWidth: characters[0].fontMinGlyphWidth,
+          fontSize: characters[0].fontSize,
         }
       })
-      .map(group => this._parseGroup(group, fontSize))
+      .map(group => this._parseGroup(group))
       .flat()
   }
 
@@ -66,17 +73,15 @@ export class Highlighter extends Feature {
     const min = Vector2.MAX
     const max = Vector2.MIN
     paths.forEach(path => path.getMinMax(min, max))
-    const { x, y, width, height } = new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
-    const viewBox = svg.getAttribute('viewBox')!.split(' ').map(Number)
     return {
       paths,
-      box: new BoundingBox(x, y, width, height),
-      viewBox: new BoundingBox(...viewBox),
+      box: new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y),
+      viewBox: new BoundingBox(...svg.getAttribute('viewBox')!.split(' ').map(Number)),
     }
   }
 
-  protected _parseGroup(group: HighlightGroup, fontSize: number): Path2D[] {
-    const { url, box: groupBox, baseline } = group
+  protected _parseGroup(group: HighlightGroup): Path2D[] {
+    const { url, box: groupBox, baseline, fontSize, fontMinGlyphWidth } = group
     const { box, viewBox, paths } = this._parseSvg(url)
     const result: Path2D[] = []
     const type = box.height / viewBox.height > 0.3 ? 0 : 1
@@ -115,7 +120,7 @@ export class Highlighter extends Feature {
       })
     }
     else if (type === 1) {
-      const scale = fontSize / box.width
+      const scale = fontMinGlyphWidth / box.width
       const width = box.width * scale
       const length = Math.ceil(groupBox.width / width)
       const totalWidth = width * length

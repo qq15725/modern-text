@@ -1,8 +1,5 @@
 import { fonts, Text } from '../../src'
 
-// @ts-expect-error import.meta.glob
-const fixtures = import.meta.glob('../../test/fixtures/*.json')
-
 async function loadFallbackFont(): Promise<void> {
   fonts.fallbackFont = await fonts.load({ family: '_fallback', url: '/fallback.woff' })
 }
@@ -17,7 +14,7 @@ function loadFixture(fixture: Record<string, any>): void {
 
 window.onload = async () => {
   await loadFallbackFont()
-  for (const importJson of Object.values(fixtures)) {
+  for (const [, importJson] of Object.entries(import.meta.glob('../../test/fixtures/*.json'))) {
     const fixture = await (importJson as () => Promise<any>)().then(rep => rep.default)
     loadFixture(fixture)
   }
