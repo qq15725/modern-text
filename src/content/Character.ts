@@ -189,7 +189,18 @@ export class Character {
 
     commands.push(...this._decoration())
 
-    this.path = new Path2D(commands)
+    const path = new Path2D(commands)
+    path.style = {
+      fill: computedStyle.color,
+      stroke: computedStyle.textStrokeWidth
+        ? computedStyle.textStrokeColor
+        : 'none',
+      strokeWidth: computedStyle.textStrokeWidth
+        ? computedStyle.textStrokeWidth * fontSize * 0.03
+        : 0,
+    }
+    this.path = path
+
     return this
   }
 

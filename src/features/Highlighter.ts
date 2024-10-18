@@ -92,7 +92,11 @@ export class Highlighter extends Feature {
         .scale(scaleX, scaleY)
         .translate(offset.x, offset.y)
       paths.forEach((original) => {
-        result.push(original.clone().transform(m))
+        const path = original.clone().transform(m)
+        if (path.style.strokeWidth) {
+          path.style.strokeWidth *= fontSize * 0.03
+        }
+        result.push(path)
       })
     }
     else if (type === 1) {
@@ -111,7 +115,11 @@ export class Highlighter extends Feature {
       for (let i = 0; i < length; i++) {
         const _m = m.clone().translate(i * width, 0)
         paths.forEach((original) => {
-          result.push(original.clone().transform(_m))
+          const path = original.clone().transform(_m)
+          if (path.style.strokeWidth) {
+            path.style.strokeWidth *= fontSize * 0.03
+          }
+          result.push(path)
         })
       }
     }
@@ -123,7 +131,6 @@ export class Highlighter extends Feature {
       ctx,
       paths: this.paths,
       fontSize: this._text.computedStyle.fontSize,
-      fill: false,
     })
     return this
   }

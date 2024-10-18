@@ -37,8 +37,8 @@ export class Effector extends Feature {
         uploadColor(effect, boundingBox, ctx)
       })
       characters.forEach((character) => {
-        effects.forEach((effect) => {
-          character.drawTo(ctx, effect)
+        effects.forEach((style) => {
+          character.drawTo(ctx, style)
         })
       })
     }
