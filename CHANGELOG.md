@@ -1,3 +1,12 @@
+## [0.2.11](https://github.com/qq15725/modern-text/compare/v0.2.10...v0.2.11) (2024-10-18)
+
+
+### Features
+
+* up path2d ([e97ce44](https://github.com/qq15725/modern-text/commit/e97ce44333d987f81c7a81ab8da186195cd9c393))
+
+
+
 ## [0.2.10](https://github.com/qq15725/modern-text/compare/v0.2.9...v0.2.10) (2024-10-17)
 
 
