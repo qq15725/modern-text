@@ -1,3 +1,12 @@
+## [0.2.12](https://github.com/qq15725/modern-text/compare/v0.2.11...v0.2.12) (2024-10-18)
+
+
+### Bug Fixes
+
+* strokeDash ([254530b](https://github.com/qq15725/modern-text/commit/254530bc9a0c3e7e0c54e01fecdb64e7126c71ad))
+
+
+
 ## [0.2.11](https://github.com/qq15725/modern-text/compare/v0.2.10...v0.2.11) (2024-10-18)
 
 
