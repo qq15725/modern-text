@@ -57,7 +57,7 @@
     "prepare": "simple-git-hooks"
   },
   "dependencies": {
-    "modern-font": "^0.1.5",
+    "modern-font": "^0.2.0",
     "modern-path2d": "^0.1.16"
   },
   "devDependencies": {

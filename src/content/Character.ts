@@ -161,7 +161,7 @@ export class Character {
     }
     else {
       if (glyphIndex !== undefined) {
-        commands = font.glyf.glyphs.get(glyphIndex).getPathCommands(x, y, fontSize)
+        commands = font.glyphs.get(glyphIndex).getPathCommands(x, y, fontSize)
         if (fontStyle === 'italic') {
           commands = this._italic(
             commands,
@@ -290,6 +290,11 @@ export class Character {
           break
         case 'Q':
           [cmd.x1, cmd.y1] = cb(cmd.x1, cmd.y1)
+          ;[cmd.x, cmd.y] = cb(cmd.x, cmd.y)
+          break
+        case 'C':
+          [cmd.x1, cmd.y1] = cb(cmd.x1, cmd.y1)
+          ;[cmd.x2, cmd.y2] = cb(cmd.x2, cmd.y2)
           ;[cmd.x, cmd.y] = cb(cmd.x, cmd.y)
           break
       }
