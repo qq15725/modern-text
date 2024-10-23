@@ -1,3 +1,12 @@
+## [0.2.16](https://github.com/qq15725/modern-text/compare/v0.2.15...v0.2.16) (2024-10-23)
+
+
+### Bug Fixes
+
+* up modern-font ([7ae2c10](https://github.com/qq15725/modern-text/commit/7ae2c103e60f796fdf8cf6bd0ed503e9e40873c0))
+
+
+
 ## [0.2.15](https://github.com/qq15725/modern-text/compare/v0.2.14...v0.2.15) (2024-10-23)
 
 
