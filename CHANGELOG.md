@@ -1,3 +1,12 @@
+## [0.2.19](https://github.com/qq15725/modern-text/compare/v0.2.18...v0.2.19) (2024-10-24)
+
+
+### Bug Fixes
+
+* highlighter getBoundingBox ([8a94208](https://github.com/qq15725/modern-text/commit/8a9420841aa87a30d605b7223b670b00b701609a))
+
+
+
 ## [0.2.18](https://github.com/qq15725/modern-text/compare/v0.2.17...v0.2.18) (2024-10-24)
 
 
