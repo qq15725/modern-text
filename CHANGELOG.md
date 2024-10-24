@@ -1,3 +1,12 @@
+## [0.2.17](https://github.com/qq15725/modern-text/compare/v0.2.16...v0.2.17) (2024-10-24)
+
+
+### Features
+
+* text stroke and skew effect ([48ade56](https://github.com/qq15725/modern-text/commit/48ade56005be1518c2610f42a74250eda36aeab6))
+
+
+
 ## [0.2.16](https://github.com/qq15725/modern-text/compare/v0.2.15...v0.2.16) (2024-10-23)
 
 
