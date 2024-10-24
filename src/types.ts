@@ -60,6 +60,8 @@ export type TextEffect = Partial<
   TextDrawStyle & {
     offsetX: number
     offsetY: number
+    skewX: number
+    skewY: number
   }
 >
 

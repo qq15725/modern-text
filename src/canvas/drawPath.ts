@@ -1,5 +1,6 @@
 import type { BoundingBox, Path2D } from 'modern-path2d'
 import type { TextEffect } from '../types'
+import { Matrix3 } from 'modern-path2d'
 
 export interface DrawShapePathsOptions extends Partial<TextEffect> {
   ctx: CanvasRenderingContext2D
@@ -8,7 +9,10 @@ export interface DrawShapePathsOptions extends Partial<TextEffect> {
   clipRect?: BoundingBox
 }
 
-export function drawPath(options: DrawShapePathsOptions): void {
+const _tempM1 = new Matrix3()
+const _tempM2 = new Matrix3()
+
+export function drawPath(options: DrawShapePathsOptions, isText = false): void {
   const { ctx, path, fontSize, clipRect } = options
 
   ctx.save()
@@ -28,12 +32,34 @@ export function drawPath(options: DrawShapePathsOptions): void {
   }
   const offsetX = (options.offsetX ?? 0) * fontSize
   const offsetY = (options.offsetY ?? 0) * fontSize
-  ctx.translate(offsetX, offsetY)
+  const skewX = (options.skewX ?? 0) / 180 * Math.PI
+  const skewY = (options.skewY ?? 0) / 180 * Math.PI
+  if (offsetX || offsetY || skewX || skewY) {
+    _tempM1.makeTranslation(offsetX, offsetY)
+    _tempM2.set(1, Math.tan(skewX), 0, Math.tan(skewY), 1, 0, 0, 0, 1)
+    const [a, c, e, b, d, f] = _tempM1.multiply(_tempM2).transpose().elements
+    ctx.transform(a, b, c, d, e, f)
+  }
   if (clipRect) {
     ctx.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height)
     ctx.clip()
     ctx.beginPath()
   }
-  path.drawTo(ctx)
+  // -webkit-text-stroke
+  if (isText && path.style.strokeWidth) {
+    const scale = path.style.strokeWidth / fontSize + 1
+    const box = path.getBoundingBox()
+    ctx.translate(
+      box.left * (1 - scale) + box.width * (1 - scale) / 2,
+      box.top * (1 - scale) + box.height * (1 - scale) / 2,
+    )
+    ctx.scale(scale, scale)
+    const clone = path.clone()
+    clone.style.strokeWidth! /= scale * 2
+    clone.drawTo(ctx)
+  }
+  else {
+    path.drawTo(ctx)
+  }
   ctx.restore()
 }
