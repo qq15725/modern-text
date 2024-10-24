@@ -127,17 +127,17 @@ export class Text {
       this.update()
     }
     if (this.effects?.length) {
-      this.renderBoundingBox = BoundingBox.from(
+      this.renderBoundingBox = BoundingBox.from(...[
         this.renderBoundingBox,
         this.effector.getBoundingBox(),
         this.highlighter.getBoundingBox(),
-      )
+      ].filter(Boolean) as BoundingBox[])
     }
     else {
-      this.renderBoundingBox = BoundingBox.from(
+      this.renderBoundingBox = BoundingBox.from(...[
         this.renderBoundingBox,
         this.highlighter.getBoundingBox(),
-      )
+      ].filter(Boolean) as BoundingBox[])
     }
     this.renderer2D.setupView({ pixelRatio, ctx })
     this.renderer2D.uploadColors({ ctx })

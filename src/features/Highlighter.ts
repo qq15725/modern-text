@@ -15,7 +15,10 @@ interface HighlightGroup {
 export class Highlighter extends Feature {
   paths: { clipRect?: BoundingBox, path: Path2D }[] = []
 
-  getBoundingBox(): BoundingBox {
+  getBoundingBox(): BoundingBox | undefined {
+    if (!this.paths.length) {
+      return undefined
+    }
     const min = Vector2.MAX
     const max = Vector2.MIN
     this.paths.forEach(v => v.path.getMinMax(min, max))
