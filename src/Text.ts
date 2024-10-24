@@ -69,6 +69,10 @@ export class Text {
   highlighter = new Highlighter(this)
   renderer2D = new Renderer2D(this)
 
+  get fontSize(): number {
+    return this.computedStyle.fontSize
+  }
+
   get characters(): Character[] {
     return this.paragraphs.flatMap(p => p.fragments.flatMap(f => f.characters))
   }

@@ -1,0 +1,20 @@
+{
+  "content": "点击修改标题文字",
+  "style": {
+    "fontSize": 100,
+    "color": "rgba(254,233,12,255)",
+    "textDecoration": "underline"
+  },
+  "effects": [
+    {
+      "textStrokeWidth": 0.17058823529411765,
+      "textStrokeColor": "rgba(36,79,113,1)",
+      "shadowColor": "#000000",
+      "color": "rgba(36,79,113,1)"
+    },
+    {
+      "shadowColor": "#000000",
+      "color": "#FFFFFF"
+    }
+  ]
+}

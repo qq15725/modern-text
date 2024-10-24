@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "modern-font": "^0.2.1",
-    "modern-path2d": "^0.1.16"
+    "modern-path2d": "^0.1.17"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.7.3",

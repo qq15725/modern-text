@@ -317,6 +317,6 @@ export class Character {
       fontSize: this.computedStyle.fontSize,
       color: this.computedStyle.color,
       ...config,
-    }, true)
+    })
   }
 }

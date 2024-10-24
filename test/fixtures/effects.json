@@ -1,11 +1,9 @@
 {
-  "content": "安全教育日",
+  "content": "点击修改标题文字",
   "style": {
-    "width": 1014,
-    "height": 190.4449920654297,
     "fontStyle": "italic",
     "textAlign": "left",
-    "fontSize": 185,
+    "fontSize": 100,
     "color": "rgba(254,233,12,255)",
     "fontWeight": "bold",
     "textDecoration": "underline"
