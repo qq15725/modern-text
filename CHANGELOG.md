@@ -1,3 +1,12 @@
+## [0.2.18](https://github.com/qq15725/modern-text/compare/v0.2.17...v0.2.18) (2024-10-24)
+
+
+### Bug Fixes
+
+* text stroke and skew effect ([0b9ad1d](https://github.com/qq15725/modern-text/commit/0b9ad1dd15cccdd8b04b74d853c90df76b2c1b5d))
+
+
+
 ## [0.2.17](https://github.com/qq15725/modern-text/compare/v0.2.16...v0.2.17) (2024-10-24)
 
 
