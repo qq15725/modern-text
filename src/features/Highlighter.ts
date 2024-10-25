@@ -44,7 +44,7 @@ export class Highlighter extends Feature {
     return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
   }
 
-  highlight(): void {
+  highlight(perChar = false): void {
     const { characters } = this._text
     let group: Character[]
     const groups: Character[][] = []
@@ -53,7 +53,8 @@ export class Highlighter extends Feature {
       const highlight = character.parent.highlight
       if (highlight?.url) {
         if (
-          prevHighlight?.url === highlight.url
+          !perChar
+          && prevHighlight?.url === highlight.url
           && prevHighlight?.strokeWidth === highlight.strokeWidth
           && prevHighlight?.repeatXByFontsize === highlight.repeatXByFontsize
           && prevHighlight?.overflowXHidden === highlight.overflowXHidden
