@@ -27,7 +27,7 @@ export function drawPath(options: DrawShapePathsOptions): void {
     shadowColor: options.shadowColor,
   }
   if (clipRect) {
-    ctx.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height)
+    ctx.rect(clipRect.left, clipRect.top, clipRect.width, clipRect.height)
     ctx.clip()
     ctx.beginPath()
   }

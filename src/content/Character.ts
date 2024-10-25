@@ -37,7 +37,7 @@ export class Character {
   declare baseline: number
   declare centerDiviation: number
   declare glyphBox: BoundingBox
-  declare centerPoint: VectorLike
+  declare center: VectorLike
 
   get computedStyle(): TextStyle {
     return this.parent.computedStyle
@@ -72,8 +72,8 @@ export class Character {
       return this
     }
     const { unitsPerEm, ascender, descender, os2, post } = font
-    const { content, computedStyle, boundingBox, isVertical } = this
-    const { left, top, height } = boundingBox
+    const { content, computedStyle, boundingBox } = this
+    const { height } = boundingBox
     const { fontSize } = computedStyle
     const rate = unitsPerEm / fontSize
     const glyphWidth = font.getAdvanceWidth(content, fontSize)
@@ -91,10 +91,6 @@ export class Character {
     this.yStrikeoutSize = yStrikeoutSize
     this.baseline = baseline
     this.centerDiviation = 0.5 * height - baseline
-    this.glyphBox = isVertical
-      ? new BoundingBox(left, top, glyphHeight, glyphWidth)
-      : new BoundingBox(left, top, glyphWidth, glyphHeight)
-    this.centerPoint = this.glyphBox.getCenterPoint()
     return this
   }
 
@@ -200,6 +196,8 @@ export class Character {
         : 0,
     }
     this.path = path
+    this.glyphBox = this.getGlyphBoundingBox()
+    this.center = this.glyphBox.getCenterPoint()
 
     return this
   }
@@ -302,12 +300,12 @@ export class Character {
     })
   }
 
-  getMinMax(min?: Vector2, max?: Vector2): { min: Vector2, max: Vector2 } {
+  getGlyphMinMax(min?: Vector2, max?: Vector2): { min: Vector2, max: Vector2 } {
     return this.path.getMinMax(min, max)
   }
 
-  getBoundingBox(): BoundingBox {
-    return this.path.getBoundingBox()
+  getGlyphBoundingBox(withStyle?: boolean): BoundingBox {
+    return this.path.getBoundingBox(withStyle)
   }
 
   drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextEffect> = {}): void {

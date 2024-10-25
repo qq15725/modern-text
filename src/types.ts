@@ -69,4 +69,7 @@ export type TextDeformation = () => void
 
 export interface FragmentHighlight {
   url: string // svg url
+  strokeWidth?: number
+  repeatXByFontsize?: number
+  overflowXHidden?: boolean
 }

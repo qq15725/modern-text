@@ -106,13 +106,13 @@ export class Text {
     this.boundingBox = boundingBox
     const characters = this.characters
     characters.forEach(c => c.update())
-    this.highlighter.highlight()
     if (this.deformation) {
       this.deformer.deform()
     }
+    this.highlighter.highlight()
     const min = Vector2.MAX
     const max = Vector2.MIN
-    characters.forEach(c => c.getMinMax(min, max))
+    characters.forEach(c => c.getGlyphMinMax(min, max))
     this.renderBoundingBox = new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
     return this
   }

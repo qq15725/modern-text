@@ -39,7 +39,7 @@ export class Effector extends Feature {
     const boxes: BoundingBox[] = []
     characters.forEach((character) => {
       effects?.forEach((style) => {
-        const aabb = character.boundingBox.clone()
+        const aabb = character.glyphBox.clone()
         const m = this.getTransform2D(style)
         tempV1.set(aabb.left, aabb.top)
         tempV1.applyMatrix3(m)
