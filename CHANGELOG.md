@@ -1,3 +1,12 @@
+## [0.2.24](https://github.com/qq15725/modern-text/compare/v0.2.23...v0.2.24) (2024-10-25)
+
+
+### Features
+
+* up modern-path2d ([1f314ed](https://github.com/qq15725/modern-text/commit/1f314edcd218fd6ed767d12b8da9e1f2cd84ab86))
+
+
+
 ## [0.2.23](https://github.com/qq15725/modern-text/compare/v0.2.22...v0.2.23) (2024-10-25)
 
 
