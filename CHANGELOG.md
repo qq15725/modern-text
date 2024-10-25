@@ -1,3 +1,12 @@
+## [0.2.26](https://github.com/qq15725/modern-text/compare/v0.2.25...v0.2.26) (2024-10-25)
+
+
+### Bug Fixes
+
+* character getGlyphMinMax ([54e8879](https://github.com/qq15725/modern-text/commit/54e8879bc2f228eae3a8f312aef883041d27a24e))
+
+
+
 ## [0.2.25](https://github.com/qq15725/modern-text/compare/v0.2.24...v0.2.25) (2024-10-25)
 
 
