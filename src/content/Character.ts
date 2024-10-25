@@ -301,7 +301,7 @@ export class Character {
   }
 
   getGlyphMinMax(min?: Vector2, max?: Vector2, withStyle?: boolean): { min: Vector2, max: Vector2 } {
-    if (this.path.paths.length) {
+    if (this.path.paths[0]?.curves.length) {
       return this.path.getMinMax(min, max, withStyle)
     }
     else {
