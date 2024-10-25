@@ -109,7 +109,9 @@ export class Text {
     if (this.deformation) {
       this.deformer.deform()
     }
-    this.highlighter.highlight()
+    else {
+      this.highlighter.highlight()
+    }
     const min = Vector2.MAX
     const max = Vector2.MIN
     characters.forEach(c => c.getGlyphMinMax(min, max))
