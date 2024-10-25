@@ -1,3 +1,12 @@
+## [0.2.22](https://github.com/qq15725/modern-text/compare/v0.2.21...v0.2.22) (2024-10-25)
+
+
+### Features
+
+* TODO ([87922d4](https://github.com/qq15725/modern-text/commit/87922d4d62750d85920cacc19a1455aa8d967f6c))
+
+
+
 ## [0.2.21](https://github.com/qq15725/modern-text/compare/v0.2.20...v0.2.21) (2024-10-25)
 
 
