@@ -1,3 +1,12 @@
+## [0.2.23](https://github.com/qq15725/modern-text/compare/v0.2.22...v0.2.23) (2024-10-25)
+
+
+### Features
+
+* highlight perChar ([fb5d9f4](https://github.com/qq15725/modern-text/commit/fb5d9f408834b449b9bd83fc299cbd7391d3e59f))
+
+
+
 ## [0.2.22](https://github.com/qq15725/modern-text/compare/v0.2.21...v0.2.22) (2024-10-25)
 
 
