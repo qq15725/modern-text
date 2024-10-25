@@ -1,9 +1,9 @@
 import type { GlyphPathCommand, Sfnt } from 'modern-font'
-import type { Vector2, VectorLike } from 'modern-path2d'
+import type { VectorLike } from 'modern-path2d'
 import type { TextEffect, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
 import { fonts, Ttf, Woff } from 'modern-font'
-import { BoundingBox, Path2D } from 'modern-path2d'
+import { BoundingBox, Path2D, Vector2 } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { getPointPosition, getSkewPoint } from '../utils'
 
@@ -300,12 +300,24 @@ export class Character {
     })
   }
 
-  getGlyphMinMax(min?: Vector2, max?: Vector2): { min: Vector2, max: Vector2 } {
-    return this.path.getMinMax(min, max)
+  getGlyphMinMax(min?: Vector2, max?: Vector2, withStyle?: boolean): { min: Vector2, max: Vector2 } {
+    if (this.path.paths.length) {
+      return this.path.getMinMax(min, max, withStyle)
+    }
+    else {
+      min ??= Vector2.MAX
+      max ??= Vector2.MIN
+      min.x = Math.min(min.x, this.boundingBox.left)
+      min.y = Math.min(min.y, this.boundingBox.top)
+      max.x = Math.max(max.x, this.boundingBox.right)
+      max.y = Math.max(max.y, this.boundingBox.bottom)
+      return { min, max }
+    }
   }
 
   getGlyphBoundingBox(withStyle?: boolean): BoundingBox {
-    return this.path.getBoundingBox(withStyle)
+    const { min, max } = this.getGlyphMinMax(undefined, undefined, withStyle)
+    return new BoundingBox(min.x, min.y, max.x - max.x, max.y - max.y)
   }
 
   drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextEffect> = {}): void {
