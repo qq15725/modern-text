@@ -1,3 +1,12 @@
+## [0.2.21](https://github.com/qq15725/modern-text/compare/v0.2.20...v0.2.21) (2024-10-25)
+
+
+### Features
+
+* highlight ([6ead49f](https://github.com/qq15725/modern-text/commit/6ead49f1454d2ececfa35d2db645385a87cc13fa))
+
+
+
 ## [0.2.20](https://github.com/qq15725/modern-text/compare/v0.2.19...v0.2.20) (2024-10-24)
 
 
