@@ -1,4 +1,3 @@
-import { BoundingBox } from 'modern-path2d'
 import { uploadColor } from '../canvas'
 import { Feature } from './Feature'
 
@@ -30,8 +29,7 @@ export class Renderer2D extends Feature {
   uploadColors(options: Pick<Render2dOptions, 'ctx'>): this {
     const { ctx } = options
     const { paragraphs, computedStyle: style, renderBoundingBox } = this._text
-    const { width, height } = renderBoundingBox
-    uploadColor(style, new BoundingBox(0, 0, width, height), ctx)
+    uploadColor(style, renderBoundingBox, ctx)
     paragraphs.forEach((paragraph) => {
       uploadColor(paragraph.computedStyle, paragraph.boundingBox, ctx)
       paragraph.fragments.forEach((fragment) => {

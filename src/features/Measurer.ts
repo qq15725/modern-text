@@ -79,6 +79,8 @@ export class Measurer extends Feature {
     const documentFragment = document.createDocumentFragment()
     const dom = document.createElement('section')
     Object.assign(dom.style, {
+      width: 'max-content',
+      height: 'max-content',
       ...this._styleToDomStyle(computedStyle),
       position: 'absolute',
       visibility: 'hidden',
@@ -200,15 +202,15 @@ export class Measurer extends Feature {
     const measured = this._measureDom(dom)
     measured.paragraphs.forEach((p) => {
       const _p = paragraphs[p.paragraphIndex]
-      _p.boundingBox.left = p.left
-      _p.boundingBox.top = p.top
+      _p.boundingBox.left = p.left - rect.left
+      _p.boundingBox.top = p.top - rect.top
       _p.boundingBox.width = p.width
       _p.boundingBox.height = p.height
     })
     measured.fragments.forEach((f) => {
       const _f = paragraphs[f.paragraphIndex].fragments[f.fragmentIndex]
-      _f.boundingBox.left = f.left
-      _f.boundingBox.top = f.top
+      _f.boundingBox.left = f.left - rect.left
+      _f.boundingBox.top = f.top - rect.top
       _f.boundingBox.width = f.width
       _f.boundingBox.height = f.height
     })

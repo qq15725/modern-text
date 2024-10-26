@@ -317,7 +317,7 @@ export class Character {
 
   getGlyphBoundingBox(withStyle?: boolean): BoundingBox {
     const { min, max } = this.getGlyphMinMax(undefined, undefined, withStyle)
-    return new BoundingBox(min.x, min.y, max.x - max.x, max.y - max.y)
+    return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
   }
 
   drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextEffect> = {}): void {
