@@ -1,3 +1,12 @@
+## [0.2.27](https://github.com/qq15725/modern-text/compare/v0.2.26...v0.2.27) (2024-10-26)
+
+
+### Bug Fixes
+
+* getGlyphBoundingBox ([c7c02c5](https://github.com/qq15725/modern-text/commit/c7c02c57a5bd812d232c28e442307190aae57fa7))
+
+
+
 ## [0.2.26](https://github.com/qq15725/modern-text/compare/v0.2.25...v0.2.26) (2024-10-25)
 
 
