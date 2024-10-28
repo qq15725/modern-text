@@ -1,3 +1,12 @@
+## [0.2.28](https://github.com/qq15725/modern-text/compare/v0.2.27...v0.2.28) (2024-10-28)
+
+
+### Bug Fixes
+
+* character empty safe ([063af1d](https://github.com/qq15725/modern-text/commit/063af1d91b34d0de4063944da9c15d6bb4370687))
+
+
+
 ## [0.2.27](https://github.com/qq15725/modern-text/compare/v0.2.26...v0.2.27) (2024-10-26)
 
 
