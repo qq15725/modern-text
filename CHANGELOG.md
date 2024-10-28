@@ -1,3 +1,12 @@
+## [0.2.29](https://github.com/qq15725/modern-text/compare/v0.2.28...v0.2.29) (2024-10-28)
+
+
+### Bug Fixes
+
+* fontWeight bold ([b8efd1f](https://github.com/qq15725/modern-text/commit/b8efd1f512a0d4e06d675cd03e70ba3bcefc775a))
+
+
+
 ## [0.2.28](https://github.com/qq15725/modern-text/compare/v0.2.27...v0.2.28) (2024-10-28)
 
 
