@@ -22,22 +22,23 @@ const set2 = new Set([
 ])
 
 export class Character {
+  // measure dom
   boundingBox = new BoundingBox()
   textWidth = 0
   textHeight = 0
-  path = new Path2D()
 
-  // glyph
-  declare glyphHeight: number
-  declare glyphWidth: number
-  declare underlinePosition: number
-  declare underlineThickness: number
-  declare yStrikeoutPosition: number
-  declare yStrikeoutSize: number
-  declare baseline: number
-  declare centerDiviation: number
-  declare glyphBox: BoundingBox
-  declare center: VectorLike
+  // font glyph
+  glyphHeight = 0
+  glyphWidth = 0
+  underlinePosition = 0
+  underlineThickness = 0
+  yStrikeoutPosition = 0
+  yStrikeoutSize = 0
+  baseline = 0
+  centerDiviation = 0
+  path = new Path2D()
+  glyphBox = new BoundingBox()
+  center = new Vector2()
 
   get computedStyle(): TextStyle {
     return this.parent.computedStyle
