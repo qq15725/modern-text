@@ -327,6 +327,7 @@ export class Character {
       path: this.path,
       fontSize: this.computedStyle.fontSize,
       color: this.computedStyle.color,
+      boldness: this.computedStyle.fontWeight === 'bold' ? 2 : 0,
       ...config,
     })
   }
