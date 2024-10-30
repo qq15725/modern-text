@@ -129,7 +129,7 @@ export class Highlighter extends Feature {
     for (let i = 0; i < total; i++) {
       const _transform = transform.clone().translate(i * unitWidth, 0)
       paths.forEach((original) => {
-        const path = original.clone().transform(_transform)
+        const path = original.clone().matrix(_transform)
         if (path.style.strokeWidth) {
           path.style.strokeWidth *= styleScale * strokeWidth
         }

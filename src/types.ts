@@ -1,6 +1,6 @@
 export type WritingMode = 'horizontal-tb' | 'vertical-lr' | 'vertical-rl'
 export type TextOrientation = 'mixed' | 'upright' | 'sideways-right' | 'sideways' /* | 'use-glyph-orientation' */
-export type FontWeight = 'normal' | 'bold' | 'lighter' | 'bolder' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
+export type FontWeight = 'normal' | 'bold' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
 export type FontStyle = 'normal' | 'italic' | 'oblique' | `oblique ${string}`
 export type FontKerning = 'auto' | 'none' | 'normal'
 export type TextWrap = 'wrap' | 'nowrap'

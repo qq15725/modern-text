@@ -1,11 +1,10 @@
 import type { GlyphPathCommand, Sfnt } from 'modern-font'
 import type { VectorLike } from 'modern-path2d'
-import type { TextEffect, TextStyle } from '../types'
+import type { FontWeight, TextEffect, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
 import { fonts, Ttf, Woff } from 'modern-font'
 import { BoundingBox, Path2D, Vector2 } from 'modern-path2d'
 import { drawPath } from '../canvas'
-import { getPointPosition, getSkewPoint } from '../utils'
 
 const set1 = new Set(['\xA9', '\xAE', '\xF7'])
 const set2 = new Set([
@@ -20,6 +19,20 @@ const set2 = new Set([
   '\u2019',
   '\u02DC',
 ])
+
+const fontWeightMap: Record<FontWeight, number> = {
+  100: -0.2,
+  200: -0.1,
+  300: 0,
+  400: 0,
+  normal: 0,
+  500: 0.1,
+  600: 0.2,
+  700: 0.3,
+  bold: 0.3,
+  800: 0.4,
+  900: 0.5,
+}
 
 export class Character {
   // measure dom
@@ -125,7 +138,7 @@ export class Character {
     let x = left
     let y = top + baseline
     let glyphIndex: number | undefined
-    let commands: GlyphPathCommand[]
+    const path = new Path2D()
 
     if (isVertical) {
       x += (glyphHeight - glyphWidth) / 2
@@ -138,14 +151,16 @@ export class Character {
     }
 
     if (isVertical && !set1.has(content) && (content.codePointAt(0)! <= 256 || set2.has(content))) {
-      commands = font.getPathCommands(content, x, top + baseline - (glyphHeight - glyphWidth) / 2, fontSize) ?? []
+      path.addCommands(
+        font.getPathCommands(content, x, top + baseline - (glyphHeight - glyphWidth) / 2, fontSize) ?? [],
+      )
       const point = {
         y: top - (glyphHeight - glyphWidth) / 2 + glyphHeight / 2,
         x: x + glyphWidth / 2,
       }
       if (fontStyle === 'italic') {
-        commands = this._italic(
-          commands,
+        this._italic(
+          path,
           isVertical
             ? {
                 x: point.x,
@@ -154,14 +169,16 @@ export class Character {
             : undefined,
         )
       }
-      commands = this._rotation90(commands, point)
+      path.rotate(90, point)
     }
     else {
       if (glyphIndex !== undefined) {
-        commands = font.glyphs.get(glyphIndex).getPathCommands(x, y, fontSize)
+        path.addCommands(
+          font.glyphs.get(glyphIndex).getPathCommands(x, y, fontSize),
+        )
         if (fontStyle === 'italic') {
-          commands = this._italic(
-            commands,
+          this._italic(
+            path,
             isVertical
               ? {
                   x: x + glyphWidth / 2,
@@ -172,10 +189,12 @@ export class Character {
         }
       }
       else {
-        commands = font.getPathCommands(content, x, y, fontSize) ?? []
+        path.addCommands(
+          font.getPathCommands(content, x, y, fontSize) ?? [],
+        )
         if (fontStyle === 'italic') {
-          commands = this._italic(
-            commands,
+          this._italic(
+            path,
             isVertical
               ? { x: x + glyphHeight / 2, y }
               : undefined,
@@ -184,9 +203,9 @@ export class Character {
       }
     }
 
-    commands.push(...this._decoration())
+    path.addCommands(this._decoration())
+    path.bold(fontWeightMap[computedStyle.fontWeight ?? 400] * fontSize * 0.05)
 
-    const path = new Path2D(commands)
     path.style = {
       fill: computedStyle.color,
       stroke: computedStyle.textStrokeWidth
@@ -258,46 +277,11 @@ export class Character {
     }
   }
 
-  protected _italic(commands: GlyphPathCommand[], startPoint?: VectorLike): GlyphPathCommand[] {
+  protected _italic(path: Path2D, startPoint?: VectorLike): void {
     // if (e.style === 'italic') return
-    const { baseline, glyphWidth } = this
-    const { left, top } = this.boundingBox
-    const _startPoint = startPoint || {
-      y: top + baseline,
-      x: left + glyphWidth / 2,
-    }
-    return this._transform(commands, (x, y) => {
-      const p = getSkewPoint({ x, y }, _startPoint, -0.24, 0)
-      return [p.x, p.y]
-    })
-  }
-
-  protected _rotation90(commands: GlyphPathCommand[], point: VectorLike): GlyphPathCommand[] {
-    return this._transform(commands, (x, y) => {
-      const p = getPointPosition({ x, y }, point, 90)
-      return [p.x, p.y]
-    })
-  }
-
-  protected _transform(commands: GlyphPathCommand[], cb: (x: number, y: number) => number[]): GlyphPathCommand[] {
-    return commands.map((rawCmd) => {
-      const cmd = { ...rawCmd }
-      switch (cmd.type) {
-        case 'L':
-        case 'M':
-          [cmd.x, cmd.y] = cb(cmd.x, cmd.y)
-          break
-        case 'Q':
-          [cmd.x1, cmd.y1] = cb(cmd.x1, cmd.y1)
-          ;[cmd.x, cmd.y] = cb(cmd.x, cmd.y)
-          break
-        case 'C':
-          [cmd.x1, cmd.y1] = cb(cmd.x1, cmd.y1)
-          ;[cmd.x2, cmd.y2] = cb(cmd.x2, cmd.y2)
-          ;[cmd.x, cmd.y] = cb(cmd.x, cmd.y)
-          break
-      }
-      return cmd
+    path.skew(-0.24, 0, startPoint || {
+      y: this.boundingBox.top + this.baseline,
+      x: this.boundingBox.left + this.glyphWidth / 2,
     })
   }
 
@@ -327,7 +311,6 @@ export class Character {
       path: this.path,
       fontSize: this.computedStyle.fontSize,
       color: this.computedStyle.color,
-      boldness: this.computedStyle.fontWeight === 'bold' ? 2 : 0,
       ...config,
     })
   }

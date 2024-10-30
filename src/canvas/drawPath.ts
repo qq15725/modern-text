@@ -5,12 +5,11 @@ export interface DrawShapePathsOptions extends Partial<TextEffect> {
   ctx: CanvasRenderingContext2D
   path: Path2D
   fontSize: number
-  boldness?: number
   clipRect?: BoundingBox
 }
 
 export function drawPath(options: DrawShapePathsOptions): void {
-  const { ctx, path, fontSize, boldness = 0, clipRect } = options
+  const { ctx, path, fontSize, clipRect } = options
 
   ctx.save()
   ctx.beginPath()
@@ -32,20 +31,6 @@ export function drawPath(options: DrawShapePathsOptions): void {
     ctx.clip()
     ctx.beginPath()
   }
-
-  if (boldness) {
-    for (let offsetX = -boldness; offsetX <= boldness; offsetX += boldness / 2) {
-      for (let offsetY = -boldness; offsetY <= boldness; offsetY += boldness / 2) {
-        ctx.save()
-        ctx.translate(Math.round(offsetX), Math.round(offsetY))
-        path.drawTo(ctx, style)
-        ctx.restore()
-      }
-    }
-  }
-  else {
-    path.drawTo(ctx, style)
-  }
-
+  path.drawTo(ctx, style)
   ctx.restore()
 }
