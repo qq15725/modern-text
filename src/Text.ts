@@ -1,15 +1,14 @@
 import type { Character, Paragraph } from './content'
-import type { MeasuredResult } from './features'
-import type { TextContent, TextDeformation, TextEffect, TextStyle } from './types'
-import { BoundingBox, Vector2 } from 'modern-path2d'
-import {
-  Deformer,
-  Effector,
-  Highlighter,
-  Measurer,
-  Parser,
-  Renderer2D,
-} from './features'
+import type { MeasuredResult } from './Measurer'
+import type { Plugin } from './Plugin'
+import type { EffectOptions, HighlightOptions, MarkerOptions } from './plugins'
+import type { TextContent, TextStyle } from './types'
+import { drawPath, setupView, uploadColors } from './canvas'
+import { BoundingBox, Vector2 } from './lib'
+import { Measurer } from './Measurer'
+import { Parser } from './Parser'
+import { effect, highlight, marker } from './plugins'
+import { getPathsBoundingBox } from './utils'
 
 export interface TextRenderOptions {
   view: HTMLCanvasElement
@@ -19,9 +18,10 @@ export interface TextRenderOptions {
 export interface TextOptions {
   content?: TextContent
   style?: Partial<TextStyle>
-  effects?: TextEffect[]
-  deformation?: TextDeformation
   measureDom?: HTMLElement
+  effect?: EffectOptions
+  highlight?: HighlightOptions
+  marker?: MarkerOptions
 }
 
 export const defaultTextStyles: TextStyle = {
@@ -52,22 +52,15 @@ export const defaultTextStyles: TextStyle = {
 export class Text {
   content: TextContent
   style: Partial<TextStyle>
-  effects?: TextEffect[]
-  deformation?: TextDeformation
   measureDom?: HTMLElement
-
   needsUpdate = true
   computedStyle = { ...defaultTextStyles }
   paragraphs: Paragraph[] = []
   boundingBox = new BoundingBox()
   renderBoundingBox = new BoundingBox()
-
   parser = new Parser(this)
   measurer = new Measurer(this)
-  deformer = new Deformer(this)
-  effector = new Effector(this)
-  highlighter = new Highlighter(this)
-  renderer2D = new Renderer2D(this)
+  plugins = new Map<string, Plugin>()
 
   get fontSize(): number {
     return this.computedStyle.fontSize
@@ -78,12 +71,20 @@ export class Text {
   }
 
   constructor(options: TextOptions = {}) {
-    const { content = '', style = {}, effects, deformation, measureDom } = options
+    const { content = '', style = {}, measureDom } = options
     this.content = content
     this.style = style
-    this.effects = effects
-    this.deformation = deformation
     this.measureDom = measureDom
+
+    this
+      .use(effect(options.effect))
+      .use(highlight(options.highlight))
+      .use(marker(options.marker))
+  }
+
+  use(plugin: Plugin): this {
+    this.plugins.set(plugin.name, plugin)
+    return this
   }
 
   measure(dom = this.measureDom): MeasuredResult {
@@ -106,16 +107,27 @@ export class Text {
     this.boundingBox = boundingBox
     const characters = this.characters
     characters.forEach(c => c.update())
-    if (this.deformation) {
-      this.deformer.deform()
-    }
-    else {
-      this.highlighter.highlight()
-    }
+    const plugins = [...this.plugins.values()]
+    plugins
+      .sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
+      .forEach((plugin) => {
+        plugin.update?.(this)
+      })
     const min = Vector2.MAX
     const max = Vector2.MIN
     characters.forEach(c => c.getGlyphMinMax(min, max))
     this.renderBoundingBox = new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
+    this.renderBoundingBox = BoundingBox.from(
+      this.renderBoundingBox,
+      ...plugins
+        .map((plugin) => {
+          if (plugin.getBoundingBox) {
+            return plugin.getBoundingBox(this)
+          }
+          return getPathsBoundingBox(plugin.paths ?? [])
+        })
+        .filter(Boolean) as BoundingBox[],
+    )
     return this
   }
 
@@ -128,28 +140,25 @@ export class Text {
     if (this.needsUpdate) {
       this.update()
     }
-    if (this.effects?.length) {
-      this.renderBoundingBox = BoundingBox.from(...[
-        this.renderBoundingBox,
-        this.effector.getBoundingBox(),
-        this.highlighter.getBoundingBox(),
-      ].filter(Boolean) as BoundingBox[])
-    }
-    else {
-      this.renderBoundingBox = BoundingBox.from(...[
-        this.renderBoundingBox,
-        this.highlighter.getBoundingBox(),
-      ].filter(Boolean) as BoundingBox[])
-    }
-    this.renderer2D.setupView({ pixelRatio, ctx })
-    this.renderer2D.uploadColors({ ctx })
-    this.highlighter.draw({ ctx })
-    if (this.effects?.length) {
-      this.effector.draw({ ctx })
-    }
-    else {
-      this.renderer2D.draw({ ctx })
-    }
+    setupView(ctx, pixelRatio, this.renderBoundingBox)
+    uploadColors(ctx, this)
+    const plugins = [...this.plugins.values()]
+    plugins
+      .sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
+      .forEach((plugin) => {
+        if (plugin.render) {
+          plugin.render?.(ctx, this)
+        }
+        else if (plugin.paths) {
+          plugin.paths.forEach((path) => {
+            drawPath({
+              ctx,
+              path,
+              fontSize: this.computedStyle.fontSize,
+            })
+          })
+        }
+      })
     return this
   }
 }

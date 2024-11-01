@@ -56,20 +56,9 @@ export type TextContent =
   | ParagraphContent
   | (string | FragmentContent | ParagraphContent | (string | FragmentContent)[])[]
 
-export type TextEffect = Partial<
-  TextDrawStyle & {
-    offsetX: number
-    offsetY: number
-    skewX: number
-    skewY: number
-  }
->
-
-export type TextDeformation = () => void
-
 export interface FragmentHighlight {
-  url: string // svg url
+  svg: string // svg url
   strokeWidth?: number
-  repeatXByFontsize?: number
-  overflowXHidden?: boolean
+  charsPerRepeat?: number
+  overflowHidden?: boolean
 }

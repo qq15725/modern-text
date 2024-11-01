@@ -5,16 +5,16 @@
     "color": "rgba(254,233,12,255)",
     "textDecoration": "underline"
   },
-  "effects": [
+  "effect": [
     {
-      "textStrokeWidth": 0.17058823529411765,
-      "textStrokeColor": "rgba(36,79,113,1)",
+      "textStrokeWidth": 0.05,
+      "textStrokeColor": "#000000",
       "shadowColor": "#000000",
-      "color": "rgba(36,79,113,1)"
+      "color": "#000000"
     },
     {
       "shadowColor": "#000000",
-      "color": "#FFFFFF"
+      "color": "#ffffff"
     }
   ]
 }

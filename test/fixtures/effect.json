@@ -8,7 +8,7 @@
     "fontWeight": "bold",
     "textDecoration": "underline"
   },
-  "effects": [
+  "effect": [
     {
       "offsetX": 0.04864864864864865,
       "offsetY": 0.04864864864864865,

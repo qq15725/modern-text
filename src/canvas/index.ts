@@ -1,2 +1,5 @@
 export * from './color'
 export * from './drawPath'
+export * from './fillBackground'
+export * from './setupView'
+export * from './uploadColors'

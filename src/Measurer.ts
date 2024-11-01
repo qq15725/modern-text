@@ -1,7 +1,7 @@
-import type { Paragraph } from '../content'
-import type { TextStyle } from '../types'
-import { BoundingBox } from 'modern-path2d'
-import { Feature } from './Feature'
+import type { Paragraph } from './content'
+import type { Text } from './Text'
+import type { TextStyle } from './types'
+import { BoundingBox } from './lib'
 
 export interface MeasuredParagraph {
   paragraphIndex: number
@@ -39,7 +39,13 @@ export interface MeasuredResult {
   boundingBox: BoundingBox
 }
 
-export class Measurer extends Feature {
+export class Measurer {
+  constructor(
+    protected _text: Text,
+  ) {
+    //
+  }
+
   protected _styleToDomStyle(style: Partial<TextStyle>): Record<string, any> {
     const _style: Record<string, any> = { ...style }
     for (const key in style) {

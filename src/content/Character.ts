@@ -1,10 +1,10 @@
-import type { GlyphPathCommand, Sfnt } from 'modern-font'
-import type { VectorLike } from 'modern-path2d'
-import type { FontWeight, TextEffect, TextStyle } from '../types'
+import type { GlyphPathCommand, Sfnt, VectorLike } from '../lib'
+import type { TextEffect } from '../plugins'
+import type { FontWeight, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
-import { fonts, Ttf, Woff } from 'modern-font'
 import { BoundingBox, Path2D, Vector2 } from 'modern-path2d'
 import { drawPath } from '../canvas'
+import { fonts, Ttf, Woff } from '../lib'
 
 const set1 = new Set(['\xA9', '\xAE', '\xF7'])
 const set2 = new Set([
@@ -292,10 +292,6 @@ export class Character {
     else {
       min ??= Vector2.MAX
       max ??= Vector2.MIN
-      min.x = Math.min(min.x, this.boundingBox.left)
-      min.y = Math.min(min.y, this.boundingBox.top)
-      max.x = Math.max(max.x, this.boundingBox.right)
-      max.y = Math.max(max.y, this.boundingBox.bottom)
       return { min, max }
     }
   }

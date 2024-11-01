@@ -1,7 +1,13 @@
-import { Paragraph } from '../content'
-import { Feature } from './Feature'
+import type { Text } from './Text'
+import { Paragraph } from './content'
 
-export class Parser extends Feature {
+export class Parser {
+  constructor(
+    protected _text: Text,
+  ) {
+    //
+  }
+
   parse(): Paragraph[] {
     let { content, computedStyle: style } = this._text
     const paragraphs: Paragraph[] = []

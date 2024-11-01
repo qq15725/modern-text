@@ -1,4 +1,4 @@
-import type { BoundingBox } from 'modern-path2d'
+import type { BoundingBox } from '../lib'
 import type { TextDrawStyle } from '../types'
 
 export function parseColor(

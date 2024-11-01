@@ -1,5 +1,5 @@
-import type { BoundingBox, Path2D } from 'modern-path2d'
-import type { TextEffect } from '../types'
+import type { BoundingBox, Path2D } from '../lib'
+import type { TextEffect } from '../plugins'
 
 export interface DrawShapePathsOptions extends Partial<TextEffect> {
   ctx: CanvasRenderingContext2D

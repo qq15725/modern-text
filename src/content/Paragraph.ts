@@ -1,5 +1,5 @@
 import type { TextStyle } from '../types'
-import { BoundingBox } from 'modern-path2d'
+import { BoundingBox } from '../lib'
 import { filterEmpty } from '../utils'
 import { Fragment } from './Fragment'
 
