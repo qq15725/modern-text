@@ -1,10 +1,11 @@
-import type { GlyphPathCommand, Sfnt, VectorLike } from '../lib'
+import type { GlyphPathCommand, Sfnt } from 'modern-font'
+import type { VectorLike } from 'modern-path2d'
 import type { TextEffect } from '../plugins'
 import type { FontWeight, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
+import { fonts, Ttf, Woff } from 'modern-font'
 import { BoundingBox, Path2D, Vector2 } from 'modern-path2d'
 import { drawPath } from '../canvas'
-import { fonts, Ttf, Woff } from '../lib'
 
 const set1 = new Set(['\xA9', '\xAE', '\xF7'])
 const set2 = new Set([

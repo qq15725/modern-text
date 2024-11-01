@@ -1,8 +1,8 @@
 import type { Plugin } from '../Plugin'
 import type { Text } from '../Text'
 import type { TextDrawStyle } from '../types'
+import { BoundingBox, Matrix3, Vector2 } from 'modern-path2d'
 import { uploadColor } from '../canvas'
-import { BoundingBox, Matrix3, Vector2 } from '../lib'
 import { plugin } from '../Plugin'
 
 export type TextEffect = Partial<

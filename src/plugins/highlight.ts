@@ -1,9 +1,9 @@
 import type { Character } from '../content'
 import type { Plugin } from '../Plugin'
 import type { FragmentHighlight } from '../types'
+import { BoundingBox, Matrix3, parseSvgToDom, type Path2D, Vector2 } from 'modern-path2d'
+import { parseSvg } from 'modern-path2d'
 import { drawPath } from '../canvas'
-import { BoundingBox, Matrix3, parseSvgToDom, type Path2D, Vector2 } from '../lib'
-import { parseSvg } from '../lib'
 import { plugin } from '../Plugin'
 import { getPathsBoundingBox } from '../utils'
 

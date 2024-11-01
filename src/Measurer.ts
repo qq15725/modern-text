@@ -1,7 +1,7 @@
 import type { Paragraph } from './content'
 import type { Text } from './Text'
 import type { TextStyle } from './types'
-import { BoundingBox } from './lib'
+import { BoundingBox } from 'modern-path2d'
 
 export interface MeasuredParagraph {
   paragraphIndex: number

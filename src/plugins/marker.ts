@@ -1,6 +1,6 @@
-import type { Path2D } from '../lib'
+import type { Path2D } from 'modern-path2d'
 import type { Plugin } from '../Plugin'
-import { Matrix3, parseSvg } from '../lib'
+import { Matrix3, parseSvg } from 'modern-path2d'
 import { plugin } from '../Plugin'
 import { getPathsBoundingBox } from '../utils'
 

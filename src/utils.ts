@@ -1,5 +1,5 @@
-import type { Path2D } from './lib'
-import { BoundingBox, Vector2 } from './lib'
+import type { Path2D } from 'modern-path2d'
+import { BoundingBox, Vector2 } from 'modern-path2d'
 
 export function getPathsBoundingBox(paths: Path2D[]): BoundingBox | undefined {
   if (!paths.length) {

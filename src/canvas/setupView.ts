@@ -1,4 +1,4 @@
-import type { BoundingBox } from '../lib'
+import type { BoundingBox } from 'modern-path2d'
 
 export function setupView(ctx: CanvasRenderingContext2D, pixelRatio: number, boundingBox: BoundingBox): void {
   const { left, top, width, height } = boundingBox

@@ -1,10 +1,10 @@
-import type { BoundingBox, Path2D } from './lib'
+import type { BoundingBox, Path2D } from 'modern-path2d'
 import type { Text } from './Text'
 
 export interface Plugin {
   name: string
   paths?: Path2D[]
-  getBoundingBox?: (text: Text) => BoundingBox
+  getBoundingBox?: (text: Text) => BoundingBox | undefined
   updateOrder?: number
   update?: (text: Text) => void
   renderOrder?: number

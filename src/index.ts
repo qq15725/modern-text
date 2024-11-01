@@ -1,6 +1,5 @@
 export * from './canvas'
 export * from './content'
-export * from './lib'
 export * from './Measurer'
 export * from './Parser'
 export * from './Plugin'
@@ -8,3 +7,6 @@ export * from './plugins'
 export * from './Text'
 export * from './types'
 export * from './utils'
+
+export * from 'modern-font'
+export * from 'modern-path2d'

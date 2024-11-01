@@ -57,7 +57,7 @@ export type TextContent =
   | (string | FragmentContent | ParagraphContent | (string | FragmentContent)[])[]
 
 export interface FragmentHighlight {
-  svg: string // svg url
+  image: string // svg url
   strokeWidth?: number
   charsPerRepeat?: number
   overflowHidden?: boolean

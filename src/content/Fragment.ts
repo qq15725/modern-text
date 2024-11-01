@@ -1,7 +1,7 @@
 import type { Paragraph } from '../content'
 import type { FragmentHighlight, TextStyle } from '../types'
+import { BoundingBox } from 'modern-path2d'
 import { Character } from '../content'
-import { BoundingBox } from '../lib'
 import { filterEmpty } from '../utils'
 
 export class Fragment {
