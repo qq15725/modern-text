@@ -69,7 +69,7 @@ export function highlight(options: HighlightOptions = {}): Plugin {
       const groups: Character[][] = []
       let prevStyle: TextHighlightStyle | undefined
       characters.forEach((character) => {
-        const style = character.computedStyle
+        const { isVertical, computedStyle: style } = character
         if (!isNone(style.highlightImage)) {
           if (
             style.highlightSize !== '1rem'
@@ -78,7 +78,11 @@ export function highlight(options: HighlightOptions = {}): Plugin {
             && prevStyle?.highlightStrokeWidth === style.highlightStrokeWidth
             && prevStyle?.highlightOverflow === style.highlightOverflow
             && group.length
-            && group[0].boundingBox.top === character.boundingBox.top
+            && (
+              isVertical
+                ? group[0].boundingBox.left === character.boundingBox.left
+                : group[0].boundingBox.top === character.boundingBox.top
+            )
             && group[0].fontSize === character.fontSize
           ) {
             group.push(character)
