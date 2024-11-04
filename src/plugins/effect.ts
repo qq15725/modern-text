@@ -3,7 +3,7 @@ import type { Text } from '../Text'
 import type { TextDrawStyle } from '../types'
 import { BoundingBox, Matrix3, Vector2 } from 'modern-path2d'
 import { uploadColor } from '../canvas'
-import { plugin } from '../Plugin'
+import { definePlugin } from '../Plugin'
 
 export type TextEffect = Partial<
   TextDrawStyle & {
@@ -18,11 +18,11 @@ const tempV1 = new Vector2()
 const tempM1 = new Matrix3()
 const tempM2 = new Matrix3()
 
-export function effect(effects?: TextEffect[]): Plugin {
-  return plugin({
+export function effect(): Plugin {
+  return definePlugin({
     name: 'effect',
     getBoundingBox: (text) => {
-      const { characters, fontSize } = text
+      const { characters, fontSize, effects } = text
       const boxes: BoundingBox[] = []
       characters.forEach((character) => {
         effects?.forEach((style) => {
@@ -49,7 +49,7 @@ export function effect(effects?: TextEffect[]): Plugin {
       return boxes.length ? BoundingBox.from(...boxes) : undefined
     },
     render: (ctx, text) => {
-      const { characters, renderBoundingBox } = text
+      const { characters, renderBoundingBox, effects } = text
       if (effects) {
         effects.forEach((style) => {
           uploadColor(style, renderBoundingBox, ctx)

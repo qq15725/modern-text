@@ -11,6 +11,6 @@ export interface Plugin {
   render?: (ctx: CanvasRenderingContext2D, text: Text) => void
 }
 
-export function plugin(options: Plugin): Plugin {
+export function definePlugin(options: Plugin): Plugin {
   return options
 }

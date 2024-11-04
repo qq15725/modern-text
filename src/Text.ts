@@ -66,6 +66,7 @@ export const defaultTextStyles: TextStyle = {
 export class Text {
   content: TextContent
   style: Partial<TextStyle>
+  effects?: TextEffect[]
   measureDom?: HTMLElement
   needsUpdate = true
   computedStyle = { ...defaultTextStyles }
@@ -85,13 +86,14 @@ export class Text {
   }
 
   constructor(options: TextOptions = {}) {
-    const { content = '', style = {}, measureDom } = options
+    const { content = '', style = {}, measureDom, effects } = options
     this.content = content
     this.style = style
     this.measureDom = measureDom
+    this.effects = effects
 
     this
-      .use(effect(options.effects))
+      .use(effect())
       .use(highlight(options.highlight))
       .use(listStyle())
   }

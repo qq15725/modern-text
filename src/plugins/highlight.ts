@@ -4,7 +4,7 @@ import type { HighlightSize, HighlightStrokeWidth, TextHighlightStyle } from '..
 import { BoundingBox, Matrix3, parseSvgToDom, type Path2D } from 'modern-path2d'
 import { getPathsBoundingBox, parseSvg } from 'modern-path2d'
 import { drawPath } from '../canvas'
-import { plugin } from '../Plugin'
+import { definePlugin } from '../Plugin'
 import { isNone } from '../utils'
 
 export interface HighlightOptions {
@@ -59,7 +59,7 @@ export function highlight(options: HighlightOptions = {}): Plugin {
   const referPaths = parseSvg(config.referImage)
   const paths: Path2D[] = []
   const clipRects: (BoundingBox | undefined)[] = []
-  return plugin({
+  return definePlugin({
     name: 'highlight',
     paths,
     update: (text) => {

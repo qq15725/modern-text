@@ -2,7 +2,7 @@ import type { Path2D } from 'modern-path2d'
 import type { Plugin } from '../Plugin'
 import type { ListStyleSize } from '../types'
 import { getPathsBoundingBox, Matrix3, parseSvg } from 'modern-path2d'
-import { plugin } from '../Plugin'
+import { definePlugin } from '../Plugin'
 import { isNone } from '../utils'
 
 function parseScale(size: ListStyleSize, fontSize: number, total: number): number {
@@ -28,9 +28,11 @@ function parseScale(size: ListStyleSize, fontSize: number, total: number): numbe
 
 export function listStyle(): Plugin {
   const paths: Path2D[] = []
-  return plugin({
+  return definePlugin({
     name: 'listStyle',
+    paths,
     update: (text) => {
+      paths.length = 0
       const { paragraphs, computedStyle: style, fontSize } = text
       let listStyleSize = style.listStyleSize
       let image: string | undefined
@@ -68,6 +70,5 @@ export function listStyle(): Plugin {
         }
       })
     },
-    paths,
   })
 }
