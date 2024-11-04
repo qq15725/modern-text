@@ -5,6 +5,7 @@
   ],
   "style": {
     "fontSize": 50,
-    "listStyleType": "disc"
+    "listStyleType": "disc",
+    "writingMode": "vertical-rl"
   }
 }

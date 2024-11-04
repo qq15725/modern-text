@@ -2,7 +2,6 @@
   "content": "点击修改标题文字",
   "style": {
     "fontStyle": "italic",
-    "textAlign": "left",
     "fontSize": 100,
     "color": "rgba(254,233,12,255)",
     "fontWeight": "bold",

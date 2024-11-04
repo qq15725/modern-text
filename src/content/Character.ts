@@ -293,6 +293,13 @@ export class Character {
     else {
       min ??= Vector2.MAX
       max ??= Vector2.MIN
+      const { left, top } = this.boundingBox
+      const right = left + this.glyphWidth
+      const bottom = top + this.glyphHeight
+      min.x = Math.min(min.x, left)
+      min.y = Math.min(min.y, top)
+      max.x = Math.max(max.x, right)
+      max.y = Math.max(max.y, bottom)
       return { min, max }
     }
   }

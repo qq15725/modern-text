@@ -81,6 +81,10 @@ export class Text {
     return this.computedStyle.fontSize
   }
 
+  get isVertical(): boolean {
+    return this.computedStyle.writingMode.includes('vertical')
+  }
+
   get characters(): Character[] {
     return this.paragraphs.flatMap(p => p.fragments.flatMap(f => f.characters))
   }
