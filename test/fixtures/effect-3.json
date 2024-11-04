@@ -5,7 +5,7 @@
     "color": "rgba(254,233,12,255)",
     "textDecoration": "underline"
   },
-  "effect": [
+  "effects": [
     {
       "textStrokeWidth": 0.05,
       "textStrokeColor": "#000000",

@@ -1,7 +1,7 @@
 import type { Character, Paragraph } from './content'
 import type { MeasuredResult } from './Measurer'
 import type { Plugin } from './Plugin'
-import type { EffectOptions, HighlightOptions } from './plugins'
+import type { HighlightOptions, TextEffect } from './plugins'
 import type { TextContent, TextStyle } from './types'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
@@ -18,7 +18,7 @@ export interface TextOptions {
   content?: TextContent
   style?: Partial<TextStyle>
   measureDom?: HTMLElement
-  effect?: EffectOptions
+  effects?: TextEffect[]
   highlight?: HighlightOptions
 }
 
@@ -90,7 +90,7 @@ export class Text {
     this.measureDom = measureDom
 
     this
-      .use(effect(options.effect))
+      .use(effect(options.effects))
       .use(highlight(options.highlight))
       .use(listStyle())
   }

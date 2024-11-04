@@ -14,13 +14,11 @@ export type TextEffect = Partial<
   }
 >
 
-export type EffectOptions = TextEffect[]
-
 const tempV1 = new Vector2()
 const tempM1 = new Matrix3()
 const tempM2 = new Matrix3()
 
-export function effect(effects?: EffectOptions): Plugin {
+export function effect(effects?: TextEffect[]): Plugin {
   return plugin({
     name: 'effect',
     getBoundingBox: (text) => {
