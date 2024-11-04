@@ -3,12 +3,11 @@ import type { MeasuredResult } from './Measurer'
 import type { Plugin } from './Plugin'
 import type { EffectOptions, HighlightOptions } from './plugins'
 import type { TextContent, TextStyle } from './types'
-import { BoundingBox, Vector2 } from 'modern-path2d'
+import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Measurer } from './Measurer'
 import { Parser } from './Parser'
 import { effect, highlight, listStyle } from './plugins'
-import { getPathsBoundingBox } from './utils'
 
 export interface TextRenderOptions {
   view: HTMLCanvasElement
@@ -28,27 +27,39 @@ export const defaultTextStyles: TextStyle = {
   verticalAlign: 'baseline',
   lineHeight: 1,
   letterSpacing: 0,
-  textTransform: 'none',
-  textOrientation: 'mixed',
+  // font
   fontSize: 14,
   fontWeight: 'normal',
   fontFamily: '_fallback',
   fontStyle: 'normal',
   fontKerning: 'normal',
+  // text
   textWrap: 'wrap',
   textAlign: 'start',
-  listStyleType: 'none',
-  listStyleImage: 'none',
-  listStylePosition: 'outside',
+  textTransform: 'none',
+  textOrientation: 'mixed',
+  // color
   color: '#000',
   backgroundColor: 'rgba(0, 0, 0, 0)',
+  // text
+  textDecoration: 'none',
+  // textStroke
   textStrokeWidth: 0,
   textStrokeColor: '#000',
-  textDecoration: 'none',
+  // shadow
   shadowColor: 'rgba(0, 0, 0, 0)',
   shadowOffsetX: 0,
   shadowOffsetY: 0,
   shadowBlur: 0,
+  // listStyle
+  listStyleType: 'none',
+  listStyleImage: 'none',
+  listStylePosition: 'outside',
+  // highlight
+  highlightImage: 'none',
+  highlightSize: 'cover',
+  highlightStrokeWidth: '100%',
+  highlightOverflow: 'none',
 }
 
 export class Text {

@@ -1,5 +1,5 @@
 import type { Paragraph } from '../content'
-import type { FragmentHighlight, TextStyle } from '../types'
+import type { TextStyle } from '../types'
 import { BoundingBox } from 'modern-path2d'
 import { Character } from '../content'
 import { filterEmpty } from '../utils'
@@ -8,7 +8,6 @@ export class Fragment {
   boundingBox = new BoundingBox()
   declare characters: Character[]
   declare computedStyle: TextStyle
-  highlight?: FragmentHighlight
 
   get computedContent(): string {
     const style = this.computedStyle

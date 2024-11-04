@@ -1,8 +1,8 @@
 import type { Path2D } from 'modern-path2d'
 import type { Plugin } from '../Plugin'
-import { Matrix3, parseSvg } from 'modern-path2d'
+import { getPathsBoundingBox, Matrix3, parseSvg } from 'modern-path2d'
 import { plugin } from '../Plugin'
-import { getPathsBoundingBox, isNone } from '../utils'
+import { isNone } from '../utils'
 
 export function listStyle(): Plugin {
   const paths: Path2D[] = []

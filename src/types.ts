@@ -11,39 +11,37 @@ export type TextDecoration = 'none' | 'underline' | 'line-through'
 export type ListStyleType = 'none' | 'disc' /* 'decimal' | 'circle' | 'square' | 'georgian'  | 'trad-chinese-informal' | 'kannada' */
 export type ListStyleImage = 'none' | string
 export type ListStylePosition = 'inside' | 'outside'
+export type HighlightImage = 'none' | string
+export type HighlightSize = 'cover' | `${number}%` | `${number}rem` | number
+export type HighlightStrokeWidth = `${number}%` | `${number}rem` | number
+export type HighlightOverflow = 'none' | 'visible' | 'hidden'
 
 export interface TextLayoutStyle {
   writingMode: WritingMode
   verticalAlign: VerticalAlign
   lineHeight: number
   letterSpacing: number
-  // text
-  textTransform: TextTransform
-  textOrientation: TextOrientation
   // font
   fontSize: number
   fontWeight: FontWeight
   fontFamily: string
   fontStyle: FontStyle
   fontKerning?: FontKerning
+  // text
   textWrap: TextWrap
   textAlign: TextAlign
-}
-
-export interface TextStyleStyle {
-  // listStyle
-  listStyleType: ListStyleType
-  listStyleImage: ListStyleImage
-  listStylePosition: ListStylePosition
+  textTransform: TextTransform
+  textOrientation: TextOrientation
 }
 
 export interface TextDrawStyle {
   color: string | CanvasGradient | CanvasPattern
   backgroundColor: string | CanvasGradient | CanvasPattern
+  // text
+  textDecoration: TextDecoration
   // textStroke
   textStrokeWidth: number
   textStrokeColor: string | CanvasGradient | CanvasPattern
-  textDecoration: TextDecoration
   // shadow
   shadowColor: string
   shadowOffsetX: number
@@ -51,13 +49,29 @@ export interface TextDrawStyle {
   shadowBlur: number
 }
 
-export interface TextStyle extends TextLayoutStyle, TextStyleStyle, TextDrawStyle {
+export interface TextListStyle {
+  listStyleType: ListStyleType
+  listStyleImage: ListStyleImage
+  listStylePosition: ListStylePosition
+}
+
+export interface TextHighlightStyle {
+  highlightImage: HighlightImage
+  highlightSize: HighlightSize
+  highlightStrokeWidth: HighlightStrokeWidth
+  highlightOverflow: HighlightOverflow
+}
+
+export interface TextStyle extends
+  TextLayoutStyle,
+  TextDrawStyle,
+  TextListStyle,
+  TextHighlightStyle {
   //
 }
 
 export interface FragmentContent extends Partial<TextStyle> {
   content: string
-  highlight?: FragmentHighlight
 }
 
 export interface ParagraphContent extends Partial<TextStyle> {
@@ -69,10 +83,3 @@ export type TextContent =
   | FragmentContent
   | ParagraphContent
   | (string | FragmentContent | ParagraphContent | (string | FragmentContent)[])[]
-
-export interface FragmentHighlight {
-  image: string // svg url
-  strokeWidth?: number
-  charsPerRepeat?: number
-  overflowHidden?: boolean
-}
