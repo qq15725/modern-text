@@ -93,7 +93,7 @@ export class Measurer {
     })
     const ul = document.createElement('ul')
     Object.assign(ul.style, {
-      listStyle: 'none',
+      listStyleType: 'inherit',
       padding: '0',
       margin: '0',
     })

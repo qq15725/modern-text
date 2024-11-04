@@ -1,13 +1,13 @@
 import type { Character, Paragraph } from './content'
 import type { MeasuredResult } from './Measurer'
 import type { Plugin } from './Plugin'
-import type { EffectOptions, HighlightOptions, MarkerOptions } from './plugins'
+import type { EffectOptions, HighlightOptions } from './plugins'
 import type { TextContent, TextStyle } from './types'
 import { BoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Measurer } from './Measurer'
 import { Parser } from './Parser'
-import { effect, highlight, marker } from './plugins'
+import { effect, highlight, listStyle } from './plugins'
 import { getPathsBoundingBox } from './utils'
 
 export interface TextRenderOptions {
@@ -21,12 +21,15 @@ export interface TextOptions {
   measureDom?: HTMLElement
   effect?: EffectOptions
   highlight?: HighlightOptions
-  marker?: MarkerOptions
 }
 
 export const defaultTextStyles: TextStyle = {
-  color: '#000',
-  backgroundColor: 'rgba(0, 0, 0, 0)',
+  writingMode: 'horizontal-tb',
+  verticalAlign: 'baseline',
+  lineHeight: 1,
+  letterSpacing: 0,
+  textTransform: 'none',
+  textOrientation: 'mixed',
   fontSize: 14,
   fontWeight: 'normal',
   fontFamily: '_fallback',
@@ -34,19 +37,18 @@ export const defaultTextStyles: TextStyle = {
   fontKerning: 'normal',
   textWrap: 'wrap',
   textAlign: 'start',
-  verticalAlign: 'baseline',
-  textTransform: 'none',
-  textDecoration: 'none',
+  listStyleType: 'none',
+  listStyleImage: 'none',
+  listStylePosition: 'outside',
+  color: '#000',
+  backgroundColor: 'rgba(0, 0, 0, 0)',
   textStrokeWidth: 0,
   textStrokeColor: '#000',
-  lineHeight: 1,
-  letterSpacing: 0,
+  textDecoration: 'none',
   shadowColor: 'rgba(0, 0, 0, 0)',
   shadowOffsetX: 0,
   shadowOffsetY: 0,
   shadowBlur: 0,
-  writingMode: 'horizontal-tb',
-  textOrientation: 'mixed',
 }
 
 export class Text {
@@ -79,7 +81,7 @@ export class Text {
     this
       .use(effect(options.effect))
       .use(highlight(options.highlight))
-      .use(marker(options.marker))
+      .use(listStyle())
   }
 
   use(plugin: Plugin): this {
