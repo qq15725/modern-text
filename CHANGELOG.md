@@ -1,3 +1,17 @@
+## [0.2.31](https://github.com/qq15725/modern-text/compare/v0.2.30...v0.2.31) (2024-11-04)
+
+
+### Features
+
+* effects ([5874c35](https://github.com/qq15725/modern-text/commit/5874c35143cd692d5242f142e8d4d790072ecc29))
+* export ([d1679c7](https://github.com/qq15725/modern-text/commit/d1679c7cf193e1bfd95cafe0103274f22e12abb9))
+* highlight ([19de3f0](https://github.com/qq15725/modern-text/commit/19de3f0b84219a48182536ebb08cada793abc8e7))
+* listStyle ([cf9b5b7](https://github.com/qq15725/modern-text/commit/cf9b5b7f5259cd08ed1250dba5e22936a86bfbf4))
+* listStyleSize ([86892fe](https://github.com/qq15725/modern-text/commit/86892fe305635a5d1eba133b561544448cc15dcb))
+* marker ([082203b](https://github.com/qq15725/modern-text/commit/082203b9cffa7c4e038937b7516cf724edec9ae1))
+
+
+
 ## [0.2.30](https://github.com/qq15725/modern-text/compare/v0.2.29...v0.2.30) (2024-10-30)
 
 
