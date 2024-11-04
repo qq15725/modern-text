@@ -1,3 +1,4 @@
+export type Sizeable = `${number}%` | `${number}rem` | number
 export type WritingMode = 'horizontal-tb' | 'vertical-lr' | 'vertical-rl'
 export type TextOrientation = 'mixed' | 'upright' | 'sideways-right' | 'sideways' /* | 'use-glyph-orientation' */
 export type FontWeight = 'normal' | 'bold' | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
@@ -10,10 +11,11 @@ export type TextTransform = 'none' | 'uppercase' | 'lowercase'
 export type TextDecoration = 'none' | 'underline' | 'line-through'
 export type ListStyleType = 'none' | 'disc' /* 'decimal' | 'circle' | 'square' | 'georgian'  | 'trad-chinese-informal' | 'kannada' */
 export type ListStyleImage = 'none' | string
+export type ListStyleSize = 'cover' | Sizeable
 export type ListStylePosition = 'inside' | 'outside'
 export type HighlightImage = 'none' | string
-export type HighlightSize = 'cover' | `${number}%` | `${number}rem` | number
-export type HighlightStrokeWidth = `${number}%` | `${number}rem` | number
+export type HighlightSize = 'cover' | Sizeable
+export type HighlightStrokeWidth = Sizeable
 export type HighlightOverflow = 'none' | 'visible' | 'hidden'
 
 export interface TextLayoutStyle {
@@ -52,6 +54,7 @@ export interface TextDrawStyle {
 export interface TextListStyle {
   listStyleType: ListStyleType
   listStyleImage: ListStyleImage
+  listStyleSize: ListStyleSize
   listStylePosition: ListStylePosition
 }
 

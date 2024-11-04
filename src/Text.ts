@@ -54,6 +54,7 @@ export const defaultTextStyles: TextStyle = {
   // listStyle
   listStyleType: 'none',
   listStyleImage: 'none',
+  listStyleSize: 'cover',
   listStylePosition: 'outside',
   // highlight
   highlightImage: 'none',
