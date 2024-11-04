@@ -1,3 +1,12 @@
+## [0.2.32](https://github.com/qq15725/modern-text/compare/v0.2.31...v0.2.32) (2024-11-04)
+
+
+### Bug Fixes
+
+* effects ([162d050](https://github.com/qq15725/modern-text/commit/162d05016969b6e483f6218c85eabc1a4f54353a))
+
+
+
 ## [0.2.31](https://github.com/qq15725/modern-text/compare/v0.2.30...v0.2.31) (2024-11-04)
 
 
