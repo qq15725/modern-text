@@ -31,10 +31,9 @@ export class Parser {
               paragraph.addFragment(f)
             }
             else {
-              const { content, highlight, ...fStyle } = f
+              const { content, ...fStyle } = f
               if (content !== undefined) {
-                const fragment = paragraph.addFragment(content, fStyle)
-                fragment.highlight = highlight
+                paragraph.addFragment(content, fStyle)
               }
             }
           })
@@ -44,20 +43,18 @@ export class Parser {
           const { fragments, ...pStyle } = p
           const paragraph = new Paragraph(pStyle, style)
           fragments.forEach((f) => {
-            const { content, highlight, ...fStyle } = f
+            const { content, ...fStyle } = f
             if (content !== undefined) {
-              const fragment = paragraph.addFragment(content, fStyle)
-              fragment.highlight = highlight
+              paragraph.addFragment(content, fStyle)
             }
           })
           paragraphs.push(paragraph)
         }
         else if ('content' in p) {
-          const { content: pData, highlight, ...pStyle } = p
+          const { content: pData, ...pStyle } = p
           if (pData !== undefined) {
             const paragraph = new Paragraph(pStyle, style)
-            const fragment = paragraph.addFragment(pData)
-            fragment.highlight = highlight
+            paragraph.addFragment(pData)
             paragraphs.push(paragraph)
           }
         }
