@@ -121,7 +121,7 @@ export function highlight(options: HighlightOptions = {}): Plugin {
           const scaleX = scaleWidth / refBox.width
           const scaleY = groupBox.height / refBox.height
           const styleScale = fontSize / box.width * 2
-          const unitWidth = refBox.width * scaleX
+          const unitWidth = box.width * scaleX
           const total = Math.ceil(groupBox.width / unitWidth)
           const transform = new Matrix3()
             .translate(-box.left, -box.top)
