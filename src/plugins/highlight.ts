@@ -115,26 +115,22 @@ export function highlight(options: HighlightOptions = {}): Plugin {
 
           const svg = parseSvgToDom(style.highlightImage)
           const svgPaths = parseSvg(svg)
-          const box = getPathsBoundingBox(svgPaths)!
-          const referBoundingBox = getPathsBoundingBox(referPaths)!
-          const scale = {
-            x: charsPerRepeat
-              ? ((fontSize * charsPerRepeat) * (box.width / referBoundingBox.width)) / box.width
-              : (groupBox.width * (box.width / referBoundingBox.width)) / box.width,
-            y: (groupBox.height * (box.height / referBoundingBox.height)) / box.height,
-          }
+          const box = getPathsBoundingBox(svgPaths, false)!
+          const refBox = getPathsBoundingBox(referPaths, false)!
+          const scaleWidth = charsPerRepeat ? (fontSize * charsPerRepeat) : groupBox.width
+          const scaleX = scaleWidth / refBox.width
+          const scaleY = groupBox.height / refBox.height
           const styleScale = fontSize / box.width * 2
-          const unitWidth = box.width * scale.x
+          const unitWidth = refBox.width * scaleX
           const total = Math.ceil(groupBox.width / unitWidth)
-          const offset = {
-            x: (box.left - referBoundingBox.left) * scale.x,
-            y: (box.top - referBoundingBox.top) * scale.y,
-          }
           const transform = new Matrix3()
             .translate(-box.left, -box.top)
-            .scale(scale.x, scale.y)
+            .scale(scaleX, scaleY)
             .translate(groupBox.left, groupBox.top)
-            .translate(offset.x, offset.y)
+            .translate(
+              (box.left - refBox.left) * scaleX,
+              (box.top - refBox.top) * scaleY,
+            )
           for (let i = 0; i < total; i++) {
             const _transform = transform.clone().translate(i * unitWidth, 0)
             svgPaths.forEach((original) => {
