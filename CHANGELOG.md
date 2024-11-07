@@ -1,3 +1,12 @@
+## [0.2.36](https://github.com/qq15725/modern-text/compare/v0.2.35...v0.2.36) (2024-11-07)
+
+
+### Bug Fixes
+
+* char bold bug ([2c1f348](https://github.com/qq15725/modern-text/commit/2c1f348d6f289bb9712311e609d0bc2fb78fca26))
+
+
+
 ## [0.2.35](https://github.com/qq15725/modern-text/compare/v0.2.34...v0.2.35) (2024-11-05)
 
 
