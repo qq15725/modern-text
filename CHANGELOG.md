@@ -1,3 +1,12 @@
+## [0.2.37](https://github.com/qq15725/modern-text/compare/v0.2.36...v0.2.37) (2024-11-07)
+
+
+### Bug Fixes
+
+* vertical highlight ([2635dcc](https://github.com/qq15725/modern-text/commit/2635dccebb1bc0859fe2dfd98227c48232f96932))
+
+
+
 ## [0.2.36](https://github.com/qq15725/modern-text/compare/v0.2.35...v0.2.36) (2024-11-07)
 
 
