@@ -2,7 +2,7 @@
   "content": "点击修改标题文字",
   "style": {
     "fontStyle": "italic",
-    "fontSize": 100,
+    "fontSize": 20,
     "color": "rgba(254,233,12,255)",
     "fontWeight": "bold",
     "textDecoration": "underline"

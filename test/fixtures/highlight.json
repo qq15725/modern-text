@@ -42,10 +42,7 @@
     }
   ],
   "style": {
-    "width": 1014,
-    "height": 190.4449920654297,
-    "textAlign": "left",
-    "fontSize": 96,
+    "fontSize": 20,
     "color": "rgba(254,233,12,255)"
   }
 }

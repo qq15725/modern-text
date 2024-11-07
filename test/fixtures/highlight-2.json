@@ -12,15 +12,11 @@
     "scaleX": 1,
     "scaleY": 1,
     "color": "#000",
-    "fontSize": 96.63946208968292,
+    "fontSize": 20,
     "textTransform": "none",
     "fontWeight": "normal",
     "textType": "heading",
-    "verticalAlign": "center",
-    "width": 571.9101123595502,
-    "height": 434.83146067415703,
-    "top": 313.3337469680819,
-    "left": 198.56707590102997
+    "verticalAlign": "center"
   },
   "content": [
     [

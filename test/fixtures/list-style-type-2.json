@@ -4,7 +4,7 @@
     "list-style-type"
   ],
   "style": {
-    "fontSize": 50,
+    "fontSize": 20,
     "listStyleType": "disc",
     "writingMode": "vertical-rl"
   }

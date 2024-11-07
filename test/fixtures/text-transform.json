@@ -4,7 +4,7 @@
     "fontStyle": "normal",
     "letterSpacing": 2,
     "textAlign": "right",
-    "fontSize": 100,
+    "fontSize": 20,
     "textTransform": "uppercase"
   }
 }

@@ -1,7 +1,7 @@
 {
   "content": "effect-3",
   "style": {
-    "fontSize": 100,
+    "fontSize": 20,
     "color": "rgba(254,233,12,255)",
     "textDecoration": "underline"
   },
