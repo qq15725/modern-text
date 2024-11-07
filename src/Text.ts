@@ -1,7 +1,7 @@
 import type { Character, Paragraph } from './content'
 import type { MeasuredResult } from './Measurer'
 import type { Plugin } from './Plugin'
-import type { HighlightOptions, TextEffect } from './plugins'
+import type { TextEffect } from './plugins'
 import type { TextContent, TextStyle } from './types'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
@@ -19,7 +19,6 @@ export interface TextOptions {
   style?: Partial<TextStyle>
   measureDom?: HTMLElement
   effects?: TextEffect[]
-  highlight?: HighlightOptions
 }
 
 export const defaultTextStyles: TextStyle = {
@@ -57,6 +56,7 @@ export const defaultTextStyles: TextStyle = {
   listStyleSize: 'cover',
   listStylePosition: 'outside',
   // highlight
+  highlightReferImage: 'none',
   highlightImage: 'none',
   highlightSize: 'cover',
   highlightStrokeWidth: '100%',
@@ -98,7 +98,7 @@ export class Text {
 
     this
       .use(effect())
-      .use(highlight(options.highlight))
+      .use(highlight())
       .use(listStyle())
   }
 

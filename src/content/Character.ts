@@ -205,7 +205,11 @@ export class Character {
     }
 
     path.addCommands(this._decoration())
-    path.bold(fontWeightMap[computedStyle.fontWeight ?? 400] * fontSize * 0.05)
+
+    const fontWeight = computedStyle.fontWeight ?? 400
+    if (fontWeight in fontWeightMap) {
+      path.bold(fontWeightMap[fontWeight] * fontSize * 0.05)
+    }
 
     path.style = {
       fill: computedStyle.color,

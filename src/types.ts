@@ -59,6 +59,7 @@ export interface TextListStyle {
 }
 
 export interface TextHighlightStyle {
+  highlightReferImage: HighlightImage
   highlightImage: HighlightImage
   highlightSize: HighlightSize
   highlightStrokeWidth: HighlightStrokeWidth
