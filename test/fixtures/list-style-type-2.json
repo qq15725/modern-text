@@ -6,6 +6,7 @@
   "style": {
     "fontSize": 20,
     "listStyleType": "disc",
+    "lineHeight": 2,
     "writingMode": "vertical-rl"
   }
 }
