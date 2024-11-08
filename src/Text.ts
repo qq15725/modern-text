@@ -135,7 +135,15 @@ export class Text {
       })
     const min = Vector2.MAX
     const max = Vector2.MIN
-    characters.forEach(c => c.getGlyphMinMax(min, max))
+    characters.forEach((c) => {
+      if (!c.getGlyphMinMax(min, max)) {
+        const { inlineBox } = c
+        const a = new Vector2(inlineBox.left, inlineBox.top)
+        const b = new Vector2(inlineBox.left + inlineBox.width, inlineBox.top + inlineBox.height)
+        min.min(a, b)
+        max.max(a, b)
+      }
+    })
     this.renderBoundingBox = new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
     this.renderBoundingBox = BoundingBox.from(
       this.renderBoundingBox,

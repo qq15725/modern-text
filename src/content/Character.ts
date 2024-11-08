@@ -1,10 +1,10 @@
 import type { GlyphPathCommand, Sfnt } from 'modern-font'
-import type { VectorLike } from 'modern-path2d'
+import type { Vector2, VectorLike } from 'modern-path2d'
 import type { TextEffect } from '../plugins'
 import type { FontWeight, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
 import { fonts, Ttf, Woff } from 'modern-font'
-import { BoundingBox, Path2D, Vector2 } from 'modern-path2d'
+import { BoundingBox, Path2D } from 'modern-path2d'
 import { drawPath } from '../canvas'
 
 const set1 = new Set(['\xA9', '\xAE', '\xF7'])
@@ -38,7 +38,8 @@ const fontWeightMap: Record<FontWeight, number> = {
 export class Character {
   lineBox = new BoundingBox()
   inlineBox = new BoundingBox()
-  glyphBox = new BoundingBox()
+  glyphBox: BoundingBox | undefined
+  center: Vector2 | undefined
   underlinePosition = 0
   underlineThickness = 0
   yStrikeoutPosition = 0
@@ -46,7 +47,6 @@ export class Character {
   baseline = 0
   centerDiviation = 0
   path = new Path2D()
-  center = new Vector2()
 
   get computedStyle(): TextStyle {
     return this.parent.computedStyle
@@ -213,7 +213,7 @@ export class Character {
     }
     this.path = path
     this.glyphBox = this.getGlyphBoundingBox()
-    this.center = this.glyphBox.getCenterPoint()
+    this.center = this.glyphBox?.getCenterPoint()
 
     return this
   }
@@ -281,24 +281,21 @@ export class Character {
     })
   }
 
-  getGlyphMinMax(min?: Vector2, max?: Vector2, withStyle?: boolean): { min: Vector2, max: Vector2 } {
+  getGlyphMinMax(min?: Vector2, max?: Vector2, withStyle?: boolean): { min: Vector2, max: Vector2 } | undefined {
     if (this.path.paths[0]?.curves.length) {
       return this.path.getMinMax(min, max, withStyle)
     }
     else {
-      min ??= Vector2.MAX
-      max ??= Vector2.MIN
-      const { left, top, right, bottom } = this.inlineBox
-      min.x = Math.min(min.x, left)
-      min.y = Math.min(min.y, top)
-      max.x = Math.max(max.x, right)
-      max.y = Math.max(max.y, bottom)
-      return { min, max }
+      return undefined
     }
   }
 
-  getGlyphBoundingBox(withStyle?: boolean): BoundingBox {
-    const { min, max } = this.getGlyphMinMax(undefined, undefined, withStyle)
+  getGlyphBoundingBox(withStyle?: boolean): BoundingBox | undefined {
+    const minMax = this.getGlyphMinMax(undefined, undefined, withStyle)
+    if (!minMax) {
+      return undefined
+    }
+    const { min, max } = minMax
     return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
   }
 

@@ -104,6 +104,9 @@ export class Measurer {
         const span = document.createElement('span')
         Object.assign(span.style, this._styleToDomStyle(fragment.style))
         span.appendChild(document.createTextNode(fragment.content))
+        if (/\s/.test(fragment.content)) {
+          span.style.whiteSpace = 'pre'
+        }
         li.appendChild(span)
       })
       ul.appendChild(li)

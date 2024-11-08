@@ -26,6 +26,9 @@ export function render(): Plugin {
       const boxes: BoundingBox[] = []
       characters.forEach((character) => {
         effects?.forEach((style) => {
+          if (!character.glyphBox) {
+            return
+          }
           const aabb = character.glyphBox.clone()
           const m = getTransform2D(text, style)
           tempV1.set(aabb.left, aabb.top)

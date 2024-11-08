@@ -110,7 +110,7 @@ export function highlight(): Plugin {
       let prevStyle: TextHighlightStyle | undefined
       characters.forEach((character) => {
         const { isVertical, computedStyle: style } = character
-        if (!isNone(style.highlightImage)) {
+        if (!isNone(style.highlightImage) && character.glyphBox) {
           if (
             style.highlightSize !== '1rem'
             && prevStyle?.highlightImage === style.highlightImage
@@ -143,7 +143,7 @@ export function highlight(): Plugin {
           return {
             style: char.computedStyle!,
             baseline: char.baseline,
-            box: BoundingBox.from(...characters.map(c => c.glyphBox)),
+            box: BoundingBox.from(...characters.map(c => c.glyphBox!)),
           }
         })
         .forEach((group) => {
