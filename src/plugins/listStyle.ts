@@ -57,7 +57,7 @@ export function listStyle(): Plugin {
       const imagePaths = parseSvg(image)
       const imageBox = getPathsBoundingBox(imagePaths)!
       paragraphs.forEach((paragraph) => {
-        const box = paragraph.fragments[0]?.characters[0]?.getGlyphBoundingBox()
+        const box = paragraph.lineBox
         if (box) {
           const m = new Matrix3()
           if (isVertical) {

@@ -1,7 +1,8 @@
 {
   "content": [
     "list-style-type",
-    "list-style-type"
+    "list-style-type",
+    "abc-style-type"
   ],
   "style": {
     "fontSize": 20,
