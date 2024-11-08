@@ -1,3 +1,12 @@
+## [0.2.41](https://github.com/qq15725/modern-text/compare/v0.2.40...v0.2.41) (2024-11-08)
+
+
+### Bug Fixes
+
+* list-style ([8386558](https://github.com/qq15725/modern-text/commit/8386558e635066c452f17422464394913bd3481f))
+
+
+
 ## [0.2.40](https://github.com/qq15725/modern-text/compare/v0.2.39...v0.2.40) (2024-11-08)
 
 
