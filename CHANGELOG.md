@@ -1,3 +1,12 @@
+## [0.2.38](https://github.com/qq15725/modern-text/compare/v0.2.37...v0.2.38) (2024-11-08)
+
+
+### Bug Fixes
+
+* highlight position ([a85dfc7](https://github.com/qq15725/modern-text/commit/a85dfc7f2629c19902b1451b497e2a610778ef5c))
+
+
+
 ## [0.2.37](https://github.com/qq15725/modern-text/compare/v0.2.36...v0.2.37) (2024-11-07)
 
 
