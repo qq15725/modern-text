@@ -7,7 +7,7 @@ import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Measurer } from './Measurer'
 import { Parser } from './Parser'
-import { effect, highlight, listStyle } from './plugins'
+import { highlight, listStyle, render } from './plugins'
 
 export interface TextRenderOptions {
   view: HTMLCanvasElement
@@ -97,7 +97,7 @@ export class Text {
     this.effects = effects
 
     this
-      .use(effect())
+      .use(render())
       .use(highlight())
       .use(listStyle())
   }

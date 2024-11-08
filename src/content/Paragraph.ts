@@ -4,7 +4,7 @@ import { filterEmpty } from '../utils'
 import { Fragment } from './Fragment'
 
 export class Paragraph {
-  boundingBox = new BoundingBox()
+  lineBox = new BoundingBox()
   fragments: Fragment[] = []
   declare computedStyle: TextStyle
 

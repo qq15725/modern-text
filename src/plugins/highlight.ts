@@ -50,29 +50,28 @@ function parseStrokeWidthScale(strokeWidth: HighlightStrokeWidth, fontSize: numb
 
 function getTransformMatrix(a: BoundingBox, b: BoundingBox, c: BoundingBox, isVertical: boolean): Matrix3 {
   let scale
-  if (isVertical) {
-    scale = {
-      x: c.width / b.height,
-      y: c.height / b.width,
-    }
-  }
-  else {
+  if (!isVertical) {
     scale = {
       x: c.width / b.width,
       y: c.height / b.height,
     }
   }
-  const offset
-    = c.getCenterPoint()
-      .add(
-        a.getCenterPoint()
-          .sub(b.getCenterPoint())
-          .scale(scale.x, scale.y),
-      )
-      .sub({
-        x: (a.width * scale.x) / 2,
-        y: (a.height * scale.y) / 2,
-      })
+  else {
+    scale = {
+      x: c.width / b.height,
+      y: c.height / b.width,
+    }
+  }
+  const offset = c.getCenterPoint()
+    .add(
+      a.getCenterPoint()
+        .sub(b.getCenterPoint())
+        .scale(scale.x, scale.y),
+    )
+    .sub({
+      x: a.width / 2 * scale.x,
+      y: a.height / 2 * scale.y,
+    })
   const m = new Matrix3()
   m.translate(-a.left, -a.top)
   if (isVertical) {
@@ -121,8 +120,8 @@ export function highlight(): Plugin {
             && group.length
             && (
               isVertical
-                ? group[0].boundingBox.left === character.boundingBox.left
-                : group[0].boundingBox.top === character.boundingBox.top
+                ? group[0].inlineBox.left === character.inlineBox.left
+                : group[0].inlineBox.top === character.inlineBox.top
             )
             && group[0].fontSize === character.fontSize
           ) {
@@ -140,13 +139,15 @@ export function highlight(): Plugin {
       groups
         .filter(characters => characters.length)
         .map((characters) => {
+          const char = characters[0]!
           return {
-            style: characters[0]!.computedStyle!,
+            style: char.computedStyle!,
+            baseline: char.baseline,
             box: BoundingBox.from(...characters.map(c => c.glyphBox)),
           }
         })
         .forEach((group) => {
-          const { style, box: groupBox } = group
+          const { style, box: groupBox, baseline } = group
           const { fontSize, writingMode } = style
           const isVertical = writingMode.includes('vertical')
           const strokeWidthScale = parseStrokeWidthScale(style.highlightStrokeWidth, fontSize, groupBox.width)
@@ -158,11 +159,12 @@ export function highlight(): Plugin {
           const svgPaths = getPaths(style.highlightImage)
           const box = getPathsBoundingBox(svgPaths, true)!
           const refBox = getPathsBoundingBox(refPaths, false)!
-          const unitWidth = charsPerRepeat ? (fontSize * charsPerRepeat) : groupBox.width
+          const unitWidth = charsPerRepeat ? (fontSize * charsPerRepeat) : isVertical ? groupBox.height : groupBox.width
+          const unitHeight = baseline * 0.8
           const transform = getTransformMatrix(
             box,
             refBox,
-            new BoundingBox(groupBox.left, groupBox.top, unitWidth, groupBox.height),
+            new BoundingBox(groupBox.left, groupBox.top, isVertical ? unitHeight : unitWidth, isVertical ? unitWidth : unitHeight),
             isVertical,
           )
           const styleScale = fontSize / box.width * 2

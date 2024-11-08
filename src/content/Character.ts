@@ -36,14 +36,9 @@ const fontWeightMap: Record<FontWeight, number> = {
 }
 
 export class Character {
-  // measure dom
-  boundingBox = new BoundingBox()
-  textWidth = 0
-  textHeight = 0
-
-  // font glyph
-  glyphHeight = 0
-  glyphWidth = 0
+  lineBox = new BoundingBox()
+  inlineBox = new BoundingBox()
+  glyphBox = new BoundingBox()
   underlinePosition = 0
   underlineThickness = 0
   yStrikeoutPosition = 0
@@ -51,7 +46,6 @@ export class Character {
   baseline = 0
   centerDiviation = 0
   path = new Path2D()
-  glyphBox = new BoundingBox()
   center = new Vector2()
 
   get computedStyle(): TextStyle {
@@ -64,6 +58,10 @@ export class Character {
 
   get fontSize(): number {
     return this.computedStyle.fontSize
+  }
+
+  get fontHeight(): number {
+    return this.fontSize * this.computedStyle.lineHeight
   }
 
   constructor(
@@ -87,25 +85,24 @@ export class Character {
       return this
     }
     const { unitsPerEm, ascender, descender, os2, post } = font
-    const { content, computedStyle, boundingBox } = this
-    const { height } = boundingBox
+    const { content, computedStyle } = this
     const { fontSize } = computedStyle
     const rate = unitsPerEm / fontSize
-    const glyphWidth = font.getAdvanceWidth(content, fontSize)
-    const glyphHeight = (ascender + Math.abs(descender)) / rate
+    const advanceWidth = font.getAdvanceWidth(content, fontSize)
+    const advanceHeight = (ascender + Math.abs(descender)) / rate
     const baseline = ascender / rate
     const yStrikeoutPosition = (ascender - os2.yStrikeoutPosition) / rate
     const yStrikeoutSize = os2.yStrikeoutSize / rate
     const underlinePosition = (ascender - post.underlinePosition) / rate
     const underlineThickness = post.underlineThickness / rate
-    this.glyphWidth = glyphWidth
-    this.glyphHeight = glyphHeight
+    this.inlineBox.width = advanceWidth
+    this.inlineBox.height = advanceHeight
     this.underlinePosition = underlinePosition
     this.underlineThickness = underlineThickness
     this.yStrikeoutPosition = yStrikeoutPosition
     this.yStrikeoutSize = yStrikeoutSize
     this.baseline = baseline
-    this.centerDiviation = 0.5 * height - baseline
+    this.centerDiviation = advanceHeight / 2 - baseline
     return this
   }
 
@@ -119,21 +116,15 @@ export class Character {
     const {
       isVertical,
       content,
-      textWidth,
-      textHeight,
-      boundingBox,
       computedStyle,
       baseline,
-      glyphHeight,
-      glyphWidth,
+      inlineBox,
     } = this.updateGlyph(font)
 
     const { os2, ascender, descender } = font
-    const usWinAscent = ascender
-    const usWinDescent = descender
     const typoAscender = os2.sTypoAscender
 
-    const { left, top } = boundingBox
+    const { left, top } = inlineBox
     const { fontSize, fontStyle } = computedStyle
 
     let x = left
@@ -142,9 +133,9 @@ export class Character {
     const path = new Path2D()
 
     if (isVertical) {
-      x += (glyphHeight - glyphWidth) / 2
-      if (Math.abs(textWidth - textHeight) > 0.1) {
-        y -= ((usWinAscent - typoAscender) / (usWinAscent + Math.abs(usWinDescent))) * glyphHeight
+      x += (inlineBox.height - inlineBox.width) / 2
+      if (Math.abs(inlineBox.width - inlineBox.height) > 0.1) {
+        y -= ((ascender - typoAscender) / (ascender + Math.abs(descender))) * inlineBox.height
       }
       // TODO
       glyphIndex = undefined
@@ -153,11 +144,11 @@ export class Character {
 
     if (isVertical && !set1.has(content) && (content.codePointAt(0)! <= 256 || set2.has(content))) {
       path.addCommands(
-        font.getPathCommands(content, x, top + baseline - (glyphHeight - glyphWidth) / 2, fontSize) ?? [],
+        font.getPathCommands(content, x, top + baseline - (inlineBox.height - inlineBox.width) / 2, fontSize) ?? [],
       )
       const point = {
-        y: top - (glyphHeight - glyphWidth) / 2 + glyphHeight / 2,
-        x: x + glyphWidth / 2,
+        y: top - (inlineBox.height - inlineBox.width) / 2 + inlineBox.height / 2,
+        x: x + inlineBox.width / 2,
       }
       if (fontStyle === 'italic') {
         this._italic(
@@ -165,7 +156,7 @@ export class Character {
           isVertical
             ? {
                 x: point.x,
-                y: top - (glyphHeight - glyphWidth) / 2 + baseline,
+                y: top - (inlineBox.height - inlineBox.width) / 2 + baseline,
               }
             : undefined,
         )
@@ -182,8 +173,8 @@ export class Character {
             path,
             isVertical
               ? {
-                  x: x + glyphWidth / 2,
-                  y: top + (typoAscender / (usWinAscent + Math.abs(usWinDescent))) * glyphHeight,
+                  x: x + inlineBox.width / 2,
+                  y: top + (typoAscender / (ascender + Math.abs(descender))) * inlineBox.height,
                 }
               : undefined,
           )
@@ -197,7 +188,7 @@ export class Character {
           this._italic(
             path,
             isVertical
-              ? { x: x + glyphHeight / 2, y }
+              ? { x: x + inlineBox.height / 2, y }
               : undefined,
           )
         }
@@ -236,7 +227,7 @@ export class Character {
   protected _decoration(): GlyphPathCommand[] {
     const { isVertical, underlinePosition, yStrikeoutPosition } = this
     const { textDecoration, fontSize } = this.computedStyle
-    const { left, top, width, height } = this.boundingBox
+    const { left, top, width, height } = this.inlineBox
     const lineWidth = 0.1 * fontSize
 
     let start: number
@@ -285,8 +276,8 @@ export class Character {
   protected _italic(path: Path2D, startPoint?: VectorLike): void {
     // if (e.style === 'italic') return
     path.skew(-0.24, 0, startPoint || {
-      y: this.boundingBox.top + this.baseline,
-      x: this.boundingBox.left + this.glyphWidth / 2,
+      y: this.inlineBox.top + this.baseline,
+      x: this.inlineBox.left + this.inlineBox.width / 2,
     })
   }
 
@@ -297,9 +288,7 @@ export class Character {
     else {
       min ??= Vector2.MAX
       max ??= Vector2.MIN
-      const { left, top } = this.boundingBox
-      const right = left + this.glyphWidth
-      const bottom = top + this.glyphHeight
+      const { left, top, right, bottom } = this.inlineBox
       min.x = Math.min(min.x, left)
       min.y = Math.min(min.y, top)
       max.x = Math.max(max.x, right)

@@ -131,7 +131,7 @@ export class Measurer {
         height: pBox.height,
       })
       li.querySelectorAll('span').forEach((span, fragmentIndex) => {
-        const fBox = li.getBoundingClientRect()
+        const fBox = span.getBoundingClientRect()
         fragments.push({
           paragraphIndex,
           fragmentIndex,
@@ -185,64 +185,45 @@ export class Measurer {
   measureDom(dom: HTMLElement): MeasuredResult {
     const { paragraphs } = this._text
     const rect = dom.getBoundingClientRect()
-    const innerEl = dom.querySelector('ul')!
-    const isVertical = window.getComputedStyle(dom).writingMode.includes('vertical')
-    const oldLineHeight = innerEl.style.lineHeight
-    innerEl.style.lineHeight = '4000px'
-    const _paragraphs: MeasuredCharacter[][] = [[]]
-    let fragments = _paragraphs[0]
-    const { characters: oldCharacters } = this._measureDom(dom)
-    if (oldCharacters.length > 0) {
-      fragments.push(oldCharacters[0])
-      oldCharacters.reduce((prev, current) => {
-        const attr = isVertical ? 'left' : 'top'
-        if (Math.abs(current[attr] - prev[attr]) > 4000 / 2) {
-          fragments = []
-          _paragraphs.push(fragments)
-        }
-        fragments.push(current)
-        return current
-      })
-    }
-    innerEl.style.lineHeight = oldLineHeight
     const measured = this._measureDom(dom)
     measured.paragraphs.forEach((p) => {
       const _p = paragraphs[p.paragraphIndex]
-      _p.boundingBox.left = p.left - rect.left
-      _p.boundingBox.top = p.top - rect.top
-      _p.boundingBox.width = p.width
-      _p.boundingBox.height = p.height
+      _p.lineBox.left = p.left - rect.left
+      _p.lineBox.top = p.top - rect.top
+      _p.lineBox.width = p.width
+      _p.lineBox.height = p.height
     })
     measured.fragments.forEach((f) => {
       const _f = paragraphs[f.paragraphIndex].fragments[f.fragmentIndex]
-      _f.boundingBox.left = f.left - rect.left
-      _f.boundingBox.top = f.top - rect.top
-      _f.boundingBox.width = f.width
-      _f.boundingBox.height = f.height
+      _f.inlineBox.left = f.left - rect.left
+      _f.inlineBox.top = f.top - rect.top
+      _f.inlineBox.width = f.width
+      _f.inlineBox.height = f.height
     })
     const results: MeasuredCharacter[] = []
     let i = 0
-    _paragraphs.forEach((oldCharacters) => {
-      oldCharacters.forEach((oldCharacter) => {
-        const character = measured.characters[i]
-        const { paragraphIndex, fragmentIndex, characterIndex } = character
-        results.push({
-          ...character,
-          newParagraphIndex: paragraphIndex,
-          textWidth: oldCharacter.width,
-          textHeight: oldCharacter.height,
-          left: character.left - rect.left,
-          top: character.top - rect.top,
-        })
-        const item = paragraphs[paragraphIndex].fragments[fragmentIndex].characters[characterIndex]
-        item.boundingBox.left = results[i].left
-        item.boundingBox.top = results[i].top
-        item.boundingBox.width = results[i].width
-        item.boundingBox.height = results[i].height
-        item.textWidth = results[i].textWidth
-        item.textHeight = results[i].textHeight
-        i++
+    measured.characters.forEach((character) => {
+      const { paragraphIndex, fragmentIndex, characterIndex } = character
+      results.push({
+        ...character,
+        newParagraphIndex: paragraphIndex,
+        left: character.left - rect.left,
+        top: character.top - rect.top,
       })
+      const item = paragraphs[paragraphIndex].fragments[fragmentIndex].characters[characterIndex]
+      const result = results[i]
+      // inlineBox
+      item.inlineBox.left = result.left
+      item.inlineBox.top = result.top
+      item.inlineBox.width = result.width
+      item.inlineBox.height = result.height
+      // lineBox
+      const fontHeight = item.fontHeight
+      item.lineBox.left = result.left
+      item.lineBox.top = result.top + (result.height - fontHeight) / 2
+      item.lineBox.height = fontHeight
+      item.lineBox.width = result.width
+      i++
     })
     return {
       paragraphs,

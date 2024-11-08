@@ -5,7 +5,7 @@ import { Character } from '../content'
 import { filterEmpty } from '../utils'
 
 export class Fragment {
-  boundingBox = new BoundingBox()
+  inlineBox = new BoundingBox()
   declare characters: Character[]
   declare computedStyle: TextStyle
 

@@ -1,8 +1,8 @@
 {
   "content": "linear-gradientlinear-gradientlinear-gradientlinear-gradientlinear-gradient",
   "style": {
-    "fontSize": 44,
-    "width": 1003,
+    "fontSize": 20,
+    "width": 200,
     "color": "linear-gradient(0deg, rgb(235, 229, 229) 0%, rgba(235, 229, 229, 0) 90.7609%)"
   }
 }

@@ -18,9 +18,9 @@ const tempV1 = new Vector2()
 const tempM1 = new Matrix3()
 const tempM2 = new Matrix3()
 
-export function effect(): Plugin {
+export function render(): Plugin {
   return definePlugin({
-    name: 'effect',
+    name: 'render',
     getBoundingBox: (text) => {
       const { characters, fontSize, effects } = text
       const boxes: BoundingBox[] = []
@@ -49,7 +49,19 @@ export function effect(): Plugin {
       return boxes.length ? BoundingBox.from(...boxes) : undefined
     },
     render: (ctx, text) => {
-      const { characters, renderBoundingBox, effects } = text
+      const { characters, paragraphs, renderBoundingBox, effects, style } = text
+      function fillBackground(color: any, box: BoundingBox): void {
+        ctx.fillStyle = color
+        ctx.fillRect(box.left, box.top, box.width, box.height)
+      }
+      if (style?.backgroundColor) {
+        fillBackground(style.backgroundColor, new BoundingBox(0, 0, ctx.canvas.width, ctx.canvas.height))
+      }
+      paragraphs.forEach((paragraph) => {
+        if (paragraph.style?.backgroundColor) {
+          fillBackground(paragraph.style.backgroundColor, paragraph.lineBox)
+        }
+      })
       if (effects) {
         effects.forEach((style) => {
           uploadColor(style, renderBoundingBox, ctx)
@@ -57,14 +69,24 @@ export function effect(): Plugin {
           const [a, c, e, b, d, f] = getTransform2D(text, style).transpose().elements
           ctx.transform(a, b, c, d, e, f)
           characters.forEach((character) => {
+            if (character.parent.style?.backgroundColor) {
+              fillBackground(character.parent.style.backgroundColor, character.inlineBox)
+            }
             character.drawTo(ctx, style)
           })
           ctx.restore()
         })
       }
       else {
-        characters.forEach((character) => {
-          character.drawTo(ctx)
+        paragraphs.forEach((paragraph) => {
+          paragraph.fragments.forEach((fragment) => {
+            if (fragment.style?.backgroundColor) {
+              fillBackground(fragment.computedStyle.backgroundColor, fragment.inlineBox)
+            }
+            fragment.characters.forEach((character) => {
+              character.drawTo(ctx)
+            })
+          })
         })
       }
     },
