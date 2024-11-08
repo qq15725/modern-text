@@ -68,7 +68,8 @@ export function listStyle(): Plugin {
       const imageBox = getPathsBoundingBox(imagePaths)!
       paragraphs.forEach((paragraph) => {
         const box = paragraph.lineBox
-        if (box) {
+        const cBox = paragraph.fragments[0].inlineBox
+        if (cBox) {
           const m = new Matrix3()
           if (isVertical) {
             const scale = parseScale(listStyleSize, style.fontSize, fontSize)
@@ -77,7 +78,7 @@ export function listStyle(): Plugin {
             m.rotate(Math.PI / 2)
             m.scale(reScale, reScale)
             m.translate(fontSize / 2 - (imageBox.height * reScale) / 2, 0)
-            m.translate(box.left + (box.width - fontSize) / 2, box.top - padding)
+            m.translate(box.left + (box.width - fontSize) / 2, cBox.top - padding)
           }
           else {
             const scale = parseScale(listStyleSize, style.fontSize, fontSize)
@@ -86,7 +87,7 @@ export function listStyle(): Plugin {
             m.translate(-imageBox.width, 0)
             m.scale(reScale, reScale)
             m.translate(0, fontSize / 2 - (imageBox.height * reScale) / 2)
-            m.translate(box.left - padding, box.top + (box.height - fontSize) / 2)
+            m.translate(cBox.left - padding, box.top + (box.height - fontSize) / 2)
           }
           paths.push(...imagePaths.map(p => p.clone().matrix(m)))
         }
