@@ -1,6 +1,7 @@
 export * from './canvas'
 export * from './content'
 export * from './Measurer'
+export * from './measureText'
 export * from './Parser'
 export * from './Plugin'
 export * from './plugins'

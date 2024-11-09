@@ -34,7 +34,7 @@ export interface MeasuredCharacter {
   textWidth: number
 }
 
-export interface MeasuredResult {
+export interface MeasureDomResult {
   paragraphs: Paragraph[]
   boundingBox: BoundingBox
 }
@@ -186,7 +186,7 @@ export class Measurer {
     }
   }
 
-  measureDom(dom: HTMLElement): MeasuredResult {
+  measureDom(dom: HTMLElement): MeasureDomResult {
     const { paragraphs } = this._text
     const rect = dom.getBoundingClientRect()
     const measured = this._measureDom(dom)
@@ -235,7 +235,7 @@ export class Measurer {
     }
   }
 
-  measure(dom?: HTMLElement): MeasuredResult {
+  measure(dom?: HTMLElement): MeasureDomResult {
     let destory: undefined | (() => void)
     if (!dom) {
       ({ dom, destory } = this.createDom())

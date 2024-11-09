@@ -1,5 +1,5 @@
 import type { Character, Paragraph } from './content'
-import type { MeasuredResult } from './Measurer'
+import type { MeasureDomResult } from './Measurer'
 import type { Plugin } from './Plugin'
 import type { TextContent, TextStyle } from './types'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
@@ -18,6 +18,10 @@ export interface TextOptions {
   style?: Partial<TextStyle>
   measureDom?: HTMLElement
   effects?: Partial<TextStyle>[]
+}
+
+export type MeasureResult = MeasureDomResult & {
+  renderBoundingBox: BoundingBox
 }
 
 export const defaultTextStyles: TextStyle = {
@@ -110,24 +114,12 @@ export class Text {
     return this
   }
 
-  measure(dom = this.measureDom): MeasuredResult {
+  measure(dom = this.measureDom): MeasureResult {
     this.computedStyle = { ...defaultTextStyles, ...this.style }
-    const old = this.paragraphs
+    const oldParagraphs = this.paragraphs
+    const oldRenderBoundingBox = this.renderBoundingBox
     this.paragraphs = this.parser.parse()
-    const result = this.measurer.measure(dom)
-    this.paragraphs = old
-    return result
-  }
-
-  requestUpdate(): this {
-    this.needsUpdate = true
-    return this
-  }
-
-  update(): this {
-    const { paragraphs, boundingBox } = this.measure()
-    this.paragraphs = paragraphs
-    this.boundingBox = boundingBox
+    const result = this.measurer.measure(dom) as MeasureResult
     const characters = this.characters
     characters.forEach(c => c.update())
     const plugins = [...this.plugins.values()]
@@ -159,6 +151,22 @@ export class Text {
         })
         .filter(Boolean) as BoundingBox[],
     )
+    result.renderBoundingBox = this.renderBoundingBox
+    this.paragraphs = oldParagraphs
+    this.renderBoundingBox = oldRenderBoundingBox
+    return result
+  }
+
+  requestUpdate(): this {
+    this.needsUpdate = true
+    return this
+  }
+
+  update(): this {
+    const { paragraphs, boundingBox, renderBoundingBox } = this.measure()
+    this.paragraphs = paragraphs
+    this.boundingBox = boundingBox
+    this.renderBoundingBox = renderBoundingBox
     return this
   }
 
