@@ -1,3 +1,12 @@
+## [0.3.1](https://github.com/qq15725/modern-text/compare/v0.3.0...v0.3.1) (2024-11-09)
+
+
+### Features
+
+* rename renderBoundingBox to glyphBox ([89e756d](https://github.com/qq15725/modern-text/commit/89e756d7d9d198b25eeb007b9710e16fcc3d2f11))
+
+
+
 # [0.3.0](https://github.com/qq15725/modern-text/compare/v0.2.44...v0.3.0) (2024-11-09)
 
 
