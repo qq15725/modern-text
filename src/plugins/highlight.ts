@@ -117,7 +117,7 @@ export function highlight(): Plugin {
             && prevStyle?.highlightSize === style.highlightSize
             && prevStyle?.highlightStrokeWidth === style.highlightStrokeWidth
             && prevStyle?.highlightOverflow === style.highlightOverflow
-            && group.length
+            && group?.length
             && (
               isVertical
                 ? group[0].inlineBox.left === character.inlineBox.left
