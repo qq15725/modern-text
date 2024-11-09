@@ -1,3 +1,12 @@
+## [0.2.44](https://github.com/qq15725/modern-text/compare/v0.2.43...v0.2.44) (2024-11-09)
+
+
+### Bug Fixes
+
+* a highlight null safe ([90341bd](https://github.com/qq15725/modern-text/commit/90341bd1fcc7506a15cb156926ce55799aaebfe1))
+
+
+
 ## [0.2.43](https://github.com/qq15725/modern-text/compare/v0.2.42...v0.2.43) (2024-11-09)
 
 
