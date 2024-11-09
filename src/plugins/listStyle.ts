@@ -33,61 +33,52 @@ export function listStyle(): Plugin {
     paths,
     update: (text) => {
       paths.length = 0
-      const { paragraphs, computedStyle: style, isVertical } = text
-
-      let fontSize = text.fontSize
-      paragraphs.forEach((p) => {
-        p.fragments.forEach((f) => {
-          f.characters.forEach((c) => {
-            fontSize = Math.max(fontSize, c.computedStyle.fontSize)
-          })
-        })
-      })
-
-      let listStyleSize = style.listStyleSize
-      let image: string | undefined
-      if (!isNone(style.listStyleImage)) {
-        image = style.listStyleImage
-      }
-      else if (!isNone(style.listStyleType)) {
-        const r = fontSize * 0.38 / 2
-        listStyleSize = listStyleSize === 'cover' ? r * 2 : listStyleSize
-        switch (style.listStyleType) {
-          case 'disc':
-            image = `<svg width="${r * 2}" height="${r * 2}" xmlns="http://www.w3.org/2000/svg">
+      const { paragraphs, isVertical, fontSize } = text
+      const padding = fontSize * 0.45
+      paragraphs.forEach((paragraph) => {
+        const { computedStyle: style } = paragraph
+        let listStyleSize = style.listStyleSize
+        let image: string | undefined
+        if (!isNone(style.listStyleImage)) {
+          image = style.listStyleImage
+        }
+        else if (!isNone(style.listStyleType)) {
+          const r = fontSize * 0.38 / 2
+          listStyleSize = listStyleSize === 'cover' ? r * 2 : listStyleSize
+          switch (style.listStyleType) {
+            case 'disc':
+              image = `<svg width="${r * 2}" height="${r * 2}" xmlns="http://www.w3.org/2000/svg">
   <circle cx="${r}" cy="${r}" r="${r}" fill="${style.color}" />
 </svg>`
-            break
+              break
+          }
         }
-      }
-      if (!image) {
-        return
-      }
-      const padding = fontSize * 0.45
-      const imagePaths = parseSvg(image)
-      const imageBox = getPathsBoundingBox(imagePaths)!
-      paragraphs.forEach((paragraph) => {
+        if (!image) {
+          return
+        }
+        const imagePaths = parseSvg(image)
+        const imageBox = getPathsBoundingBox(imagePaths)!
         const box = paragraph.lineBox
-        const cBox = paragraph.fragments[0].inlineBox
-        if (cBox) {
+        const fBox = paragraph.fragments[0].inlineBox
+        if (fBox) {
           const m = new Matrix3()
           if (isVertical) {
-            const scale = parseScale(listStyleSize, style.fontSize, fontSize)
+            const scale = parseScale(listStyleSize, fontSize, fontSize)
             const reScale = (fontSize / imageBox.height) * scale
             m.translate(-imageBox.left, -imageBox.top)
             m.rotate(Math.PI / 2)
             m.scale(reScale, reScale)
             m.translate(fontSize / 2 - (imageBox.height * reScale) / 2, 0)
-            m.translate(box.left + (box.width - fontSize) / 2, cBox.top - padding)
+            m.translate(box.left + (box.width - fontSize) / 2, fBox.top - padding)
           }
           else {
-            const scale = parseScale(listStyleSize, style.fontSize, fontSize)
+            const scale = parseScale(listStyleSize, fontSize, fontSize)
             const reScale = (fontSize / imageBox.height) * scale
             m.translate(-imageBox.left, -imageBox.top)
             m.translate(-imageBox.width, 0)
             m.scale(reScale, reScale)
             m.translate(0, fontSize / 2 - (imageBox.height * reScale) / 2)
-            m.translate(cBox.left - padding, box.top + (box.height - fontSize) / 2)
+            m.translate(fBox.left - padding, box.top + (box.height - fontSize) / 2)
           }
           paths.push(...imagePaths.map(p => p.clone().matrix(m)))
         }

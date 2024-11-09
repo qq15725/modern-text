@@ -1,5 +1,5 @@
 import type { BoundingBox } from 'modern-path2d'
-import type { TextDrawStyle } from '../types'
+import type { TextStyle } from '../types'
 
 export function parseColor(
   ctx: CanvasRenderingContext2D,
@@ -15,7 +15,7 @@ export function parseColor(
   return source
 }
 
-export function uploadColor(style: Partial<TextDrawStyle>, box: BoundingBox, ctx: CanvasRenderingContext2D): void {
+export function uploadColor(style: Partial<TextStyle>, box: BoundingBox, ctx: CanvasRenderingContext2D): void {
   if (style?.color) {
     style.color = parseColor(ctx, style.color, box)
   }

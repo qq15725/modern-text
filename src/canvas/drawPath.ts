@@ -1,7 +1,7 @@
 import type { BoundingBox, Path2D } from 'modern-path2d'
-import type { TextEffect } from '../plugins'
+import type { TextStyle } from '../types'
 
-export interface DrawShapePathsOptions extends Partial<TextEffect> {
+export interface DrawShapePathsOptions extends Partial<TextStyle> {
   ctx: CanvasRenderingContext2D
   path: Path2D
   fontSize: number

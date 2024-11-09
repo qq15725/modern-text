@@ -1,6 +1,6 @@
 import type { Character } from '../content'
 import type { Plugin } from '../Plugin'
-import type { HighlightSize, HighlightStrokeWidth, TextHighlightStyle } from '../types'
+import type { HighlightSize, HighlightStrokeWidth, TextStyle } from '../types'
 import { BoundingBox, Matrix3, type Path2D } from 'modern-path2d'
 import { getPathsBoundingBox, parseSvg } from 'modern-path2d'
 import { drawPath } from '../canvas'
@@ -107,7 +107,7 @@ export function highlight(): Plugin {
       const { characters } = text
       let group: Character[]
       const groups: Character[][] = []
-      let prevStyle: TextHighlightStyle | undefined
+      let prevStyle: TextStyle | undefined
       characters.forEach((character) => {
         const { isVertical, computedStyle: style } = character
         if (!isNone(style.highlightImage) && character.glyphBox) {

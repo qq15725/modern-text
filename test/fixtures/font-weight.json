@@ -4,10 +4,6 @@
       "content": "FontWeight"
     },
     {
-      "content": "FontWeightBold",
-      "fontWeight": "bold"
-    },
-    {
       "content": "FontWeight100",
       "fontWeight": 100
     },
@@ -34,6 +30,10 @@
     {
       "content": "FontWeight700",
       "fontWeight": 700
+    },
+    {
+      "content": "FontWeightBold",
+      "fontWeight": "bold"
     },
     {
       "content": "FontWeight800",

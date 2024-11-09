@@ -1,18 +1,9 @@
 import type { Plugin } from '../Plugin'
 import type { Text } from '../Text'
-import type { TextDrawStyle } from '../types'
+import type { TextStyle } from '../types'
 import { BoundingBox, Matrix3, Vector2 } from 'modern-path2d'
 import { uploadColor } from '../canvas'
 import { definePlugin } from '../Plugin'
-
-export type TextEffect = Partial<
-  TextDrawStyle & {
-    offsetX: number
-    offsetY: number
-    skewX: number
-    skewY: number
-  }
->
 
 const tempV1 = new Vector2()
 const tempM1 = new Matrix3()
@@ -96,10 +87,10 @@ export function render(): Plugin {
   })
 }
 
-export function getTransform2D(text: Text, style: TextEffect): Matrix3 {
+export function getTransform2D(text: Text, style: Partial<TextStyle>): Matrix3 {
   const { fontSize, renderBoundingBox } = text
-  const offsetX = (style.offsetX ?? 0) * fontSize
-  const offsetY = (style.offsetY ?? 0) * fontSize
+  const translateX = (style.translateX ?? 0) * fontSize
+  const translateY = (style.translateY ?? 0) * fontSize
   const PI_2 = Math.PI * 2
   const skewX = ((style.skewX ?? 0) / 360) * PI_2
   const skewY = ((style.skewY ?? 0) / 360) * PI_2
@@ -107,7 +98,7 @@ export function getTransform2D(text: Text, style: TextEffect): Matrix3 {
   const centerX = left + width / 2
   const centerY = top + height / 2
   tempM1.identity()
-  tempM2.makeTranslation(offsetX, offsetY)
+  tempM2.makeTranslation(translateX, translateY)
   tempM1.multiply(tempM2)
   tempM2.makeTranslation(centerX, centerY)
   tempM1.multiply(tempM2)

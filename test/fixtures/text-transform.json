@@ -5,15 +5,15 @@
     },
     {
       "content": "TextTransformNone",
-      "text-transform": "none"
+      "textTransform": "none"
     },
     {
       "content": "TextTransformUppercase",
-      "text-transform": "uppercase"
+      "textTransform": "uppercase"
     },
     {
       "content": "TextTransformLowercase",
-      "text-transform": "lowercase"
+      "textTransform": "lowercase"
     }
   ]
 }

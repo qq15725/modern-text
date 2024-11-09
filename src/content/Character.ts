@@ -1,6 +1,5 @@
 import type { GlyphPathCommand, Sfnt } from 'modern-font'
 import type { Vector2, VectorLike } from 'modern-path2d'
-import type { TextEffect } from '../plugins'
 import type { FontWeight, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
 import { fonts, Ttf, Woff } from 'modern-font'
@@ -299,7 +298,7 @@ export class Character {
     return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
   }
 
-  drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextEffect> = {}): void {
+  drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextStyle> = {}): void {
     drawPath({
       ctx,
       path: this.path,

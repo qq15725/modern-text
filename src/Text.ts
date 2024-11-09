@@ -1,7 +1,6 @@
 import type { Character, Paragraph } from './content'
 import type { MeasuredResult } from './Measurer'
 import type { Plugin } from './Plugin'
-import type { TextEffect } from './plugins'
 import type { TextContent, TextStyle } from './types'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
@@ -18,7 +17,7 @@ export interface TextOptions {
   content?: TextContent
   style?: Partial<TextStyle>
   measureDom?: HTMLElement
-  effects?: TextEffect[]
+  effects?: Partial<TextStyle>[]
 }
 
 export const defaultTextStyles: TextStyle = {
@@ -35,21 +34,16 @@ export const defaultTextStyles: TextStyle = {
   // text
   textWrap: 'wrap',
   textAlign: 'start',
+  textIndent: 0,
   textTransform: 'none',
   textOrientation: 'mixed',
-  // color
-  color: '#000',
-  backgroundColor: 'rgba(0, 0, 0, 0)',
-  // text
   textDecoration: 'none',
   // textStroke
   textStrokeWidth: 0,
   textStrokeColor: '#000',
-  // shadow
-  shadowColor: 'rgba(0, 0, 0, 0)',
-  shadowOffsetX: 0,
-  shadowOffsetY: 0,
-  shadowBlur: 0,
+  // color
+  color: '#000',
+  backgroundColor: 'rgba(0, 0, 0, 0)',
   // listStyle
   listStyleType: 'none',
   listStyleImage: 'none',
@@ -61,15 +55,24 @@ export const defaultTextStyles: TextStyle = {
   highlightSize: 'cover',
   highlightStrokeWidth: '100%',
   highlightOverflow: 'none',
+  // shadow
+  shadowColor: 'rgba(0, 0, 0, 0)',
+  shadowOffsetX: 0,
+  shadowOffsetY: 0,
+  shadowBlur: 0,
+  translateX: 0,
+  translateY: 0,
+  skewX: 0,
+  skewY: 0,
 }
 
 export class Text {
   content: TextContent
   style: Partial<TextStyle>
-  effects?: TextEffect[]
+  effects?: Partial<TextStyle>[]
   measureDom?: HTMLElement
   needsUpdate = true
-  computedStyle = { ...defaultTextStyles }
+  computedStyle: TextStyle = { ...defaultTextStyles }
   paragraphs: Paragraph[] = []
   boundingBox = new BoundingBox()
   renderBoundingBox = new BoundingBox()

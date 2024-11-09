@@ -1,0 +1,15 @@
+{
+  "content": [
+    {
+      "content": "LetterSpacing"
+    },
+    {
+      "content": "LetterSpacing2",
+      "letterSpacing": 2
+    },
+    {
+      "content": "LetterSpacing3",
+      "letterSpacing": 3
+    }
+  ]
+}

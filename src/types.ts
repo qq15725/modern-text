@@ -18,47 +18,30 @@ export type HighlightSize = 'cover' | Sizeable
 export type HighlightStrokeWidth = Sizeable
 export type HighlightOverflow = 'none' | 'visible' | 'hidden'
 
-export interface TextLayoutStyle {
+export interface TextLineStyle {
   writingMode: WritingMode
-  verticalAlign: VerticalAlign
-  lineHeight: number
-  letterSpacing: number
-  // font
-  fontSize: number
-  fontWeight: FontWeight
-  fontFamily: string
-  fontStyle: FontStyle
-  fontKerning?: FontKerning
-  // text
   textWrap: TextWrap
   textAlign: TextAlign
-  textTransform: TextTransform
-  textOrientation: TextOrientation
-}
-
-export interface TextDrawStyle {
-  color: string | CanvasGradient | CanvasPattern
-  backgroundColor: string | CanvasGradient | CanvasPattern
-  // text
-  textDecoration: TextDecoration
-  // textStroke
-  textStrokeWidth: number
-  textStrokeColor: string | CanvasGradient | CanvasPattern
-  // shadow
-  shadowColor: string
-  shadowOffsetX: number
-  shadowOffsetY: number
-  shadowBlur: number
-}
-
-export interface TextListStyle {
+  textIndent: number
+  lineHeight: number
   listStyleType: ListStyleType
   listStyleImage: ListStyleImage
   listStyleSize: ListStyleSize
   listStylePosition: ListStylePosition
 }
 
-export interface TextHighlightStyle {
+export interface TextInlineStyle {
+  verticalAlign: VerticalAlign
+  letterSpacing: number
+  fontSize: number
+  fontWeight: FontWeight
+  fontFamily: string
+  fontStyle: FontStyle
+  fontKerning?: FontKerning
+  textTransform: TextTransform
+  textOrientation: TextOrientation
+  textDecoration: TextDecoration
+  // extended part
   highlightReferImage: HighlightImage
   highlightImage: HighlightImage
   highlightSize: HighlightSize
@@ -66,11 +49,25 @@ export interface TextHighlightStyle {
   highlightOverflow: HighlightOverflow
 }
 
+export interface TextDrawStyle {
+  color: string | CanvasGradient | CanvasPattern
+  backgroundColor: string | CanvasGradient | CanvasPattern
+  textStrokeWidth: number
+  textStrokeColor: string | CanvasGradient | CanvasPattern
+  shadowColor: string
+  shadowOffsetX: number
+  shadowOffsetY: number
+  shadowBlur: number
+  translateX: number
+  translateY: number
+  skewX: number
+  skewY: number
+}
+
 export interface TextStyle extends
-  TextLayoutStyle,
-  TextDrawStyle,
-  TextListStyle,
-  TextHighlightStyle {
+  TextLineStyle,
+  TextInlineStyle,
+  TextDrawStyle {
   //
 }
 

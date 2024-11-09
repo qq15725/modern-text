@@ -12,7 +12,6 @@ window.onload = async () => {
     view.dataset.file = key
     const text = renderText({ view, pixelRatio: 2, ...fixture })
     document.body.append(view)
-    document.body.append(document.createElement('br'))
     console.warn(text, text.measure())
   }
 }

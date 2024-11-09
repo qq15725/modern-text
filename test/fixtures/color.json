@@ -1,0 +1,16 @@
+{
+  "content": [
+    {
+      "content": "Red",
+      "color": "red"
+    },
+    {
+      "content": "#00FF00",
+      "color": "#00FF00"
+    },
+    {
+      "content": "LinearGradient",
+      "color": "linear-gradient(0deg, rgb(235, 229, 229) 0%, rgba(235, 229, 229, 0) 90.7609%)"
+    }
+  ]
+}

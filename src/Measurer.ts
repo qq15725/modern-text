@@ -56,6 +56,7 @@ export class Measurer {
           'fontSize',
           'letterSpacing',
           'textStrokeWidth',
+          'textIndent',
           'shadowOffsetX',
           'shadowOffsetY',
           'shadowBlur',
