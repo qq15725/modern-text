@@ -1,3 +1,19 @@
+## [0.2.43](https://github.com/qq15725/modern-text/compare/v0.2.42...v0.2.43) (2024-11-09)
+
+
+### Bug Fixes
+
+* fontStyle ([3dd7f08](https://github.com/qq15725/modern-text/commit/3dd7f089281888d1e231113e3ed5fa5eda604444))
+
+
+### Features
+
+* add measureText util method ([db0fb00](https://github.com/qq15725/modern-text/commit/db0fb00a851c9fb272e9c6f1fe6cb14939eb2d4e))
+* add renderText util method ([77de3f1](https://github.com/qq15725/modern-text/commit/77de3f1668063963e1d0fd1bbb0e672b161f9e34))
+* rename offsetX to translateX ([ba4bbe5](https://github.com/qq15725/modern-text/commit/ba4bbe513b67cf5419d80233c4fa22ef97671b35))
+
+
+
 ## [0.2.42](https://github.com/qq15725/modern-text/compare/v0.2.41...v0.2.42) (2024-11-08)
 
 
