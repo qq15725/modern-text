@@ -1,0 +1,19 @@
+{
+  "content": [
+    {
+      "content": "TextDecoration"
+    },
+    {
+      "content": "TextDecorationNone",
+      "textDecoration": "none"
+    },
+    {
+      "content": "TextDecorationUnderline",
+      "textDecoration": "underline"
+    },
+    {
+      "content": "TextDecorationLineThrough",
+      "textDecoration": "line-through"
+    }
+  ]
+}

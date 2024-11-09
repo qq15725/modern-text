@@ -1,10 +1,19 @@
 {
-  "content": "qing ming",
-  "style": {
-    "fontStyle": "normal",
-    "letterSpacing": 2,
-    "textAlign": "right",
-    "fontSize": 20,
-    "textTransform": "uppercase"
-  }
+  "content": [
+    {
+      "content": "TextTransform"
+    },
+    {
+      "content": "TextTransformNone",
+      "text-transform": "none"
+    },
+    {
+      "content": "TextTransformUppercase",
+      "text-transform": "uppercase"
+    },
+    {
+      "content": "TextTransformLowercase",
+      "text-transform": "lowercase"
+    }
+  ]
 }

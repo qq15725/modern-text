@@ -1,0 +1,15 @@
+{
+  "content": [
+    {
+      "content": "FontStyle"
+    },
+    {
+      "content": "FontStyleNormal",
+      "fontStyle": "normal"
+    },
+    {
+      "content": "FontStyleItalic",
+      "fontStyle": "italic"
+    }
+  ]
+}

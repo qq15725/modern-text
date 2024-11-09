@@ -1,5 +1,5 @@
 {
-  "content": "点击修改标题文字",
+  "content": "Effect1",
   "style": {
     "fontStyle": "italic",
     "fontSize": 20,
@@ -11,14 +11,10 @@
     {
       "offsetX": 0.04864864864864865,
       "offsetY": 0.04864864864864865,
-      "skewX": 0,
       "skewY": -5,
       "color": "#000000FF"
     },
     {
-      "offsetX": 0,
-      "offsetY": 0,
-      "skewX": 0,
       "skewY": -5,
       "color": "#FEE90CFF"
     }

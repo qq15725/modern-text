@@ -24,7 +24,7 @@ export interface TextOptions {
 export const defaultTextStyles: TextStyle = {
   writingMode: 'horizontal-tb',
   verticalAlign: 'baseline',
-  lineHeight: 1,
+  lineHeight: 1.2,
   letterSpacing: 0,
   // font
   fontSize: 14,

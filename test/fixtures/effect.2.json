@@ -1,5 +1,5 @@
 {
-  "content": "effect-3",
+  "content": "Effect2",
   "style": {
     "fontSize": 20,
     "color": "rgba(254,233,12,255)",
@@ -7,14 +7,14 @@
   },
   "effects": [
     {
-      "textStrokeWidth": 0.05,
-      "textStrokeColor": "#000000",
+      "textStrokeWidth": 0.17058823529411765,
+      "textStrokeColor": "rgba(36,79,113,1)",
       "shadowColor": "#000000",
-      "color": "#000000"
+      "color": "rgba(36,79,113,1)"
     },
     {
       "shadowColor": "#000000",
-      "color": "#ffffff"
+      "color": "#FFFFFF"
     }
   ]
 }

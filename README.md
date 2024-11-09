@@ -21,32 +21,19 @@
 ## Usage
 
 ```ts
-import { Text } from 'modern-text'
+import { renderText } from 'modern-text'
 
-const text = new Text({
+const view = document.createElement('canvas')
+document.body.append(view)
+
+renderText({
+  view,
   style: {
     width: 100,
     height: 200,
     fontSize: 22,
     textDecoration: 'underline',
   },
-  // content: 'paragraph'
-  // content: [
-  //   'paragraph1',
-  //   ['paragraph1', 'paragraph2'],
-  //   { content: 'paragraph2', fontSize: 20 },
-  //   [
-  //     { content: 'fragment1', fontSize: 12 },
-  //     { content: 'fragment2', fontSize: 30 },
-  //   ],
-  //   {
-  //     backgroundColor: 'blue',
-  //     fragments: [
-  //       { content: 'fragment3', color: 'red', fontSize: 12 },
-  //       { content: 'fragment4', color: 'black' },
-  //     ],
-  //   },
-  // ]
   content: [
     {
       letterSpacing: 3,
@@ -59,10 +46,4 @@ const text = new Text({
     { content: 'World!', color: 'black' },
   ],
 })
-
-const view = document.createElement('canvas')
-text.render({ view })
-document.body.append(view) // canvas 2d
-
-console.log(text.measure()) // boundingBox with computed paragraphs
 ```
