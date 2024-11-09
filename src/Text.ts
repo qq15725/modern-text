@@ -21,7 +21,7 @@ export interface TextOptions {
 }
 
 export type MeasureResult = MeasureDomResult & {
-  renderBoundingBox: BoundingBox
+  glyphBox: BoundingBox
 }
 
 export const defaultTextStyles: TextStyle = {
@@ -79,7 +79,7 @@ export class Text {
   computedStyle: TextStyle = { ...defaultTextStyles }
   paragraphs: Paragraph[] = []
   boundingBox = new BoundingBox()
-  renderBoundingBox = new BoundingBox()
+  glyphBox = new BoundingBox()
   parser = new Parser(this)
   measurer = new Measurer(this)
   plugins = new Map<string, Plugin>()
@@ -116,10 +116,15 @@ export class Text {
 
   measure(dom = this.measureDom): MeasureResult {
     this.computedStyle = { ...defaultTextStyles, ...this.style }
-    const oldParagraphs = this.paragraphs
-    const oldRenderBoundingBox = this.renderBoundingBox
+    const old = {
+      paragraphs: this.paragraphs,
+      boundingBox: this.boundingBox,
+      glyphBox: this.glyphBox,
+    }
     this.paragraphs = this.parser.parse()
     const result = this.measurer.measure(dom) as MeasureResult
+    this.paragraphs = result.paragraphs
+    this.boundingBox = result.boundingBox
     const characters = this.characters
     characters.forEach(c => c.update())
     const plugins = [...this.plugins.values()]
@@ -139,9 +144,13 @@ export class Text {
         max.max(a, b)
       }
     })
-    this.renderBoundingBox = new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
-    this.renderBoundingBox = BoundingBox.from(
-      this.renderBoundingBox,
+    this.glyphBox = new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
+    const dLeft = this.glyphBox.left - result.boundingBox.left
+    const dRight = result.boundingBox.right - this.glyphBox.right
+    const dTop = this.glyphBox.top - result.boundingBox.top
+    const dBottom = result.boundingBox.bottom - this.glyphBox.bottom
+    this.glyphBox = BoundingBox.from(
+      this.glyphBox,
       ...plugins
         .map((plugin) => {
           if (plugin.getBoundingBox) {
@@ -151,9 +160,12 @@ export class Text {
         })
         .filter(Boolean) as BoundingBox[],
     )
-    result.renderBoundingBox = this.renderBoundingBox
-    this.paragraphs = oldParagraphs
-    this.renderBoundingBox = oldRenderBoundingBox
+    result.glyphBox = this.glyphBox
+    result.boundingBox.width = this.glyphBox.width + dLeft + dRight
+    result.boundingBox.height = this.glyphBox.height + dTop + dBottom
+    this.paragraphs = old.paragraphs
+    this.boundingBox = old.boundingBox
+    this.glyphBox = old.glyphBox
     return result
   }
 
@@ -163,10 +175,10 @@ export class Text {
   }
 
   update(): this {
-    const { paragraphs, boundingBox, renderBoundingBox } = this.measure()
+    const { paragraphs, boundingBox, glyphBox } = this.measure()
     this.paragraphs = paragraphs
     this.boundingBox = boundingBox
-    this.renderBoundingBox = renderBoundingBox
+    this.glyphBox = glyphBox
     return this
   }
 
@@ -179,7 +191,7 @@ export class Text {
     if (this.needsUpdate) {
       this.update()
     }
-    setupView(ctx, pixelRatio, this.renderBoundingBox)
+    setupView(ctx, pixelRatio, this.boundingBox)
     uploadColors(ctx, this)
     const plugins = [...this.plugins.values()]
     plugins

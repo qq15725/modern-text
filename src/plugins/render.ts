@@ -43,7 +43,7 @@ export function render(): Plugin {
       return boxes.length ? BoundingBox.from(...boxes) : undefined
     },
     render: (ctx, text) => {
-      const { characters, paragraphs, renderBoundingBox, effects, style } = text
+      const { characters, paragraphs, glyphBox, effects, style } = text
       function fillBackground(color: any, box: BoundingBox): void {
         ctx.fillStyle = color
         ctx.fillRect(box.left, box.top, box.width, box.height)
@@ -58,7 +58,7 @@ export function render(): Plugin {
       })
       if (effects) {
         effects.forEach((style) => {
-          uploadColor(style, renderBoundingBox, ctx)
+          uploadColor(style, glyphBox, ctx)
           ctx.save()
           const [a, c, e, b, d, f] = getTransform2D(text, style).transpose().elements
           ctx.transform(a, b, c, d, e, f)
@@ -88,13 +88,13 @@ export function render(): Plugin {
 }
 
 export function getTransform2D(text: Text, style: Partial<TextStyle>): Matrix3 {
-  const { fontSize, renderBoundingBox } = text
+  const { fontSize, glyphBox } = text
   const translateX = (style.translateX ?? 0) * fontSize
   const translateY = (style.translateY ?? 0) * fontSize
   const PI_2 = Math.PI * 2
   const skewX = ((style.skewX ?? 0) / 360) * PI_2
   const skewY = ((style.skewY ?? 0) / 360) * PI_2
-  const { left, top, width, height } = renderBoundingBox
+  const { left, top, width, height } = glyphBox
   const centerX = left + width / 2
   const centerY = top + height / 2
   tempM1.identity()
