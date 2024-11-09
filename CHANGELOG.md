@@ -1,3 +1,12 @@
+# [0.3.0](https://github.com/qq15725/modern-text/compare/v0.2.44...v0.3.0) (2024-11-09)
+
+
+### Features
+
+* change canvas render viewBox ([8a099c8](https://github.com/qq15725/modern-text/commit/8a099c86dc404e09ed30c4e238d4b46ad077b466))
+
+
+
 ## [0.2.44](https://github.com/qq15725/modern-text/compare/v0.2.43...v0.2.44) (2024-11-09)
 
 
