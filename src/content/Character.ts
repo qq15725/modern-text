@@ -20,6 +20,16 @@ const set2 = new Set([
   '\u02DC',
 ])
 
+const fsSelectionMap: Record<number, 'italic' | 'bold'> = {
+  0x01: 'italic',
+  0x20: 'bold',
+}
+
+const macStyleMap: Record<number, 'italic' | 'bold'> = {
+  0x01: 'italic',
+  0x02: 'bold',
+}
+
 const fontWeightMap: Record<FontWeight, number> = {
   100: -0.2,
   200: -0.1,
@@ -112,19 +122,21 @@ export class Character {
       return this
     }
 
+    this.updateGlyph(font)
+
     const {
       isVertical,
       content,
-      computedStyle,
+      computedStyle: style,
       baseline,
       inlineBox,
-    } = this.updateGlyph(font)
+    } = this
 
-    const { os2, ascender, descender } = font
+    const { os2, head, ascender, descender } = font
     const typoAscender = os2.sTypoAscender
-
+    const fontStyle: 'bold' | 'italic' | undefined = fsSelectionMap[os2.fsSelection] ?? macStyleMap[head.macStyle]
     const { left, top } = inlineBox
-    const { fontSize, fontStyle } = computedStyle
+    const needsItalic = style.fontStyle === 'italic' && fontStyle !== 'italic'
 
     let x = left
     let y = top + baseline
@@ -143,13 +155,13 @@ export class Character {
 
     if (isVertical && !set1.has(content) && (content.codePointAt(0)! <= 256 || set2.has(content))) {
       path.addCommands(
-        font.getPathCommands(content, x, top + baseline - (inlineBox.height - inlineBox.width) / 2, fontSize) ?? [],
+        font.getPathCommands(content, x, top + baseline - (inlineBox.height - inlineBox.width) / 2, style.fontSize) ?? [],
       )
       const point = {
         y: top - (inlineBox.height - inlineBox.width) / 2 + inlineBox.height / 2,
         x: x + inlineBox.width / 2,
       }
-      if (fontStyle === 'italic') {
+      if (needsItalic) {
         this._italic(
           path,
           isVertical
@@ -165,9 +177,9 @@ export class Character {
     else {
       if (glyphIndex !== undefined) {
         path.addCommands(
-          font.glyphs.get(glyphIndex).getPathCommands(x, y, fontSize),
+          font.glyphs.get(glyphIndex).getPathCommands(x, y, style.fontSize),
         )
-        if (fontStyle === 'italic') {
+        if (needsItalic) {
           this._italic(
             path,
             isVertical
@@ -181,9 +193,9 @@ export class Character {
       }
       else {
         path.addCommands(
-          font.getPathCommands(content, x, y, fontSize) ?? [],
+          font.getPathCommands(content, x, y, style.fontSize) ?? [],
         )
-        if (fontStyle === 'italic') {
+        if (needsItalic) {
           this._italic(
             path,
             isVertical
@@ -196,18 +208,24 @@ export class Character {
 
     path.addCommands(this._decoration())
 
-    const fontWeight = computedStyle.fontWeight ?? 400
-    if (fontWeight in fontWeightMap) {
-      path.bold(fontWeightMap[fontWeight] * fontSize * 0.05)
+    const fontWeight = style.fontWeight ?? 400
+    if (
+      fontWeight in fontWeightMap
+      && (
+        (fontWeight === 700 || fontWeight === 'bold')
+        && fontStyle !== 'bold'
+      )
+    ) {
+      path.bold(fontWeightMap[fontWeight] * style.fontSize * 0.05)
     }
 
     path.style = {
-      fill: computedStyle.color,
-      stroke: computedStyle.textStrokeWidth
-        ? computedStyle.textStrokeColor
+      fill: style.color,
+      stroke: style.textStrokeWidth
+        ? style.textStrokeColor
         : 'none',
-      strokeWidth: computedStyle.textStrokeWidth
-        ? computedStyle.textStrokeWidth * fontSize * 0.03
+      strokeWidth: style.textStrokeWidth
+        ? style.textStrokeWidth * style.fontSize * 0.03
         : 0,
     }
     this.path = path
@@ -273,7 +291,6 @@ export class Character {
   }
 
   protected _italic(path: Path2D, startPoint?: VectorLike): void {
-    // if (e.style === 'italic') return
     path.skew(-0.24, 0, startPoint || {
       y: this.inlineBox.top + this.baseline,
       x: this.inlineBox.left + this.inlineBox.width / 2,
