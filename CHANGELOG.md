@@ -1,3 +1,12 @@
+## [0.3.4](https://github.com/qq15725/modern-text/compare/v0.3.3...v0.3.4) (2024-11-11)
+
+
+### Bug Fixes
+
+* setupView ([d540000](https://github.com/qq15725/modern-text/commit/d540000fde45724ddd573b2df1e783b961802c45))
+
+
+
 ## [0.3.3](https://github.com/qq15725/modern-text/compare/v0.3.2...v0.3.3) (2024-11-11)
 
 
