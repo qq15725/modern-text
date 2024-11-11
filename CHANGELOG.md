@@ -1,3 +1,12 @@
+## [0.3.2](https://github.com/qq15725/modern-text/compare/v0.3.1...v0.3.2) (2024-11-11)
+
+
+### Bug Fixes
+
+* bbox ([1896107](https://github.com/qq15725/modern-text/commit/18961078c5e3baebf548fb1f906fb6bf9658aff1))
+
+
+
 ## [0.3.1](https://github.com/qq15725/modern-text/compare/v0.3.0...v0.3.1) (2024-11-09)
 
 
