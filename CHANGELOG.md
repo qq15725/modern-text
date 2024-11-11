@@ -1,3 +1,12 @@
+## [0.3.3](https://github.com/qq15725/modern-text/compare/v0.3.2...v0.3.3) (2024-11-11)
+
+
+### Features
+
+* add rawGlyphBox ([7c7f12e](https://github.com/qq15725/modern-text/commit/7c7f12e185faefb4e764ee4f27e995f005dd98ab))
+
+
+
 ## [0.3.2](https://github.com/qq15725/modern-text/compare/v0.3.1...v0.3.2) (2024-11-11)
 
 
