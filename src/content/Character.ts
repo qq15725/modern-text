@@ -48,7 +48,6 @@ export class Character {
   lineBox = new BoundingBox()
   inlineBox = new BoundingBox()
   glyphBox: BoundingBox | undefined
-  center: Vector2 | undefined
   underlinePosition = 0
   underlineThickness = 0
   yStrikeoutPosition = 0
@@ -56,6 +55,10 @@ export class Character {
   baseline = 0
   centerDiviation = 0
   path = new Path2D()
+
+  get center(): Vector2 | undefined {
+    return this.glyphBox?.center
+  }
 
   get computedStyle(): TextStyle {
     return this.parent.computedStyle
@@ -230,7 +233,6 @@ export class Character {
     }
     this.path = path
     this.glyphBox = this.getGlyphBoundingBox()
-    this.center = this.glyphBox?.getCenterPoint()
 
     return this
   }

@@ -62,10 +62,10 @@ function getTransformMatrix(a: BoundingBox, b: BoundingBox, c: BoundingBox, isVe
       y: c.height / b.width,
     }
   }
-  const offset = c.getCenterPoint()
+  const offset = c.center
     .add(
-      a.getCenterPoint()
-        .sub(b.getCenterPoint())
+      a.center
+        .sub(b.center)
         .scale(scale.x, scale.y),
     )
     .sub({

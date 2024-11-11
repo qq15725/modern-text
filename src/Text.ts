@@ -1,5 +1,4 @@
 import type { Character, Paragraph } from './content'
-import type { MeasureDomResult } from './Measurer'
 import type { Plugin } from './Plugin'
 import type { TextContent, TextStyle } from './types'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
@@ -20,8 +19,12 @@ export interface TextOptions {
   effects?: Partial<TextStyle>[]
 }
 
-export type MeasureResult = MeasureDomResult & {
+export interface MeasureResult {
+  paragraphs: Paragraph[]
+  lineBox: BoundingBox
   glyphBox: BoundingBox
+  pathBox: BoundingBox
+  boundingBox: BoundingBox
 }
 
 export const defaultTextStyles: TextStyle = {
@@ -78,8 +81,10 @@ export class Text {
   needsUpdate = true
   computedStyle: TextStyle = { ...defaultTextStyles }
   paragraphs: Paragraph[] = []
-  boundingBox = new BoundingBox()
+  lineBox = new BoundingBox()
   glyphBox = new BoundingBox()
+  pathBox = new BoundingBox()
+  boundingBox = new BoundingBox()
   parser = new Parser(this)
   measurer = new Measurer(this)
   plugins = new Map<string, Plugin>()
@@ -118,24 +123,39 @@ export class Text {
     this.computedStyle = { ...defaultTextStyles, ...this.style }
     const old = {
       paragraphs: this.paragraphs,
-      boundingBox: this.boundingBox,
+      lineBox: this.lineBox,
       glyphBox: this.glyphBox,
+      pathBox: this.pathBox,
+      boundingBox: this.boundingBox,
     }
     this.paragraphs = this.parser.parse()
     const result = this.measurer.measure(dom) as MeasureResult
     this.paragraphs = result.paragraphs
-    this.boundingBox = result.boundingBox
-    const characters = this.characters
-    characters.forEach(c => c.update())
+    this.lineBox = result.boundingBox
+    this.characters.forEach((c) => {
+      c.update()
+    })
     const plugins = [...this.plugins.values()]
     plugins
       .sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
       .forEach((plugin) => {
         plugin.update?.(this)
       })
+    this
+      .updateGlyphBox()
+      .updatePathBox()
+      .updateBoundingBox()
+    for (const key in old) {
+      ;(result as any)[key] = (this as any)[key]
+      ;(this as any)[key] = (old as any)[key]
+    }
+    return result
+  }
+
+  updateGlyphBox(): this {
     const min = Vector2.MAX
     const max = Vector2.MIN
-    characters.forEach((c) => {
+    this.characters.forEach((c) => {
       if (!c.getGlyphMinMax(min, max)) {
         const { inlineBox } = c
         const a = new Vector2(inlineBox.left, inlineBox.top)
@@ -144,29 +164,43 @@ export class Text {
         max.max(a, b)
       }
     })
-    this.glyphBox = new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
-    const dLeft = this.glyphBox.left - result.boundingBox.left
-    const dRight = result.boundingBox.right - this.glyphBox.right
-    const dTop = this.glyphBox.top - result.boundingBox.top
-    const dBottom = result.boundingBox.bottom - this.glyphBox.bottom
-    this.glyphBox = BoundingBox.from(
+    this.glyphBox = new BoundingBox(
+      min.x,
+      min.y,
+      max.x - min.x,
+      max.y - min.y,
+    )
+    return this
+  }
+
+  updatePathBox(): this {
+    const plugins = [...this.plugins.values()]
+    this.pathBox = BoundingBox.from(
       this.glyphBox,
       ...plugins
         .map((plugin) => {
-          if (plugin.getBoundingBox) {
-            return plugin.getBoundingBox(this)
-          }
-          return getPathsBoundingBox(plugin.paths ?? [])
+          return plugin.getBoundingBox
+            ? plugin.getBoundingBox(this)
+            : getPathsBoundingBox(plugin.paths ?? [])
         })
         .filter(Boolean) as BoundingBox[],
     )
-    result.glyphBox = this.glyphBox
-    result.boundingBox.width = this.glyphBox.width + dLeft + dRight
-    result.boundingBox.height = this.glyphBox.height + dTop + dBottom
-    this.paragraphs = old.paragraphs
-    this.boundingBox = old.boundingBox
-    this.glyphBox = old.glyphBox
-    return result
+    return this
+  }
+
+  updateBoundingBox(): this {
+    const { lineBox, glyphBox, pathBox } = this
+    const left = pathBox.left + lineBox.left - glyphBox.left
+    const top = pathBox.top + lineBox.top - glyphBox.top
+    const right = pathBox.right + Math.max(0, lineBox.right - glyphBox.right)
+    const bottom = pathBox.bottom + Math.max(0, lineBox.bottom - glyphBox.bottom)
+    this.boundingBox = new BoundingBox(
+      left,
+      top,
+      right - left,
+      bottom - top,
+    )
+    return this
   }
 
   requestUpdate(): this {
@@ -175,10 +209,10 @@ export class Text {
   }
 
   update(): this {
-    const { paragraphs, boundingBox, glyphBox } = this.measure()
-    this.paragraphs = paragraphs
-    this.boundingBox = boundingBox
-    this.glyphBox = glyphBox
+    const result = this.measure()
+    for (const key in result) {
+      (this as any)[key] = (result as any)[key]
+    }
     return this
   }
 
