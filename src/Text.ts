@@ -18,6 +18,7 @@ export interface TextOptions {
   style?: Partial<TextStyle>
   measureDom?: HTMLElement
   effects?: Partial<TextStyle>[]
+  fonts?: Record<string, Font>
 }
 
 export interface MeasureResult {
@@ -91,7 +92,7 @@ export class Text {
   parser = new Parser(this)
   measurer = new Measurer(this)
   plugins = new Map<string, Plugin>()
-  font?: Font
+  fonts?: Record<string, Font>
 
   get fontSize(): number {
     return this.computedStyle.fontSize
@@ -106,11 +107,12 @@ export class Text {
   }
 
   constructor(options: TextOptions = {}) {
-    const { content = '', style = {}, measureDom, effects } = options
+    const { content = '', style = {}, measureDom, effects, fonts } = options
     this.content = content
     this.style = style
     this.measureDom = measureDom
     this.effects = effects
+    this.fonts = fonts
 
     this
       .use(render())
@@ -120,6 +122,11 @@ export class Text {
 
   use(plugin: Plugin): this {
     this.plugins.set(plugin.name, plugin)
+    return this
+  }
+
+  updateParagraphs(): this {
+    this.paragraphs = this.parser.parse()
     return this
   }
 
@@ -133,12 +140,12 @@ export class Text {
       pathBox: this.pathBox,
       boundingBox: this.boundingBox,
     }
-    this.paragraphs = this.parser.parse()
+    this.updateParagraphs()
     const result = this.measurer.measure(dom) as MeasureResult
     this.paragraphs = result.paragraphs
     this.lineBox = result.boundingBox
     this.characters.forEach((c) => {
-      c.update(this.font)
+      c.update(this.fonts)
     })
     this.rawGlyphBox = this.getGlyphBox()
     const plugins = [...this.plugins.values()]
