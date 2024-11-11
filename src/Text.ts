@@ -1,3 +1,4 @@
+import type { Font } from 'modern-font'
 import type { Character, Paragraph } from './content'
 import type { Plugin } from './Plugin'
 import type { TextContent, TextStyle } from './types'
@@ -90,6 +91,7 @@ export class Text {
   parser = new Parser(this)
   measurer = new Measurer(this)
   plugins = new Map<string, Plugin>()
+  font?: Font
 
   get fontSize(): number {
     return this.computedStyle.fontSize
@@ -136,7 +138,7 @@ export class Text {
     this.paragraphs = result.paragraphs
     this.lineBox = result.boundingBox
     this.characters.forEach((c) => {
-      c.update()
+      c.update(this.font)
     })
     this.rawGlyphBox = this.getGlyphBox()
     const plugins = [...this.plugins.values()]

@@ -1,4 +1,4 @@
-import type { GlyphPathCommand, Sfnt } from 'modern-font'
+import type { Font, GlyphPathCommand, Sfnt } from 'modern-font'
 import type { Vector2, VectorLike } from 'modern-path2d'
 import type { FontWeight, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
@@ -84,23 +84,23 @@ export class Character {
     //
   }
 
-  protected _font(): Sfnt | undefined {
-    const font = fonts.get(this.computedStyle.fontFamily)?.font
-    if (font instanceof Woff || font instanceof Ttf) {
-      return font.sfnt
+  protected _getFontSfnt(font?: Font): Sfnt | undefined {
+    const _font = font ?? fonts.get(this.computedStyle.fontFamily)?.font
+    if (_font instanceof Woff || _font instanceof Ttf) {
+      return _font.sfnt
     }
     return undefined
   }
 
-  updateGlyph(font = this._font()): this {
-    if (!font) {
+  updateGlyph(sfnt = this._getFontSfnt()): this {
+    if (!sfnt) {
       return this
     }
-    const { unitsPerEm, ascender, descender, os2, post } = font
+    const { unitsPerEm, ascender, descender, os2, post } = sfnt
     const { content, computedStyle } = this
     const { fontSize } = computedStyle
     const rate = unitsPerEm / fontSize
-    const advanceWidth = font.getAdvanceWidth(content, fontSize)
+    const advanceWidth = sfnt.getAdvanceWidth(content, fontSize)
     const advanceHeight = (ascender + Math.abs(descender)) / rate
     const baseline = ascender / rate
     const yStrikeoutPosition = (ascender - os2.yStrikeoutPosition) / rate
@@ -118,14 +118,14 @@ export class Character {
     return this
   }
 
-  updatePath(): this {
-    const font = this._font()
+  update(font?: Font): this {
+    const sfnt = this._getFontSfnt(font)
 
-    if (!font) {
+    if (!sfnt) {
       return this
     }
 
-    this.updateGlyph(font)
+    this.updateGlyph(sfnt)
 
     const {
       isVertical,
@@ -135,7 +135,7 @@ export class Character {
       inlineBox,
     } = this
 
-    const { os2, head, ascender, descender } = font
+    const { os2, head, ascender, descender } = sfnt
     const typoAscender = os2.sTypoAscender
     const fontStyle: 'bold' | 'italic' | undefined = fsSelectionMap[os2.fsSelection] ?? macStyleMap[head.macStyle]
     const { left, top } = inlineBox
@@ -158,7 +158,7 @@ export class Character {
 
     if (isVertical && !set1.has(content) && (content.codePointAt(0)! <= 256 || set2.has(content))) {
       path.addCommands(
-        font.getPathCommands(content, x, top + baseline - (inlineBox.height - inlineBox.width) / 2, style.fontSize) ?? [],
+        sfnt.getPathCommands(content, x, top + baseline - (inlineBox.height - inlineBox.width) / 2, style.fontSize) ?? [],
       )
       const point = {
         y: top - (inlineBox.height - inlineBox.width) / 2 + inlineBox.height / 2,
@@ -180,7 +180,7 @@ export class Character {
     else {
       if (glyphIndex !== undefined) {
         path.addCommands(
-          font.glyphs.get(glyphIndex).getPathCommands(x, y, style.fontSize),
+          sfnt.glyphs.get(glyphIndex).getPathCommands(x, y, style.fontSize),
         )
         if (needsItalic) {
           this._italic(
@@ -196,7 +196,7 @@ export class Character {
       }
       else {
         path.addCommands(
-          font.getPathCommands(content, x, y, style.fontSize) ?? [],
+          sfnt.getPathCommands(content, x, y, style.fontSize) ?? [],
         )
         if (needsItalic) {
           this._italic(
@@ -234,12 +234,6 @@ export class Character {
     this.path = path
     this.glyphBox = this.getGlyphBoundingBox()
 
-    return this
-  }
-
-  update(): this {
-    this
-      .updatePath()
     return this
   }
 
