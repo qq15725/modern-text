@@ -22,6 +22,7 @@ export interface TextOptions {
 export interface MeasureResult {
   paragraphs: Paragraph[]
   lineBox: BoundingBox
+  rawGlyphBox: BoundingBox
   glyphBox: BoundingBox
   pathBox: BoundingBox
   boundingBox: BoundingBox
@@ -82,6 +83,7 @@ export class Text {
   computedStyle: TextStyle = { ...defaultTextStyles }
   paragraphs: Paragraph[] = []
   lineBox = new BoundingBox()
+  rawGlyphBox = new BoundingBox()
   glyphBox = new BoundingBox()
   pathBox = new BoundingBox()
   boundingBox = new BoundingBox()
@@ -124,6 +126,7 @@ export class Text {
     const old = {
       paragraphs: this.paragraphs,
       lineBox: this.lineBox,
+      rawGlyphBox: this.rawGlyphBox,
       glyphBox: this.glyphBox,
       pathBox: this.pathBox,
       boundingBox: this.boundingBox,
@@ -135,14 +138,15 @@ export class Text {
     this.characters.forEach((c) => {
       c.update()
     })
+    this.rawGlyphBox = this.getGlyphBox()
     const plugins = [...this.plugins.values()]
     plugins
       .sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
       .forEach((plugin) => {
         plugin.update?.(this)
       })
+    this.glyphBox = this.getGlyphBox()
     this
-      .updateGlyphBox()
       .updatePathBox()
       .updateBoundingBox()
     for (const key in old) {
@@ -152,7 +156,7 @@ export class Text {
     return result
   }
 
-  updateGlyphBox(): this {
+  getGlyphBox(): BoundingBox {
     const min = Vector2.MAX
     const max = Vector2.MIN
     this.characters.forEach((c) => {
@@ -164,13 +168,12 @@ export class Text {
         max.max(a, b)
       }
     })
-    this.glyphBox = new BoundingBox(
+    return new BoundingBox(
       min.x,
       min.y,
       max.x - min.x,
       max.y - min.y,
     )
-    return this
   }
 
   updatePathBox(): this {
@@ -189,11 +192,11 @@ export class Text {
   }
 
   updateBoundingBox(): this {
-    const { lineBox, glyphBox, pathBox } = this
-    const left = pathBox.left + lineBox.left - glyphBox.left
-    const top = pathBox.top + lineBox.top - glyphBox.top
-    const right = pathBox.right + Math.max(0, lineBox.right - glyphBox.right)
-    const bottom = pathBox.bottom + Math.max(0, lineBox.bottom - glyphBox.bottom)
+    const { lineBox, rawGlyphBox, pathBox } = this
+    const left = pathBox.left + lineBox.left - rawGlyphBox.left
+    const top = pathBox.top + lineBox.top - rawGlyphBox.top
+    const right = pathBox.right + Math.max(0, lineBox.right - rawGlyphBox.right)
+    const bottom = pathBox.bottom + Math.max(0, lineBox.bottom - rawGlyphBox.bottom)
     this.boundingBox = new BoundingBox(
       left,
       top,
