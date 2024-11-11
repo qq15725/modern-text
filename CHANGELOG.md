@@ -1,3 +1,13 @@
+## [0.3.6](https://github.com/qq15725/modern-text/compare/v0.3.5...v0.3.6) (2024-11-11)
+
+
+### Features
+
+* supports set font ([bfff199](https://github.com/qq15725/modern-text/commit/bfff1996974a7e06f23fda1701939d724c75b593))
+* up font dep ([6fae046](https://github.com/qq15725/modern-text/commit/6fae046c5a2816e53afb1acc90a173a35cda90b9))
+
+
+
 ## [0.3.5](https://github.com/qq15725/modern-text/compare/v0.3.4...v0.3.5) (2024-11-11)
 
 
