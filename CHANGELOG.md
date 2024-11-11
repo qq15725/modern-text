@@ -1,3 +1,12 @@
+## [0.3.7](https://github.com/qq15725/modern-text/compare/v0.3.6...v0.3.7) (2024-11-11)
+
+
+### Bug Fixes
+
+* update by fonts ([c67ddcd](https://github.com/qq15725/modern-text/commit/c67ddcdf441eb2d28f44a01b80d698beb5c08f0a))
+
+
+
 ## [0.3.6](https://github.com/qq15725/modern-text/compare/v0.3.5...v0.3.6) (2024-11-11)
 
 
