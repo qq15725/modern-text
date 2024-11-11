@@ -195,8 +195,8 @@ export class Text {
     const { lineBox, rawGlyphBox, pathBox } = this
     const left = pathBox.left + lineBox.left - rawGlyphBox.left
     const top = pathBox.top + lineBox.top - rawGlyphBox.top
-    const right = pathBox.right + Math.max(0, lineBox.right - rawGlyphBox.right)
-    const bottom = pathBox.bottom + Math.max(0, lineBox.bottom - rawGlyphBox.bottom)
+    const right = pathBox.right + lineBox.right - rawGlyphBox.right
+    const bottom = pathBox.bottom + lineBox.bottom - rawGlyphBox.bottom
     this.boundingBox = new BoundingBox(
       left,
       top,

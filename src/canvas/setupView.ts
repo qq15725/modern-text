@@ -5,8 +5,8 @@ export function setupView(ctx: CanvasRenderingContext2D, pixelRatio: number, bou
   const view = ctx.canvas
   view.dataset.viewBox = String(`${left} ${top} ${width} ${height}`)
   view.dataset.pixelRatio = String(pixelRatio)
-  const canvasWidth = width + Math.abs(left)
-  const canvasHeight = height + Math.abs(top)
+  const canvasWidth = width
+  const canvasHeight = height
   view.width = Math.max(1, Math.ceil(canvasWidth * pixelRatio))
   view.height = Math.max(1, Math.ceil(canvasHeight * pixelRatio))
   view.style.width = `${canvasWidth}px`
