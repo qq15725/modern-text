@@ -13,5 +13,5 @@ export function setupView(ctx: CanvasRenderingContext2D, pixelRatio: number, bou
   view.style.height = `${canvasHeight}px`
   ctx.clearRect(0, 0, view.width, view.height)
   ctx.scale(pixelRatio, pixelRatio)
-  ctx.translate(-Math.min(0, left), -Math.min(0, top))
+  ctx.translate(-left, -top)
 }
