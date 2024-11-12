@@ -124,6 +124,7 @@ export class Text {
   }
 
   updateParagraphs(): this {
+    this.computedStyle = { ...defaultTextStyles, ...this.style }
     let { content, computedStyle: style } = this
     const paragraphs: Paragraph[] = []
     if (typeof content === 'string') {
@@ -180,7 +181,6 @@ export class Text {
   }
 
   measure(dom = this.measureDom): MeasureResult {
-    this.computedStyle = { ...defaultTextStyles, ...this.style }
     const old = {
       paragraphs: this.paragraphs,
       lineBox: this.lineBox,

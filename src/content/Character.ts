@@ -98,7 +98,7 @@ export class Character {
         sfnt = globalFonts.get(fontFamily)?.getSfnt()
       }
     }
-    return sfnt ?? globalFonts.fallbackFont?.getSfnt()
+    return sfnt
   }
 
   updateGlyph(sfnt = this._getFontSfnt()): this {
