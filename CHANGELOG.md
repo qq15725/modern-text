@@ -1,3 +1,12 @@
+## [0.3.9](https://github.com/qq15725/modern-text/compare/v0.3.8...v0.3.9) (2024-11-12)
+
+
+### Bug Fixes
+
+* updateParagraphs ([d7f1b34](https://github.com/qq15725/modern-text/commit/d7f1b3438c9bd1a3d872d2ede5d8999526abfa2a))
+
+
+
 ## [0.3.8](https://github.com/qq15725/modern-text/compare/v0.3.7...v0.3.8) (2024-11-12)
 
 
