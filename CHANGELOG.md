@@ -1,3 +1,12 @@
+## [0.3.8](https://github.com/qq15725/modern-text/compare/v0.3.7...v0.3.8) (2024-11-12)
+
+
+### Features
+
+* up font dep ([ab7fc2b](https://github.com/qq15725/modern-text/commit/ab7fc2b1f972710007e0e76e1a8e79f485b02a3b))
+
+
+
 ## [0.3.7](https://github.com/qq15725/modern-text/compare/v0.3.6...v0.3.7) (2024-11-11)
 
 
