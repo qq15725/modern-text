@@ -1,15 +1,14 @@
-import type { Plugin } from '../Plugin'
 import type { Text } from '../Text'
-import type { TextStyle } from '../types'
+import type { TextPlugin, TextStyle } from '../types'
 import { BoundingBox, Matrix3, Vector2 } from 'modern-path2d'
 import { uploadColor } from '../canvas'
-import { definePlugin } from '../Plugin'
+import { definePlugin } from '../definePlugin'
 
 const tempV1 = new Vector2()
 const tempM1 = new Matrix3()
 const tempM2 = new Matrix3()
 
-export function render(): Plugin {
+export function render(): TextPlugin {
   return definePlugin({
     name: 'render',
     getBoundingBox: (text) => {

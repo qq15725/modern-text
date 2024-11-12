@@ -1,3 +1,6 @@
+import type { BoundingBox, Path2D } from 'modern-path2d'
+import type { Text } from './Text'
+
 export type Sizeable = `${number}%` | `${number}rem` | number
 export type WritingMode = 'horizontal-tb' | 'vertical-lr' | 'vertical-rl'
 export type TextOrientation = 'mixed' | 'upright' | 'sideways-right' | 'sideways' /* | 'use-glyph-orientation' */
@@ -84,3 +87,15 @@ export type TextContent =
   | FragmentContent
   | ParagraphContent
   | (string | FragmentContent | ParagraphContent | (string | FragmentContent)[])[]
+
+type PromiseLike<T> = T | Promise<T>
+
+export interface TextPlugin {
+  name: string
+  paths?: Path2D[]
+  getBoundingBox?: (text: Text) => BoundingBox | undefined
+  updateOrder?: number
+  update?: (text: Text) => PromiseLike<void>
+  renderOrder?: number
+  render?: (ctx: CanvasRenderingContext2D, text: Text) => PromiseLike<void>
+}

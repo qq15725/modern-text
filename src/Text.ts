@@ -1,11 +1,10 @@
 import type { Font } from 'modern-font'
-import type { Character, Paragraph } from './content'
-import type { Plugin } from './Plugin'
-import type { TextContent, TextStyle } from './types'
+import type { Character } from './content'
+import type { TextContent, TextPlugin, TextStyle } from './types'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
+import { Paragraph } from './content'
 import { Measurer } from './Measurer'
-import { Parser } from './Parser'
 import { highlight, listStyle, render } from './plugins'
 
 export interface TextRenderOptions {
@@ -38,7 +37,7 @@ export const defaultTextStyles: TextStyle = {
   // font
   fontSize: 14,
   fontWeight: 'normal',
-  fontFamily: '_fallback',
+  fontFamily: '',
   fontStyle: 'normal',
   fontKerning: 'normal',
   // text
@@ -89,9 +88,8 @@ export class Text {
   glyphBox = new BoundingBox()
   pathBox = new BoundingBox()
   boundingBox = new BoundingBox()
-  parser = new Parser(this)
   measurer = new Measurer(this)
-  plugins = new Map<string, Plugin>()
+  plugins = new Map<string, TextPlugin>()
   fonts?: Record<string, Font>
 
   get fontSize(): number {
@@ -120,13 +118,64 @@ export class Text {
       .use(listStyle())
   }
 
-  use(plugin: Plugin): this {
+  use(plugin: TextPlugin): this {
     this.plugins.set(plugin.name, plugin)
     return this
   }
 
   updateParagraphs(): this {
-    this.paragraphs = this.parser.parse()
+    let { content, computedStyle: style } = this
+    const paragraphs: Paragraph[] = []
+    if (typeof content === 'string') {
+      const paragraph = new Paragraph({}, style)
+      paragraph.addFragment(content)
+      paragraphs.push(paragraph)
+    }
+    else {
+      content = Array.isArray(content) ? content : [content]
+      for (const p of content) {
+        if (typeof p === 'string') {
+          const paragraph = new Paragraph({}, style)
+          paragraph.addFragment(p)
+          paragraphs.push(paragraph)
+        }
+        else if (Array.isArray(p)) {
+          const paragraph = new Paragraph({}, style)
+          p.forEach((f) => {
+            if (typeof f === 'string') {
+              paragraph.addFragment(f)
+            }
+            else {
+              const { content, ...fStyle } = f
+              if (content !== undefined) {
+                paragraph.addFragment(content, fStyle)
+              }
+            }
+          })
+          paragraphs.push(paragraph)
+        }
+        else if ('fragments' in p) {
+          const { fragments, ...pStyle } = p
+          const paragraph = new Paragraph(pStyle, style)
+          fragments.forEach((f) => {
+            const { content, ...fStyle } = f
+            if (content !== undefined) {
+              paragraph.addFragment(content, fStyle)
+            }
+          })
+          paragraphs.push(paragraph)
+        }
+        else if ('content' in p) {
+          const { content: pData, ...pStyle } = p
+          if (pData !== undefined) {
+            const paragraph = new Paragraph(pStyle, style)
+            paragraph.addFragment(pData)
+            paragraphs.push(paragraph)
+          }
+        }
+      }
+    }
+    this.paragraphs = paragraphs
     return this
   }
 

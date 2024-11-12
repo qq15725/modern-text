@@ -86,11 +86,19 @@ export class Character {
 
   protected _getFontSfnt(fonts?: Record<string, Font>): Sfnt | undefined {
     const fontFamily = this.computedStyle.fontFamily
-    const _font = fonts?.[fontFamily] ?? globalFonts.get(this.computedStyle.fontFamily)?.font
-    if (_font instanceof Woff || _font instanceof Ttf) {
-      return _font.sfnt
+    let sfnt: Sfnt | undefined
+    if (fontFamily) {
+      if (!sfnt) {
+        const font = fonts?.[fontFamily]
+        if (font instanceof Ttf || font instanceof Woff) {
+          sfnt = font.sfnt
+        }
+      }
+      if (!sfnt) {
+        sfnt = globalFonts.get(fontFamily)?.getSfnt()
+      }
     }
-    return undefined
+    return sfnt ?? globalFonts.fallbackFont?.getSfnt()
   }
 
   updateGlyph(sfnt = this._getFontSfnt()): this {

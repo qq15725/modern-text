@@ -1,7 +1,7 @@
 import { fonts, renderText } from '../../src'
 
 async function loadFallbackFont(): Promise<void> {
-  fonts.fallbackFont = await fonts.load({ family: '_fallback', url: '/fallback.woff' })
+  fonts.fallbackFont = await fonts.load({ src: '/fallback.woff' }, { noAdd: true })
 }
 
 window.onload = async () => {
