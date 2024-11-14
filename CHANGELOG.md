@@ -1,3 +1,9 @@
+## <small>0.4.1 (2024-11-14)</small>
+
+* fix: fallbackFont ([c3eeb10](https://github.com/qq15725/modern-text/commit/c3eeb10))
+
+
+
 ## 0.4.0 (2024-11-14)
 
 * feat: change fonts option type define, cancel export dep lib ([676094a](https://github.com/qq15725/modern-text/commit/676094a))
