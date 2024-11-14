@@ -2,7 +2,7 @@ import { fonts } from 'modern-font'
 import { renderText } from '../../src'
 
 async function loadFallbackFont(): Promise<void> {
-  fonts.fallbackFont = await fonts.load({ src: '/fallback.woff' }, { noAdd: true })
+  fonts.fallbackFont = await fonts.load({ family: 'fallbackFont', src: '/fallback.woff' })
 }
 
 window.onload = async () => {

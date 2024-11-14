@@ -5,7 +5,7 @@ import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
 import { Measurer } from './Measurer'
-import { highlight, listStyle, render } from './plugins'
+import { highlight, listStyle, render, textDecoration } from './plugins'
 
 export interface TextRenderOptions {
   view: HTMLCanvasElement
@@ -113,13 +113,25 @@ export class Text {
     this.fonts = fonts
 
     this
-      .use(render())
-      .use(highlight())
       .use(listStyle())
+      .use(textDecoration())
+      .use(highlight())
+      .use(render())
   }
 
   use(plugin: TextPlugin): this {
     this.plugins.set(plugin.name, plugin)
+    return this
+  }
+
+  forEachCharacter(handle: (character: Character, ctx: { paragraphIndex: number, fragmentIndex: number, characterIndex: number }) => void): this {
+    this.paragraphs.forEach((p, paragraphIndex) => {
+      p.fragments.forEach((f, fragmentIndex) => {
+        f.characters.forEach((c, characterIndex) => {
+          handle(c, { paragraphIndex, fragmentIndex, characterIndex })
+        })
+      })
+    })
     return this
   }
 

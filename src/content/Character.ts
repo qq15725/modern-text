@@ -1,4 +1,4 @@
-import type { Fonts, GlyphPathCommand, Sfnt } from 'modern-font'
+import type { Fonts, Sfnt } from 'modern-font'
 import type { Vector2, VectorLike } from 'modern-path2d'
 import type { FontWeight, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
@@ -45,16 +45,26 @@ const fontWeightMap: Record<FontWeight, number> = {
 }
 
 export class Character {
+  path = new Path2D()
   lineBox = new BoundingBox()
   inlineBox = new BoundingBox()
   glyphBox: BoundingBox | undefined
   underlinePosition = 0
   underlineThickness = 0
-  yStrikeoutPosition = 0
-  yStrikeoutSize = 0
+  strikeoutPosition = 0
+  strikeoutSize = 0
+  ascender = 0
+  descender = 0
+  typoAscender = 0
+  typoDescender = 0
+  typoLineGap = 0
+  winAscent = 0
+  winDescent = 0
+  xHeight = 0
+  capHeight = 0
   baseline = 0
   centerDiviation = 0
-  path = new Path2D()
+  fontStyle?: 'bold' | 'italic'
 
   get center(): Vector2 | undefined {
     return this.glyphBox?.center
@@ -97,25 +107,34 @@ export class Character {
     if (!sfnt) {
       return this
     }
-    const { unitsPerEm, ascender, descender, os2, post } = sfnt
+    const { hhea, os2, post, head } = sfnt
+    const unitsPerEm = head.unitsPerEm
+    const ascender = hhea.ascent
+    const descender = hhea.descent
     const { content, computedStyle } = this
     const { fontSize } = computedStyle
     const rate = unitsPerEm / fontSize
     const advanceWidth = sfnt.getAdvanceWidth(content, fontSize)
     const advanceHeight = (ascender + Math.abs(descender)) / rate
     const baseline = ascender / rate
-    const yStrikeoutPosition = (ascender - os2.yStrikeoutPosition) / rate
-    const yStrikeoutSize = os2.yStrikeoutSize / rate
-    const underlinePosition = (ascender - post.underlinePosition) / rate
-    const underlineThickness = post.underlineThickness / rate
     this.inlineBox.width = advanceWidth
     this.inlineBox.height = advanceHeight
-    this.underlinePosition = underlinePosition
-    this.underlineThickness = underlineThickness
-    this.yStrikeoutPosition = yStrikeoutPosition
-    this.yStrikeoutSize = yStrikeoutSize
+    this.underlinePosition = (ascender - post.underlinePosition) / rate
+    this.underlineThickness = post.underlineThickness / rate
+    this.strikeoutPosition = (ascender - os2.yStrikeoutPosition) / rate
+    this.strikeoutSize = os2.yStrikeoutSize / rate
+    this.ascender = ascender / rate
+    this.descender = descender / rate
+    this.typoAscender = os2.sTypoAscender / rate
+    this.typoDescender = os2.sTypoDescender / rate
+    this.typoLineGap = os2.sTypoLineGap / rate
+    this.winAscent = os2.usWinAscent / rate
+    this.winDescent = os2.usWinDescent / rate
+    this.xHeight = os2.sxHeight / rate
+    this.capHeight = os2.sCapHeight / rate
     this.baseline = baseline
     this.centerDiviation = advanceHeight / 2 - baseline
+    this.fontStyle = fsSelectionMap[os2.fsSelection] ?? macStyleMap[head.macStyle]
     return this
   }
 
@@ -134,11 +153,12 @@ export class Character {
       computedStyle: style,
       baseline,
       inlineBox,
+      ascender,
+      descender,
+      typoAscender,
+      fontStyle,
     } = this
 
-    const { os2, head, ascender, descender } = sfnt
-    const typoAscender = os2.sTypoAscender
-    const fontStyle: 'bold' | 'italic' | undefined = fsSelectionMap[os2.fsSelection] ?? macStyleMap[head.macStyle]
     const { left, top } = inlineBox
     const needsItalic = style.fontStyle === 'italic' && fontStyle !== 'italic'
 
@@ -210,8 +230,6 @@ export class Character {
       }
     }
 
-    path.addCommands(this._decoration())
-
     const fontWeight = style.fontWeight ?? 400
     if (
       fontWeight in fontWeightMap
@@ -236,55 +254,6 @@ export class Character {
     this.glyphBox = this.getGlyphBoundingBox()
 
     return this
-  }
-
-  protected _decoration(): GlyphPathCommand[] {
-    const { isVertical, underlinePosition, yStrikeoutPosition } = this
-    const { textDecoration, fontSize } = this.computedStyle
-    const { left, top, width, height } = this.inlineBox
-    const lineWidth = 0.1 * fontSize
-
-    let start: number
-    switch (textDecoration) {
-      case 'underline':
-        if (isVertical) {
-          start = left
-        }
-        else {
-          start = top + underlinePosition
-        }
-        break
-      case 'line-through':
-        if (isVertical) {
-          start = left + width / 2
-        }
-        else {
-          start = top + yStrikeoutPosition
-        }
-        break
-      case 'none':
-      default:
-        return []
-    }
-
-    if (isVertical) {
-      return [
-        { type: 'M', x: start, y: top },
-        { type: 'L', x: start, y: top + height },
-        { type: 'L', x: start + lineWidth, y: top + height },
-        { type: 'L', x: start + lineWidth, y: top },
-        { type: 'Z' },
-      ]
-    }
-    else {
-      return [
-        { type: 'M', x: left, y: start },
-        { type: 'L', x: left + width, y: start },
-        { type: 'L', x: left + width, y: start + lineWidth },
-        { type: 'L', x: left, y: start + lineWidth },
-        { type: 'Z' },
-      ]
-    }
   }
 
   protected _italic(path: Path2D, startPoint?: VectorLike): void {

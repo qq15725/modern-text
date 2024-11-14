@@ -103,12 +103,11 @@ export function highlight(): TextPlugin {
     paths,
     update: (text) => {
       paths.length = 0
-      const { characters } = text
-      let group: Character[]
       const groups: Character[][] = []
+      let group: Character[]
       let prevStyle: TextStyle | undefined
-      characters.forEach((character) => {
-        const { isVertical, computedStyle: style } = character
+      text.forEachCharacter((character) => {
+        const { isVertical, computedStyle: style, inlineBox, fontSize } = character
         if (!isNone(style.highlightImage) && character.glyphBox) {
           if (
             style.highlightSize !== '1rem'
@@ -119,10 +118,10 @@ export function highlight(): TextPlugin {
             && group?.length
             && (
               isVertical
-                ? group[0].inlineBox.left === character.inlineBox.left
-                : group[0].inlineBox.top === character.inlineBox.top
+                ? group[0].inlineBox.left === inlineBox.left
+                : group[0].inlineBox.top === inlineBox.top
             )
-            && group[0].fontSize === character.fontSize
+            && group[0].fontSize === fontSize
           ) {
             group.push(character)
           }
@@ -141,12 +140,12 @@ export function highlight(): TextPlugin {
           const char = characters[0]!
           return {
             style: char.computedStyle!,
-            baseline: char.baseline,
+            unitHeight: char.typoAscender + char.typoDescender,
             box: BoundingBox.from(...characters.map(c => c.glyphBox!)),
           }
         })
         .forEach((group) => {
-          const { style, box: groupBox, baseline } = group
+          const { style, box: groupBox, unitHeight } = group
           const { fontSize, writingMode } = style
           const isVertical = writingMode.includes('vertical')
           const strokeWidthScale = parseStrokeWidthScale(style.highlightStrokeWidth, fontSize, groupBox.width)
@@ -159,7 +158,6 @@ export function highlight(): TextPlugin {
           const box = getPathsBoundingBox(svgPaths, true)!
           const refBox = getPathsBoundingBox(refPaths, false)!
           const unitWidth = charsPerRepeat ? (fontSize * charsPerRepeat) : isVertical ? groupBox.height : groupBox.width
-          const unitHeight = baseline * 0.8
           const transform = getTransformMatrix(
             box,
             refBox,

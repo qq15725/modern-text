@@ -42,7 +42,7 @@ export function render(): TextPlugin {
       return boxes.length ? BoundingBox.from(...boxes) : undefined
     },
     render: (ctx, text) => {
-      const { characters, paragraphs, glyphBox, effects, style } = text
+      const { paragraphs, glyphBox, effects, style } = text
       function fillBackground(color: any, box: BoundingBox): void {
         ctx.fillStyle = color
         ctx.fillRect(box.left, box.top, box.width, box.height)
@@ -61,7 +61,7 @@ export function render(): TextPlugin {
           ctx.save()
           const [a, c, e, b, d, f] = getTransform2D(text, style).transpose().elements
           ctx.transform(a, b, c, d, e, f)
-          characters.forEach((character) => {
+          text.forEachCharacter((character) => {
             if (character.parent.style?.backgroundColor) {
               fillBackground(character.parent.style.backgroundColor, character.inlineBox)
             }
