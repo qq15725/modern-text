@@ -251,10 +251,10 @@ export class Text {
 
   updateBoundingBox(): this {
     const { lineBox, rawGlyphBox, pathBox } = this
-    const left = pathBox.left + lineBox.left - rawGlyphBox.left
-    const top = pathBox.top + lineBox.top - rawGlyphBox.top
-    const right = pathBox.right + lineBox.right - rawGlyphBox.right
-    const bottom = pathBox.bottom + lineBox.bottom - rawGlyphBox.bottom
+    const left = Math.min(pathBox.left, pathBox.left + lineBox.left - rawGlyphBox.left)
+    const top = Math.min(pathBox.top, pathBox.top + lineBox.top - rawGlyphBox.top)
+    const right = Math.max(pathBox.right, pathBox.right + lineBox.right - rawGlyphBox.right)
+    const bottom = Math.max(pathBox.bottom, pathBox.bottom + lineBox.bottom - rawGlyphBox.bottom)
     this.boundingBox = new BoundingBox(
       left,
       top,
