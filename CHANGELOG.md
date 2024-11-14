@@ -1,3 +1,9 @@
+## <small>0.4.2 (2024-11-14)</small>
+
+* fix: boundingBox ([54f1732](https://github.com/qq15725/modern-text/commit/54f1732))
+
+
+
 ## <small>0.4.1 (2024-11-14)</small>
 
 * fix: fallbackFont ([c3eeb10](https://github.com/qq15725/modern-text/commit/c3eeb10))
