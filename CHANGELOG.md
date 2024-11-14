@@ -1,3 +1,9 @@
+## 0.4.0 (2024-11-14)
+
+* feat: change fonts option type define, cancel export dep lib ([676094a](https://github.com/qq15725/modern-text/commit/676094a))
+
+
+
 ## [0.3.9](https://github.com/qq15725/modern-text/compare/v0.3.8...v0.3.9) (2024-11-12)
 
 
