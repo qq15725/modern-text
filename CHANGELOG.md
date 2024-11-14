@@ -1,3 +1,9 @@
+## <small>0.4.3 (2024-11-14)</small>
+
+* feat: add textDecoration plugin ([7f5c619](https://github.com/qq15725/modern-text/commit/7f5c619))
+
+
+
 ## <small>0.4.2 (2024-11-14)</small>
 
 * fix: boundingBox ([54f1732](https://github.com/qq15725/modern-text/commit/54f1732))
