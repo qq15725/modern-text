@@ -86,12 +86,11 @@ export class Character {
 
   protected _getFontSfnt(fonts?: Fonts): Sfnt | undefined {
     const fontFamily = this.computedStyle.fontFamily
-    let sfnt: Sfnt | undefined
-    if (fontFamily) {
-      sfnt = fonts?.get(fontFamily)?.getSfnt()
-      ?? globalFonts.get(fontFamily)?.getSfnt()
-    }
-    return sfnt
+    const _fonts = (fonts ?? globalFonts)
+    const font = fontFamily
+      ? _fonts.get(fontFamily)
+      : _fonts.fallbackFont
+    return font?.getSfnt()
   }
 
   updateGlyph(sfnt = this._getFontSfnt()): this {
