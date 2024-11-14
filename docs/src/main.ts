@@ -1,4 +1,5 @@
-import { fonts, renderText } from '../../src'
+import { fonts } from 'modern-font'
+import { renderText } from '../../src'
 
 async function loadFallbackFont(): Promise<void> {
   fonts.fallbackFont = await fonts.load({ src: '/fallback.woff' }, { noAdd: true })
@@ -10,7 +11,7 @@ window.onload = async () => {
     const fixture = await (importJson as () => Promise<any>)().then(rep => rep.default)
     const view = document.createElement('canvas')
     view.dataset.file = key
-    const text = renderText({ view, pixelRatio: 2, ...fixture })
+    const text = renderText({ fonts, view, pixelRatio: 2, ...fixture })
     document.body.append(view)
     console.warn(text, text.measure())
   }

@@ -1,8 +1,8 @@
-import type { Font, GlyphPathCommand, Sfnt } from 'modern-font'
+import type { Fonts, GlyphPathCommand, Sfnt } from 'modern-font'
 import type { Vector2, VectorLike } from 'modern-path2d'
 import type { FontWeight, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
-import { fonts as globalFonts, Ttf, Woff } from 'modern-font'
+import { fonts as globalFonts } from 'modern-font'
 import { BoundingBox, Path2D } from 'modern-path2d'
 import { drawPath } from '../canvas'
 
@@ -84,19 +84,12 @@ export class Character {
     //
   }
 
-  protected _getFontSfnt(fonts?: Record<string, Font>): Sfnt | undefined {
+  protected _getFontSfnt(fonts?: Fonts): Sfnt | undefined {
     const fontFamily = this.computedStyle.fontFamily
     let sfnt: Sfnt | undefined
     if (fontFamily) {
-      if (!sfnt) {
-        const font = fonts?.[fontFamily]
-        if (font instanceof Ttf || font instanceof Woff) {
-          sfnt = font.sfnt
-        }
-      }
-      if (!sfnt) {
-        sfnt = globalFonts.get(fontFamily)?.getSfnt()
-      }
+      sfnt = fonts?.get(fontFamily)?.getSfnt()
+      ?? globalFonts.get(fontFamily)?.getSfnt()
     }
     return sfnt
   }
@@ -127,7 +120,7 @@ export class Character {
     return this
   }
 
-  update(fonts?: Record<string, Font>): this {
+  update(fonts?: Fonts): this {
     const sfnt = this._getFontSfnt(fonts)
 
     if (!sfnt) {

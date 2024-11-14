@@ -8,6 +8,3 @@ export * from './renderText'
 export * from './Text'
 export * from './types'
 export * from './utils'
-
-export * from 'modern-font'
-export * from 'modern-path2d'

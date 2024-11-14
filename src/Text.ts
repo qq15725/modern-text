@@ -1,4 +1,4 @@
-import type { Font } from 'modern-font'
+import type { Fonts } from 'modern-font'
 import type { Character } from './content'
 import type { TextContent, TextPlugin, TextStyle } from './types'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
@@ -17,7 +17,7 @@ export interface TextOptions {
   style?: Partial<TextStyle>
   measureDom?: HTMLElement
   effects?: Partial<TextStyle>[]
-  fonts?: Record<string, Font>
+  fonts?: Fonts
 }
 
 export interface MeasureResult {
@@ -90,7 +90,7 @@ export class Text {
   boundingBox = new BoundingBox()
   measurer = new Measurer(this)
   plugins = new Map<string, TextPlugin>()
-  fonts?: Record<string, Font>
+  fonts?: Fonts
 
   get fontSize(): number {
     return this.computedStyle.fontSize
