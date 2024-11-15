@@ -1,3 +1,9 @@
+## <small>0.4.4 (2024-11-15)</small>
+
+* fix: highlight ([7a12aba](https://github.com/qq15725/modern-text/commit/7a12aba))
+
+
+
 ## <small>0.4.3 (2024-11-14)</small>
 
 * feat: add textDecoration plugin ([7f5c619](https://github.com/qq15725/modern-text/commit/7f5c619))
