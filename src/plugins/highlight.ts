@@ -1,7 +1,7 @@
+import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
 import type { HighlightSize, HighlightStrokeWidth, TextPlugin, TextStyle } from '../types'
-import { BoundingBox, Matrix3, type Path2D } from 'modern-path2d'
-import { getPathsBoundingBox, parseSvg } from 'modern-path2d'
+import { BoundingBox, getPathsBoundingBox, Matrix3, parseSvg } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
 import { isNone } from '../utils'
@@ -47,7 +47,7 @@ function parseStrokeWidthScale(strokeWidth: HighlightStrokeWidth, fontSize: numb
   }
 }
 
-function getTransformMatrix(a: BoundingBox, b: BoundingBox, c: BoundingBox, isVertical: boolean): Matrix3 {
+function getTransformMatrix(a: BoundingBox, b: BoundingBox, c: BoundingBox, isVertical: boolean, type: string): Matrix3 {
   let scale
   if (!isVertical) {
     scale = {
@@ -67,10 +67,20 @@ function getTransformMatrix(a: BoundingBox, b: BoundingBox, c: BoundingBox, isVe
         .sub(b.center)
         .scale(scale.x, scale.y),
     )
-    .sub({
-      x: a.width / 2 * scale.x,
-      y: a.height / 2 * scale.y,
-    })
+  if (type === 'line') {
+    offset
+      .sub({
+        x: a.width / 2 * scale.x,
+        y: a.height * scale.y,
+      })
+  }
+  else {
+    offset
+      .sub({
+        x: a.width / 2 * scale.x,
+        y: a.height / 2 * scale.y,
+      })
+  }
   const m = new Matrix3()
   m.translate(-a.left, -a.top)
   if (isVertical) {
@@ -139,13 +149,13 @@ export function highlight(): TextPlugin {
         .map((characters) => {
           const char = characters[0]!
           return {
-            style: char.computedStyle!,
-            unitHeight: char.typoAscender + char.typoDescender,
-            box: BoundingBox.from(...characters.map(c => c.glyphBox!)),
+            char,
+            groupBox: BoundingBox.from(...characters.map(c => c.glyphBox!)),
           }
         })
         .forEach((group) => {
-          const { style, box: groupBox, unitHeight } = group
+          const { char, groupBox } = group
+          const style = char.computedStyle
           const { fontSize, writingMode } = style
           const isVertical = writingMode.includes('vertical')
           const strokeWidthScale = parseStrokeWidthScale(style.highlightStrokeWidth, fontSize, groupBox.width)
@@ -158,11 +168,22 @@ export function highlight(): TextPlugin {
           const box = getPathsBoundingBox(svgPaths, true)!
           const refBox = getPathsBoundingBox(refPaths, false)!
           const unitWidth = charsPerRepeat ? (fontSize * charsPerRepeat) : isVertical ? groupBox.height : groupBox.width
+          let unitHeight
+          let type: 'block' | 'line'
+          if (box.height / refBox.height > 0.8) {
+            type = 'block'
+            unitHeight = groupBox.height
+          }
+          else {
+            type = 'line'
+            unitHeight = char.inlineBox.top - groupBox.top + char.underlinePosition
+          }
           const transform = getTransformMatrix(
             box,
             refBox,
             new BoundingBox(groupBox.left, groupBox.top, isVertical ? unitHeight : unitWidth, isVertical ? unitWidth : unitHeight),
             isVertical,
+            type,
           )
           const styleScale = fontSize / box.width * 2
           const total = Math.ceil(groupBox.width / unitWidth)

@@ -17,12 +17,17 @@ export function textDecoration(): TextPlugin {
       let group: Character[]
       let prevStyle: TextStyle | undefined
       text.forEachCharacter((character) => {
-        const { computedStyle: style, underlinePosition, underlineThickness, strikeoutPosition, strikeoutSize } = character
+        const { computedStyle: style, isVertical, inlineBox, underlinePosition, underlineThickness, strikeoutPosition, strikeoutSize } = character
         if (!isNone(style.textDecoration)) {
           let flag = false
           if (
             prevStyle?.textDecoration === style.textDecoration
             && prevStyle?.writingMode === style.writingMode
+            && (
+              isVertical
+                ? group[0].inlineBox.left === inlineBox.left
+                : group[0].inlineBox.top === inlineBox.top
+            )
           ) {
             switch (style.textDecoration) {
               case 'underline':

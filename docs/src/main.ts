@@ -3,6 +3,7 @@ import { renderText } from '../../src'
 
 async function loadFallbackFont(): Promise<void> {
   fonts.fallbackFont = await fonts.load({ family: 'fallbackFont', src: '/fallback.woff' })
+  await fonts.load({ family: 'AaHouDiHei', src: '/AaHouDiHei.woff' })
 }
 
 window.onload = async () => {
