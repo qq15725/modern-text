@@ -314,7 +314,6 @@ export class Text {
               ctx,
               path,
               fontSize: style.fontSize,
-              color: style.color,
             })
           })
         }
