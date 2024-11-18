@@ -1,3 +1,18 @@
+## [0.4.5](https://github.com/qq15725/modern-text/compare/v0.4.4...v0.4.5) (2024-11-18)
+
+
+### Bug Fixes
+
+* color ([2261d2b](https://github.com/qq15725/modern-text/commit/2261d2b98f6509f667c17f66a49b3f9ea2aa8c0a))
+* textDecoration color ([2ddb711](https://github.com/qq15725/modern-text/commit/2ddb7112b7dc79f2b40a32ee8bc2a91d712f8dc9))
+
+
+### Features
+
+* up deps ([279ae91](https://github.com/qq15725/modern-text/commit/279ae919e509493dd0145cfe0b37ede9372ba7b1))
+
+
+
 ## <small>0.4.4 (2024-11-15)</small>
 
 * fix: highlight ([7a12aba](https://github.com/qq15725/modern-text/commit/7a12aba))
