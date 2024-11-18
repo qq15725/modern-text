@@ -104,18 +104,19 @@ export function textDecoration(): TextPlugin {
       })
     },
     render: (ctx, text) => {
-      const { effects, fontSize } = text
+      const { effects, computedStyle: style } = text
       if (effects) {
-        effects.forEach((style) => {
+        effects.forEach((effectStyle) => {
           ctx.save()
-          const [a, c, e, b, d, f] = getTransform2D(text, style).transpose().elements
+          const [a, c, e, b, d, f] = getTransform2D(text, effectStyle).transpose().elements
           ctx.transform(a, b, c, d, e, f)
           paths.forEach((path) => {
             drawPath({
               ctx,
               path,
-              fontSize,
-              ...style,
+              fontSize: style.fontSize,
+              color: style.color,
+              ...effectStyle,
             })
           })
           ctx.restore()
@@ -126,7 +127,8 @@ export function textDecoration(): TextPlugin {
           drawPath({
             ctx,
             path,
-            fontSize,
+            fontSize: style.fontSize,
+            color: style.color,
           })
         })
       }

@@ -282,11 +282,12 @@ export class Character {
   }
 
   drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextStyle> = {}): void {
+    const style = this.computedStyle
     drawPath({
       ctx,
       path: this.path,
-      fontSize: this.computedStyle.fontSize,
-      color: this.computedStyle.color,
+      fontSize: style.fontSize,
+      color: style.color,
       ...config,
     })
   }

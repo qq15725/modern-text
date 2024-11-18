@@ -308,11 +308,13 @@ export class Text {
           plugin.render?.(ctx, this)
         }
         else if (plugin.paths) {
+          const style = this.computedStyle
           plugin.paths.forEach((path) => {
             drawPath({
               ctx,
               path,
-              fontSize: this.computedStyle.fontSize,
+              fontSize: style.fontSize,
+              color: style.color,
             })
           })
         }
