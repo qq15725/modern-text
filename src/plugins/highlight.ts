@@ -160,13 +160,12 @@ export function highlight(): TextPlugin {
               line = 'underline'
               const viewBox = svgDom.getAttribute('viewBox')
               if (viewBox) {
-                const aCenter = aBox.y + aBox.height / 2
                 const [_x, y, _w, h] = viewBox.split(' ').map(v => Number(v))
                 const viewCenter = y + h / 2
                 if (aBox.y < viewCenter && aBox.y + aBox.height > viewCenter) {
                   line = 'line-through'
                 }
-                else if (viewCenter > aCenter) {
+                else if (aBox.y + aBox.height < viewCenter) {
                   line = 'overline'
                 }
                 else {
