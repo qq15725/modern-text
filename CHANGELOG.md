@@ -1,3 +1,12 @@
+# [0.5.0](https://github.com/qq15725/modern-text/compare/v0.4.5...v0.5.0) (2024-11-20)
+
+
+### Features
+
+* add highlightImageColors and listStyleImageColors ([6c1c0ce](https://github.com/qq15725/modern-text/commit/6c1c0cef564a62f2f3c2a66f73925235fabf52a3))
+
+
+
 ## [0.4.5](https://github.com/qq15725/modern-text/compare/v0.4.4...v0.4.5) (2024-11-18)
 
 
