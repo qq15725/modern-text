@@ -146,6 +146,7 @@ export function highlight(): TextPlugin {
           }, {} as Record<string, string>)
           const { paths: svgPaths, dom: svgDom } = getPaths(highlightImage)
           const aBox = getPathsBoundingBox(svgPaths, true)!
+          const styleScale = fontSize / aBox.width * 2
           const cBox = new BoundingBox().copy(groupBox)
           cBox.width = charsPerRepeat
             ? (fontSize * charsPerRepeat)
@@ -161,12 +162,11 @@ export function highlight(): TextPlugin {
               if (viewBox) {
                 const aCenter = aBox.y + aBox.height / 2
                 const [_x, y, _w, h] = viewBox.split(' ').map(v => Number(v))
-                const vCenter = y + h / 2
-                const diff = vCenter - aCenter
-                if (Math.abs(diff) < aBox.height * 2) {
+                const viewCenter = y + h / 2
+                if (aBox.y < viewCenter && aBox.y + aBox.height > viewCenter) {
                   line = 'line-through'
                 }
-                else if (diff > 0) {
+                else if (viewCenter > aCenter) {
                   line = 'overline'
                 }
                 else {
@@ -200,27 +200,27 @@ export function highlight(): TextPlugin {
               break
             }
             case 'overline':
-              cBox.height = char.underlineThickness * 2
+              cBox.height = aBox.height * styleScale
               if (isVertical) {
-                cBox.x = char.inlineBox.left + char.inlineBox.width - cBox.height
+                cBox.x = char.inlineBox.left + char.inlineBox.width
               }
               else {
                 cBox.y = char.inlineBox.top
               }
               break
             case 'line-through':
-              cBox.height = char.strikeoutSize * 2
+              cBox.height = aBox.height * styleScale
               if (isVertical) {
-                cBox.x = char.inlineBox.left + char.inlineBox.width - char.strikeoutPosition - cBox.height
+                cBox.x = char.inlineBox.left + char.inlineBox.width - char.strikeoutPosition + cBox.height / 2
               }
               else {
-                cBox.y = char.inlineBox.top + char.strikeoutPosition
+                cBox.y = char.inlineBox.top + char.strikeoutPosition - cBox.height / 2
               }
               break
             case 'underline':
-              cBox.height = char.underlineThickness * 2
+              cBox.height = aBox.height * styleScale
               if (isVertical) {
-                cBox.x = char.inlineBox.left + char.inlineBox.width - char.underlinePosition - cBox.height
+                cBox.x = char.inlineBox.left + char.inlineBox.width - char.underlinePosition
               }
               else {
                 cBox.y = char.inlineBox.top + char.underlinePosition
@@ -235,8 +235,6 @@ export function highlight(): TextPlugin {
             transform.rotate(-Math.PI / 2)
           }
           transform.translate(cBox.x, cBox.y)
-
-          const styleScale = fontSize / aBox.width
 
           for (let i = 0, len = Math.ceil(groupBox.width / width); i < len; i++) {
             const _transform = transform.clone().translate(i * width, 0)
