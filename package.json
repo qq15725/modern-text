@@ -1,7 +1,7 @@
 {
   "name": "modern-text",
   "type": "module",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "packageManager": "pnpm@9.9.0",
   "description": "Measure and render text in a way that describes the DOM.",
   "author": "wxm",

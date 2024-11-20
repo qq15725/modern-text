@@ -1,3 +1,12 @@
+## [0.5.1](https://github.com/qq15725/modern-text/compare/v0.5.0...v0.5.1) (2024-11-20)
+
+
+### Bug Fixes
+
+* type ([76a1a5f](https://github.com/qq15725/modern-text/commit/76a1a5f13a1bb3e2a063a53b64e5d98987561698))
+
+
+
 # [0.5.0](https://github.com/qq15725/modern-text/compare/v0.4.5...v0.5.0) (2024-11-20)
 
 
