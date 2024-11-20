@@ -1,6 +1,6 @@
 import type { Fonts } from 'modern-font'
 import type { Character } from './content'
-import type { TextContent, TextPlugin, TextStyle } from './types'
+import type { TextContent, TextOptions, TextPlugin, TextStyle } from './types'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
@@ -10,14 +10,6 @@ import { highlight, listStyle, render, textDecoration } from './plugins'
 export interface TextRenderOptions {
   view: HTMLCanvasElement
   pixelRatio?: number
-}
-
-export interface TextOptions {
-  content?: TextContent
-  style?: Partial<TextStyle>
-  measureDom?: HTMLElement
-  effects?: Partial<TextStyle>[]
-  fonts?: Fonts
 }
 
 export interface MeasureResult {
@@ -56,13 +48,15 @@ export const defaultTextStyles: TextStyle = {
   // listStyle
   listStyleType: 'none',
   listStyleImage: 'none',
+  listStyleImageColors: {},
   listStyleSize: 'cover',
   listStylePosition: 'outside',
   // highlight
-  highlightReferImage: 'none',
   highlightImage: 'none',
+  highlightImageColors: {},
+  highlightLine: 'none',
   highlightSize: 'cover',
-  highlightStrokeWidth: '100%',
+  highlightThickness: '100%',
   highlightOverflow: 'none',
   // shadow
   shadowColor: 'rgba(0, 0, 0, 0)',
@@ -76,6 +70,7 @@ export const defaultTextStyles: TextStyle = {
 }
 
 export class Text {
+  debug: boolean
   content: TextContent
   style: Partial<TextStyle>
   effects?: Partial<TextStyle>[]
@@ -105,12 +100,12 @@ export class Text {
   }
 
   constructor(options: TextOptions = {}) {
-    const { content = '', style = {}, measureDom, effects, fonts } = options
-    this.content = content
-    this.style = style
-    this.measureDom = measureDom
-    this.effects = effects
-    this.fonts = fonts
+    this.debug = options.debug ?? false
+    this.content = options.content ?? ''
+    this.style = options.style ?? {}
+    this.measureDom = options.measureDom
+    this.effects = options.effects
+    this.fonts = options.fonts
 
     this
       .use(listStyle())

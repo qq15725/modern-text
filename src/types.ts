@@ -1,3 +1,4 @@
+import type { Fonts } from 'modern-font'
 import type { BoundingBox, Path2D } from 'modern-path2d'
 import type { Text } from './Text'
 
@@ -11,14 +12,15 @@ export type TextWrap = 'wrap' | 'nowrap'
 export type TextAlign = 'center' | 'end' | 'left' | 'right' | 'start'
 export type VerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom' | 'sub' | 'super' | 'text-top' | 'text-bottom'
 export type TextTransform = 'none' | 'uppercase' | 'lowercase'
-export type TextDecoration = 'none' | 'underline' | 'line-through'
+export type TextDecorationLine = 'none' | 'underline' | 'line-through' | 'overline'
 export type ListStyleType = 'none' | 'disc' /* 'decimal' | 'circle' | 'square' | 'georgian'  | 'trad-chinese-informal' | 'kannada' */
 export type ListStyleImage = 'none' | string
 export type ListStyleSize = 'cover' | Sizeable
 export type ListStylePosition = 'inside' | 'outside'
+export type HighlightLine = TextDecorationLine | 'outline'
 export type HighlightImage = 'none' | string
 export type HighlightSize = 'cover' | Sizeable
-export type HighlightStrokeWidth = Sizeable
+export type HighlightThickness = Sizeable
 export type HighlightOverflow = 'none' | 'visible' | 'hidden'
 
 export interface TextLineStyle {
@@ -29,6 +31,7 @@ export interface TextLineStyle {
   lineHeight: number
   listStyleType: ListStyleType
   listStyleImage: ListStyleImage
+  listStyleImageColors: Record<string, string>
   listStyleSize: ListStyleSize
   listStylePosition: ListStylePosition
 }
@@ -43,12 +46,13 @@ export interface TextInlineStyle {
   fontKerning?: FontKerning
   textTransform: TextTransform
   textOrientation: TextOrientation
-  textDecoration: TextDecoration
+  textDecoration: TextDecorationLine
   // extended part
-  highlightReferImage: HighlightImage
   highlightImage: HighlightImage
+  highlightImageColors: Record<string, string>
+  highlightLine: HighlightLine
   highlightSize: HighlightSize
-  highlightStrokeWidth: HighlightStrokeWidth
+  highlightThickness: HighlightThickness
   highlightOverflow: HighlightOverflow
 }
 
@@ -98,4 +102,13 @@ export interface TextPlugin {
   update?: (text: Text) => PromiseLike<void>
   renderOrder?: number
   render?: (ctx: CanvasRenderingContext2D, text: Text) => PromiseLike<void>
+}
+
+export interface TextOptions {
+  debug?: boolean
+  content?: TextContent
+  style?: Partial<TextStyle>
+  measureDom?: HTMLElement
+  effects?: Partial<TextStyle>[]
+  fonts?: Fonts
 }

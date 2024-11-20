@@ -215,6 +215,7 @@ export class Measurer {
         top: character.top - rect.top,
       })
       const item = paragraphs[paragraphIndex].fragments[fragmentIndex].characters[characterIndex]
+      const { fontHeight, isVertical } = item
       const result = results[i]
       // inlineBox
       item.inlineBox.left = result.left
@@ -222,11 +223,19 @@ export class Measurer {
       item.inlineBox.width = result.width
       item.inlineBox.height = result.height
       // lineBox
-      const fontHeight = item.fontHeight
-      item.lineBox.left = result.left
-      item.lineBox.top = result.top + (result.height - fontHeight) / 2
-      item.lineBox.height = fontHeight
-      item.lineBox.width = result.width
+      if (isVertical) {
+        item.lineBox.left = result.left + (result.width - fontHeight) / 2
+        item.lineBox.top = result.top
+        item.lineBox.width = fontHeight
+        item.lineBox.height = result.height
+      }
+      else {
+        item.lineBox.left = result.left
+        item.lineBox.top = result.top + (result.height - fontHeight) / 2
+        item.lineBox.width = result.width
+        item.lineBox.height = fontHeight
+      }
+
       i++
     })
     return {

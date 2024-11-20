@@ -49,6 +49,8 @@ export class Character {
   lineBox = new BoundingBox()
   inlineBox = new BoundingBox()
   glyphBox: BoundingBox | undefined
+  advanceWidth = 0
+  advanceHeight = 0
   underlinePosition = 0
   underlineThickness = 0
   strikeoutPosition = 0
@@ -111,14 +113,16 @@ export class Character {
     const unitsPerEm = head.unitsPerEm
     const ascender = hhea.ascent
     const descender = hhea.descent
-    const { content, computedStyle } = this
+    const { content, computedStyle, isVertical } = this
     const { fontSize } = computedStyle
     const rate = unitsPerEm / fontSize
     const advanceWidth = sfnt.getAdvanceWidth(content, fontSize)
     const advanceHeight = (ascender + Math.abs(descender)) / rate
     const baseline = ascender / rate
-    this.inlineBox.width = advanceWidth
-    this.inlineBox.height = advanceHeight
+    this.advanceWidth = advanceWidth
+    this.advanceHeight = advanceHeight
+    this.inlineBox.width = isVertical ? advanceHeight : advanceWidth
+    this.inlineBox.height = isVertical ? advanceWidth : advanceHeight
     this.underlinePosition = (ascender - post.underlinePosition) / rate
     this.underlineThickness = post.underlineThickness / rate
     this.strikeoutPosition = (ascender - os2.yStrikeoutPosition) / rate
@@ -157,6 +161,8 @@ export class Character {
       descender,
       typoAscender,
       fontStyle,
+      advanceWidth,
+      advanceHeight,
     } = this
 
     const { left, top } = inlineBox
@@ -168,9 +174,9 @@ export class Character {
     const path = new Path2D()
 
     if (isVertical) {
-      x += (inlineBox.height - inlineBox.width) / 2
-      if (Math.abs(inlineBox.width - inlineBox.height) > 0.1) {
-        y -= ((ascender - typoAscender) / (ascender + Math.abs(descender))) * inlineBox.height
+      x += (advanceHeight - advanceWidth) / 2
+      if (Math.abs(advanceWidth - advanceHeight) > 0.1) {
+        y -= ((ascender - typoAscender) / (ascender + Math.abs(descender))) * advanceHeight
       }
       // TODO
       glyphIndex = undefined
@@ -179,11 +185,16 @@ export class Character {
 
     if (isVertical && !set1.has(content) && (content.codePointAt(0)! <= 256 || set2.has(content))) {
       path.addCommands(
-        sfnt.getPathCommands(content, x, top + baseline - (inlineBox.height - inlineBox.width) / 2, style.fontSize) ?? [],
+        sfnt.getPathCommands(
+          content,
+          x,
+          top + baseline - (advanceHeight - advanceWidth) / 2,
+          style.fontSize,
+        ),
       )
       const point = {
-        y: top - (inlineBox.height - inlineBox.width) / 2 + inlineBox.height / 2,
-        x: x + inlineBox.width / 2,
+        y: top - (advanceHeight - advanceWidth) / 2 + advanceHeight / 2,
+        x: x + advanceWidth / 2,
       }
       if (needsItalic) {
         this._italic(
@@ -191,7 +202,7 @@ export class Character {
           isVertical
             ? {
                 x: point.x,
-                y: top - (inlineBox.height - inlineBox.width) / 2 + baseline,
+                y: top - (advanceHeight - advanceWidth) / 2 + baseline,
               }
             : undefined,
         )
@@ -208,22 +219,20 @@ export class Character {
             path,
             isVertical
               ? {
-                  x: x + inlineBox.width / 2,
-                  y: top + (typoAscender / (ascender + Math.abs(descender))) * inlineBox.height,
+                  x: x + advanceWidth / 2,
+                  y: top + (typoAscender / (ascender + Math.abs(descender))) * advanceHeight,
                 }
               : undefined,
           )
         }
       }
       else {
-        path.addCommands(
-          sfnt.getPathCommands(content, x, y, style.fontSize) ?? [],
-        )
+        path.addCommands(sfnt.getPathCommands(content, x, y, style.fontSize))
         if (needsItalic) {
           this._italic(
             path,
             isVertical
-              ? { x: x + inlineBox.height / 2, y }
+              ? { x: x + advanceHeight / 2, y }
               : undefined,
           )
         }

@@ -23,6 +23,7 @@ export function textDecoration(): TextPlugin {
           if (
             prevStyle?.textDecoration === style.textDecoration
             && prevStyle?.writingMode === style.writingMode
+            && prevStyle?.color === style.color
             && (
               isVertical
                 ? group[0].inlineBox.left === inlineBox.left
@@ -65,42 +66,52 @@ export function textDecoration(): TextPlugin {
 
       groups.forEach((group) => {
         const { computedStyle: style, isVertical, underlinePosition, underlineThickness, strikeoutPosition, strikeoutSize } = group[0]
-        const { textDecoration } = style
+        const { textDecoration, color } = style
         const { left, top, width, height } = BoundingBox.from(...group.map(c => c.inlineBox))
 
-        let strokePosition = isVertical ? left : top
-        let strokeWidth = 0
+        let position = isVertical ? (left + width) : top
+        const direction = isVertical ? -1 : 1
+        let thickness = 0
         switch (textDecoration) {
+          case 'overline':
+            thickness = underlineThickness * 2
+            break
           case 'underline':
-            strokePosition += underlinePosition
-            strokeWidth = underlineThickness * 2
+            position += direction * underlinePosition
+            thickness = underlineThickness * 2
             break
           case 'line-through':
-            strokePosition += strikeoutPosition
-            strokeWidth = strikeoutSize * 2
+            position += direction * strikeoutPosition
+            thickness = strikeoutSize * 2
             break
         }
 
-        strokePosition -= strokeWidth
+        position -= thickness
 
+        let path
         if (isVertical) {
-          paths.push(new Path2D([
-            { type: 'M', x: strokePosition, y: top },
-            { type: 'L', x: strokePosition, y: top + height },
-            { type: 'L', x: strokePosition + strokeWidth, y: top + height },
-            { type: 'L', x: strokePosition + strokeWidth, y: top },
+          path = new Path2D([
+            { type: 'M', x: position, y: top },
+            { type: 'L', x: position, y: top + height },
+            { type: 'L', x: position + thickness, y: top + height },
+            { type: 'L', x: position + thickness, y: top },
             { type: 'Z' },
-          ]))
+          ], {
+            fill: color,
+          })
         }
         else {
-          paths.push(new Path2D([
-            { type: 'M', x: left, y: strokePosition },
-            { type: 'L', x: left + width, y: strokePosition },
-            { type: 'L', x: left + width, y: strokePosition + strokeWidth },
-            { type: 'L', x: left, y: strokePosition + strokeWidth },
+          path = new Path2D([
+            { type: 'M', x: left, y: position },
+            { type: 'L', x: left + width, y: position },
+            { type: 'L', x: left + width, y: position + thickness },
+            { type: 'L', x: left, y: position + thickness },
             { type: 'Z' },
-          ]))
+          ], {
+            fill: color,
+          })
         }
+        paths.push(path)
       })
     },
     render: (ctx, text) => {
@@ -115,7 +126,6 @@ export function textDecoration(): TextPlugin {
               ctx,
               path,
               fontSize: style.fontSize,
-              color: style.color,
               ...effectStyle,
             })
           })
@@ -128,7 +138,6 @@ export function textDecoration(): TextPlugin {
             ctx,
             path,
             fontSize: style.fontSize,
-            color: style.color,
           })
         })
       }

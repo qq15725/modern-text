@@ -82,6 +82,12 @@ export function render(): TextPlugin {
           })
         })
       }
+
+      if (text.debug) {
+        paragraphs.forEach((paragraph) => {
+          ctx.strokeRect(paragraph.lineBox.x, paragraph.lineBox.y, paragraph.lineBox.width, paragraph.lineBox.height)
+        })
+      }
     },
   })
 }
