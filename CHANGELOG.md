@@ -1,3 +1,9 @@
+## <small>0.5.3 (2024-11-20)</small>
+
+* fix: highlight ([ee5d043](https://github.com/qq15725/modern-text/commit/ee5d043))
+
+
+
 ## <small>0.5.2 (2024-11-20)</small>
 
 * fix: highlight ([17e404d](https://github.com/qq15725/modern-text/commit/17e404d))
