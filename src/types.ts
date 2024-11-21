@@ -15,13 +15,15 @@ export type TextTransform = 'none' | 'uppercase' | 'lowercase'
 export type TextDecorationLine = 'none' | 'underline' | 'line-through' | 'overline'
 export type ListStyleType = 'none' | 'disc' /* 'decimal' | 'circle' | 'square' | 'georgian'  | 'trad-chinese-informal' | 'kannada' */
 export type ListStyleImage = 'none' | string
+export type ListStyleColormap = 'none' | Record<string, string>
 export type ListStyleSize = 'cover' | Sizeable
 export type ListStylePosition = 'inside' | 'outside'
 export type HighlightLine = TextDecorationLine | 'outline'
 export type HighlightImage = 'none' | string
+export type HighlightReferImage = 'none' | string
+export type HighlightColormap = 'none' | Record<string, string>
 export type HighlightSize = 'cover' | Sizeable
 export type HighlightThickness = Sizeable
-export type HighlightOverflow = 'none' | 'visible' | 'hidden'
 
 export interface TextLineStyle {
   writingMode: WritingMode
@@ -31,7 +33,7 @@ export interface TextLineStyle {
   lineHeight: number
   listStyleType: ListStyleType
   listStyleImage: ListStyleImage
-  listStyleImageColors: Record<string, string>
+  listStyleColormap: ListStyleColormap
   listStyleSize: ListStyleSize
   listStylePosition: ListStylePosition
 }
@@ -49,11 +51,11 @@ export interface TextInlineStyle {
   textDecoration: TextDecorationLine
   // extended part
   highlightImage: HighlightImage
-  highlightImageColors: Record<string, string>
+  highlightReferImage: HighlightReferImage
+  highlightColormap: HighlightColormap
   highlightLine: HighlightLine
   highlightSize: HighlightSize
   highlightThickness: HighlightThickness
-  highlightOverflow: HighlightOverflow
 }
 
 export interface TextDrawStyle {

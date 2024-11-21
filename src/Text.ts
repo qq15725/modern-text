@@ -48,16 +48,16 @@ export const defaultTextStyles: TextStyle = {
   // listStyle
   listStyleType: 'none',
   listStyleImage: 'none',
-  listStyleImageColors: {},
+  listStyleColormap: 'none',
   listStyleSize: 'cover',
   listStylePosition: 'outside',
   // highlight
   highlightImage: 'none',
-  highlightImageColors: {},
+  highlightReferImage: 'none',
+  highlightColormap: 'none',
   highlightLine: 'none',
   highlightSize: 'cover',
   highlightThickness: '100%',
-  highlightOverflow: 'none',
   // shadow
   shadowColor: 'rgba(0, 0, 0, 0)',
   shadowOffsetX: 0,

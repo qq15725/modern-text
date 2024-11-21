@@ -1,29 +1,8 @@
 import type { Path2D } from 'modern-path2d'
-import type { ListStyleSize, TextPlugin } from '../types'
+import type { TextPlugin } from '../types'
 import { getPathsBoundingBox, Matrix3, parseSvg } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
-import { hexToRgb, isNone } from '../utils'
-
-function parseScale(size: ListStyleSize, fontSize: number, total: number): number {
-  if (size === 'cover') {
-    return 1
-  }
-  else if (typeof size === 'string') {
-    if (size.endsWith('%')) {
-      return Number(size.substring(0, size.length - 1)) / 100
-    }
-    else if (size.endsWith('rem')) {
-      const value = Number(size.substring(0, size.length - 3))
-      return value * fontSize / total
-    }
-    else {
-      return Number(size) / total
-    }
-  }
-  else {
-    return size / total
-  }
-}
+import { isNone, parseColormap, parseValueNumber } from '../utils'
 
 export function listStyle(): TextPlugin {
   const paths: Path2D[] = []
@@ -36,20 +15,8 @@ export function listStyle(): TextPlugin {
       const padding = fontSize * 0.45
       paragraphs.forEach((paragraph) => {
         const { computedStyle: style } = paragraph
-        const { listStyleImage, listStyleImageColors, listStyleSize, listStyleType, color } = style
-        const colors = Object.keys(listStyleImageColors).reduce((obj, key) => {
-          let value = listStyleImageColors[key]
-          const keyRgb = hexToRgb(key)
-          const valueRgb = hexToRgb(value)
-          if (keyRgb) {
-            key = keyRgb
-          }
-          if (valueRgb) {
-            value = valueRgb
-          }
-          obj[key] = value
-          return obj
-        }, {} as Record<string, string>)
+        const { listStyleImage, listStyleColormap, listStyleSize, listStyleType, color } = style
+        const colormap = parseColormap(listStyleColormap)
         let size = listStyleSize
         let image: string | undefined
         if (!isNone(listStyleImage)) {
@@ -74,9 +41,11 @@ export function listStyle(): TextPlugin {
         const box = paragraph.lineBox
         const fBox = paragraph.fragments[0].inlineBox
         if (fBox) {
+          const scale = size === 'cover'
+            ? 1
+            : parseValueNumber(size, { total: fontSize, fontSize }) / fontSize
           const m = new Matrix3()
           if (isVertical) {
-            const scale = parseScale(size, fontSize, fontSize)
             const reScale = (fontSize / imageBox.height) * scale
             m.translate(-imageBox.left, -imageBox.top)
             m.rotate(Math.PI / 2)
@@ -85,7 +54,6 @@ export function listStyle(): TextPlugin {
             m.translate(box.left + (box.width - fontSize) / 2, fBox.top - padding)
           }
           else {
-            const scale = parseScale(size, fontSize, fontSize)
             const reScale = (fontSize / imageBox.height) * scale
             m.translate(-imageBox.left, -imageBox.top)
             m.translate(-imageBox.width, 0)
@@ -96,11 +64,11 @@ export function listStyle(): TextPlugin {
           paths.push(...imagePaths.map((p) => {
             const path = p.clone()
             path.matrix(m)
-            if (path.style.fill && (path.style.fill as string) in colors) {
-              path.style.fill = colors[path.style.fill as string]
+            if (path.style.fill && (path.style.fill as string) in colormap) {
+              path.style.fill = colormap[path.style.fill as string]
             }
-            if (path.style.stroke && (path.style.stroke as string) in colors) {
-              path.style.stroke = colors[path.style.stroke as string]
+            if (path.style.stroke && (path.style.stroke as string) in colormap) {
+              path.style.stroke = colormap[path.style.stroke as string]
             }
             return path
           }))
