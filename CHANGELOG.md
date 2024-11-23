@@ -1,3 +1,9 @@
+## <small>0.5.8 (2024-11-23)</small>
+
+* fix: bug ([515c32b](https://github.com/qq15725/modern-text/commit/515c32b))
+
+
+
 ## <small>0.5.7 (2024-11-23)</small>
 
 * fix: event ([8950e54](https://github.com/qq15725/modern-text/commit/8950e54))
