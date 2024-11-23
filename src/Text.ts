@@ -73,7 +73,7 @@ export const defaultTextStyles: TextStyle = {
 export interface TextEventMap {
   update: { text: Text }
   measure: { text: Text, result: MeasureResult }
-  render: { text: Text }
+  render: { text: Text, view: HTMLCanvasElement, pixelRatio: number }
 }
 
 export class Text extends EventEmitter<TextEventMap> {
@@ -321,7 +321,7 @@ export class Text extends EventEmitter<TextEventMap> {
           })
         }
       })
-    this.emit('render', { text: this })
+    this.emit('render', { text: this, view, pixelRatio })
     return this
   }
 }
