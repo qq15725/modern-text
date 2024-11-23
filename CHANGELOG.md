@@ -1,3 +1,9 @@
+## <small>0.5.6 (2024-11-23)</small>
+
+* fix: render event args ([6710a1c](https://github.com/qq15725/modern-text/commit/6710a1c))
+
+
+
 ## <small>0.5.5 (2024-11-23)</small>
 
 * feat: EventEmitter ([2cfe34c](https://github.com/qq15725/modern-text/commit/2cfe34c))
