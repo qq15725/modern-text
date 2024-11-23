@@ -1,3 +1,9 @@
+## <small>0.5.5 (2024-11-23)</small>
+
+* feat: EventEmitter ([2cfe34c](https://github.com/qq15725/modern-text/commit/2cfe34c))
+
+
+
 ## <small>0.5.4 (2024-11-21)</small>
 
 * feat: revert highlightReferImage ([ff928ab](https://github.com/qq15725/modern-text/commit/ff928ab))
