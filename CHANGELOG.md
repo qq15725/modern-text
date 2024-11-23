@@ -1,3 +1,9 @@
+## <small>0.5.7 (2024-11-23)</small>
+
+* fix: event ([8950e54](https://github.com/qq15725/modern-text/commit/8950e54))
+
+
+
 ## <small>0.5.6 (2024-11-23)</small>
 
 * fix: render event args ([6710a1c](https://github.com/qq15725/modern-text/commit/6710a1c))
