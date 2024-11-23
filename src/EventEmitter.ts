@@ -79,7 +79,7 @@ export class EventEmitter<T extends Record<string, any> = Record<string, any>> {
     return this.eventListeners.has(event)
   }
 
-  dispatchEvent<K extends keyof T>(event: K, args: T[K]): boolean {
+  dispatchEvent<K extends keyof T>(event: K, arg: T[K]): boolean {
     const listeners = this.eventListeners.get(event)
 
     if (listeners) {
@@ -89,14 +89,14 @@ export class EventEmitter<T extends Record<string, any> = Record<string, any>> {
           if (typeof object.options === 'object' && object.options?.once) {
             this.off(event, object.value, object.options)
           }
-          object.value.apply(this, args)
+          object.value.apply(this, [arg])
         }
       }
       else {
         if (typeof listeners.options === 'object' && listeners.options?.once) {
           this.off(event, listeners.value, listeners.options)
         }
-        listeners.value.apply(this, args)
+        listeners.value.apply(this, [arg])
       }
       return true
     }
@@ -117,7 +117,7 @@ export class EventEmitter<T extends Record<string, any> = Record<string, any>> {
     return this.removeEventListener(event, listener, options)
   }
 
-  emit<K extends keyof T>(event: K, args: T[K]): void {
-    this.dispatchEvent(event, args)
+  emit<K extends keyof T>(event: K, arg: T[K]): void {
+    this.dispatchEvent(event, arg)
   }
 }

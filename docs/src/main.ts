@@ -1,6 +1,6 @@
 import type { TextOptions } from '../../src'
 import { fonts } from 'modern-font'
-import { renderText } from '../../src'
+import { renderText, Text } from '../../src'
 
 const sharedOptions: Partial<TextOptions> = {
   // debug: true,
@@ -25,7 +25,14 @@ window.onload = async () => {
     // 1
     const view1 = document.createElement('canvas')
     view1.dataset.file = key
-    const text = renderText({ ...sharedOptions, ...fixture, view: view1 })
+    const text = new Text({ ...sharedOptions, ...fixture })
+    text.on('render', (ev) => {
+      console.warn(ev)
+    })
+    text.on('measure', (ev) => {
+      console.warn(ev)
+    })
+    text.render({ view: view1 })
     document.body.append(view1)
 
     // 2
@@ -33,7 +40,5 @@ window.onload = async () => {
     view2.dataset.file = key
     renderText({ ...sharedOptions, ...fixture, style: { ...fixture.style, writingMode: 'vertical-lr' }, view: view2 })
     document.body.append(view2)
-
-    console.warn(text, text.measure())
   }
 }
