@@ -4,6 +4,7 @@ import type { TextContent, TextOptions, TextPlugin, TextStyle } from './types'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
+import { EventEmitter } from './EventEmitter'
 import { Measurer } from './Measurer'
 import { highlight, listStyle, render, textDecoration } from './plugins'
 
@@ -69,7 +70,13 @@ export const defaultTextStyles: TextStyle = {
   skewY: 0,
 }
 
-export class Text {
+export interface TextEventMap {
+  update: { text: Text }
+  measure: { text: Text, result: MeasureResult }
+  render: { text: Text }
+}
+
+export class Text extends EventEmitter<TextEventMap> {
   debug: boolean
   content: TextContent
   style: Partial<TextStyle>
@@ -100,6 +107,8 @@ export class Text {
   }
 
   constructor(options: TextOptions = {}) {
+    super()
+
     this.debug = options.debug ?? false
     this.content = options.content ?? ''
     this.style = options.style ?? {}
@@ -204,8 +213,7 @@ export class Text {
       c.update(this.fonts)
     })
     this.rawGlyphBox = this.getGlyphBox()
-    const plugins = [...this.plugins.values()]
-    plugins
+    Array.from(this.plugins.values())
       .sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
       .forEach((plugin) => {
         plugin.update?.(this)
@@ -218,6 +226,7 @@ export class Text {
       ;(result as any)[key] = (this as any)[key]
       ;(this as any)[key] = (old as any)[key]
     }
+    this.emit('measure', { text: this, result })
     return result
   }
 
@@ -242,10 +251,9 @@ export class Text {
   }
 
   updatePathBox(): this {
-    const plugins = [...this.plugins.values()]
     this.pathBox = BoundingBox.from(
       this.glyphBox,
-      ...plugins
+      ...Array.from(this.plugins.values())
         .map((plugin) => {
           return plugin.getBoundingBox
             ? plugin.getBoundingBox(this)
@@ -281,6 +289,7 @@ export class Text {
     for (const key in result) {
       (this as any)[key] = (result as any)[key]
     }
+    this.emit('update', { text: this })
     return this
   }
 
@@ -295,8 +304,7 @@ export class Text {
     }
     setupView(ctx, pixelRatio, this.boundingBox)
     uploadColors(ctx, this)
-    const plugins = [...this.plugins.values()]
-    plugins
+    Array.from(this.plugins.values())
       .sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
       .forEach((plugin) => {
         if (plugin.render) {
@@ -313,6 +321,7 @@ export class Text {
           })
         }
       })
+    this.emit('render', { text: this })
     return this
   }
 }
