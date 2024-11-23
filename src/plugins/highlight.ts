@@ -4,7 +4,7 @@ import type { HighlightLine, TextPlugin, TextStyle } from '../types'
 import { BoundingBox, getPathsBoundingBox, Matrix3, parseSvg, parseSvgToDom } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
-import { closestDivisor, isEqualValue, isNone, parseColormap, parseValueNumber } from '../utils'
+import { isEqualValue, isNone, parseColormap, parseValueNumber } from '../utils'
 
 export function highlight(): TextPlugin {
   const paths: Path2D[] = []
@@ -75,7 +75,6 @@ export function highlight(): TextPlugin {
             highlightReferImage,
             highlightColormap,
             highlightLine,
-            highlightSize,
             highlightThickness,
           } = style
           const isVertical = writingMode.includes('vertical')
@@ -91,12 +90,12 @@ export function highlight(): TextPlugin {
             cBox.left = groupBox.left + groupBox.width
           }
           const rawWidth = Math.floor(cBox.width)
-          let userWidth = rawWidth
-          if (highlightSize !== 'cover') {
-            userWidth = parseValueNumber(highlightSize, { fontSize, total: groupBox.width })
-            userWidth = closestDivisor(rawWidth, userWidth)
-            cBox.width = userWidth
-          }
+          const userWidth = rawWidth
+          // if (highlightSize !== 'cover') {
+          //   userWidth = parseValueNumber(highlightSize, { fontSize, total: groupBox.width })
+          //   userWidth = closestDivisor(rawWidth, userWidth)
+          //   cBox.width = userWidth
+          // }
 
           if (!isNone(highlightReferImage) && isNone(highlightLine)) {
             const bBox = getPathsBoundingBox(getPaths(highlightReferImage).paths, true)!
