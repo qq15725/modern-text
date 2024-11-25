@@ -148,9 +148,11 @@ export class Measurer {
           const range = document.createRange()
           range.selectNodeContents(text)
           const data = text.data ?? ''
+          let offset = 0
           Array.from(data).forEach((char, index) => {
-            const start = data.indexOf(char)
+            const start = offset += data.substring(offset).indexOf(char)
             const end = start + char.length
+            offset += char.length
             range.setStart(text, Math.max(start, 0))
             range.setEnd(text, end)
             const rects = range.getClientRects?.() ?? [range.getBoundingClientRect()]

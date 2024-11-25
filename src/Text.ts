@@ -312,7 +312,7 @@ export class Text extends EventEmitter<TextEventMap> {
     for (let i = 0; i < plugins.length; i++) {
       const plugin = plugins[i]
       if (plugin.render) {
-        plugin.render?.(ctx, this)
+        await plugin.render?.(ctx, this)
       }
       else if (plugin.paths) {
         const style = this.computedStyle
