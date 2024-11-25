@@ -91,28 +91,3 @@ export function filterEmpty(val: Record<string, any> | undefined): Record<string
   }
   return res
 }
-
-export function closestDivisor(dividend: number, targetDivisor: number): number {
-  if (dividend <= 0) {
-    throw new Error('Dividend must be a positive integer.')
-  }
-  const divisors: number[] = []
-  for (let i = 1; i <= Math.sqrt(dividend); i++) {
-    if (dividend % i === 0) {
-      divisors.push(i)
-      if (i !== dividend / i) {
-        divisors.push(dividend / i)
-      }
-    }
-  }
-  let closest = divisors[0]
-  let minDifference = Math.abs(closest - targetDivisor)
-  for (const divisor of divisors) {
-    const difference = Math.abs(divisor - targetDivisor)
-    if (difference < minDifference) {
-      closest = divisor
-      minDifference = difference
-    }
-  }
-  return closest
-}

@@ -88,8 +88,10 @@ export class Measurer {
     Object.assign(dom.style, {
       width: 'max-content',
       height: 'max-content',
+      whiteSpace: 'pre-wrap',
+      wordBreak: 'break-all',
       ...this._styleToDomStyle(computedStyle),
-      position: 'absolute',
+      position: 'fixed',
       visibility: 'hidden',
     })
     const ul = document.createElement('ul')
@@ -105,9 +107,6 @@ export class Measurer {
         const span = document.createElement('span')
         Object.assign(span.style, this._styleToDomStyle(fragment.style))
         span.appendChild(document.createTextNode(fragment.content))
-        if (/\s/.test(fragment.content)) {
-          span.style.whiteSpace = 'pre'
-        }
         li.appendChild(span)
       })
       ul.appendChild(li)

@@ -196,7 +196,7 @@ export class Text extends EventEmitter<TextEventMap> {
     return this
   }
 
-  measure(dom = this.measureDom): MeasureResult {
+  async measure(dom = this.measureDom): Promise<MeasureResult> {
     const old = {
       paragraphs: this.paragraphs,
       lineBox: this.lineBox,
@@ -213,11 +213,11 @@ export class Text extends EventEmitter<TextEventMap> {
       c.update(this.fonts)
     })
     this.rawGlyphBox = this.getGlyphBox()
-    Array.from(this.plugins.values())
-      .sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
-      .forEach((plugin) => {
-        plugin.update?.(this)
-      })
+    const plugins = Array.from(this.plugins.values())
+    plugins.sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
+    for (let i = 0; i < plugins.length; i++) {
+      await plugins[i].update?.(this)
+    }
     this.glyphBox = this.getGlyphBox()
     this
       .updatePathBox()
@@ -284,44 +284,48 @@ export class Text extends EventEmitter<TextEventMap> {
     return this
   }
 
-  update(): this {
-    const result = this.measure()
+  async update(): Promise<void> {
+    const result = await this.measure()
     for (const key in result) {
       (this as any)[key] = (result as any)[key]
     }
     this.emit('update', { text: this })
-    return this
   }
 
-  render(options: TextRenderOptions): this {
+  async render(options: TextRenderOptions): Promise<void> {
     const { view, pixelRatio = 2 } = options
+
     const ctx = view.getContext('2d')
     if (!ctx) {
-      return this
+      return
     }
+
     if (this.needsUpdate) {
-      this.update()
+      await this.update()
     }
+
     setupView(ctx, pixelRatio, this.boundingBox)
     uploadColors(ctx, this)
-    Array.from(this.plugins.values())
-      .sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
-      .forEach((plugin) => {
-        if (plugin.render) {
-          plugin.render?.(ctx, this)
-        }
-        else if (plugin.paths) {
-          const style = this.computedStyle
-          plugin.paths.forEach((path) => {
-            drawPath({
-              ctx,
-              path,
-              fontSize: style.fontSize,
-            })
+
+    const plugins = Array.from(this.plugins.values())
+    plugins.sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
+    for (let i = 0; i < plugins.length; i++) {
+      const plugin = plugins[i]
+      if (plugin.render) {
+        plugin.render?.(ctx, this)
+      }
+      else if (plugin.paths) {
+        const style = this.computedStyle
+        plugin.paths.forEach((path) => {
+          drawPath({
+            ctx,
+            path,
+            fontSize: style.fontSize,
           })
-        }
-      })
+        })
+      }
+    }
+
     this.emit('render', { text: this, view, pixelRatio })
-    return this
   }
 }

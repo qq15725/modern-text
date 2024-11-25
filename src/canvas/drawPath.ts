@@ -1,14 +1,15 @@
-import type { Path2D } from 'modern-path2d'
+import type { BoundingBox, Path2D } from 'modern-path2d'
 import type { TextStyle } from '../types'
 
 export interface DrawShapePathsOptions extends Partial<TextStyle> {
   ctx: CanvasRenderingContext2D
   path: Path2D
   fontSize: number
+  clipRect?: BoundingBox
 }
 
 export function drawPath(options: DrawShapePathsOptions): void {
-  const { ctx, path, fontSize } = options
+  const { ctx, path, fontSize, clipRect } = options
 
   ctx.save()
   ctx.beginPath()
@@ -24,6 +25,11 @@ export function drawPath(options: DrawShapePathsOptions): void {
     shadowOffsetY: (options.shadowOffsetY ?? 0) * fontSize,
     shadowBlur: (options.shadowBlur ?? 0) * fontSize,
     shadowColor: options.shadowColor,
+  }
+  if (clipRect) {
+    ctx.rect(clipRect.left, clipRect.top, clipRect.width, clipRect.height)
+    ctx.clip()
+    ctx.beginPath()
   }
   path.drawTo(ctx, style)
   ctx.restore()
