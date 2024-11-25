@@ -1,3 +1,12 @@
+## [0.5.12](https://github.com/qq15725/modern-text/compare/v0.5.11...v0.5.12) (2024-11-25)
+
+
+### Bug Fixes
+
+* highlight ([e082f9b](https://github.com/qq15725/modern-text/commit/e082f9b4a0cb44fd03b5233ca44b4466b908f7e0))
+
+
+
 ## <small>0.5.11 (2024-11-25)</small>
 
 * fix: emoji ([79b78a1](https://github.com/qq15725/modern-text/commit/79b78a1))
