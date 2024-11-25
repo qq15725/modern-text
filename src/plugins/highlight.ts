@@ -29,6 +29,7 @@ export function highlight(): TextPlugin {
     name: 'highlight',
     paths,
     update: async (text) => {
+      clipRects.length = 0
       paths.length = 0
       let groups: Character[][] = []
       let group: Character[]
