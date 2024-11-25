@@ -5,7 +5,6 @@ import { renderText, Text } from '../../src'
 const sharedOptions: Partial<TextOptions> = {
   // debug: true,
   fonts,
-  pixelRatio: 2,
 }
 
 async function loadFallbackFont(): Promise<void> {
@@ -16,7 +15,7 @@ async function loadFallbackFont(): Promise<void> {
 window.onload = async () => {
   await loadFallbackFont()
   for (const [key, importJson] of Object.entries(import.meta.glob('../../test/fixtures/*.json'))) {
-    // if (!key.endsWith('highlight.2.json')) {
+    // if (!key.endsWith('emoji.json')) {
     //   continue
     // }
 

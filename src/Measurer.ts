@@ -147,11 +147,12 @@ export class Measurer {
         if (text instanceof window.Text) {
           const range = document.createRange()
           range.selectNodeContents(text)
-          const len = text.data ? text.data.length : 0
-          let i = 0
-          for (; i <= len;) {
-            range.setStart(text, Math.max(i - 1, 0))
-            range.setEnd(text, i)
+          const data = text.data ?? ''
+          Array.from(data).forEach((char, index) => {
+            const start = data.indexOf(char)
+            const end = start + char.length
+            range.setStart(text, Math.max(start, 0))
+            range.setEnd(text, end)
             const rects = range.getClientRects?.() ?? [range.getBoundingClientRect()]
             let rect = rects[rects.length - 1]
             if (rects.length > 1 && rect.width < 2) {
@@ -164,7 +165,7 @@ export class Measurer {
                 newParagraphIndex: -1,
                 paragraphIndex,
                 fragmentIndex,
-                characterIndex: i - 1,
+                characterIndex: index,
                 top: rect.top,
                 left: rect.left,
                 height: rect.height,
@@ -173,8 +174,7 @@ export class Measurer {
                 textHeight: -1,
               })
             }
-            i++
-          }
+          })
         }
       })
     })
