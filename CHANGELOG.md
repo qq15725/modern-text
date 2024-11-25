@@ -1,3 +1,9 @@
+## <small>0.5.9 (2024-11-25)</small>
+
+* fix: highlight ([b783729](https://github.com/qq15725/modern-text/commit/b783729))
+
+
+
 ## <small>0.5.8 (2024-11-23)</small>
 
 * fix: bug ([515c32b](https://github.com/qq15725/modern-text/commit/515c32b))
