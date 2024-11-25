@@ -1,3 +1,9 @@
+## <small>0.5.10 (2024-11-25)</small>
+
+* fix: type ([3520353](https://github.com/qq15725/modern-text/commit/3520353))
+
+
+
 ## <small>0.5.9 (2024-11-25)</small>
 
 * fix: highlight ([b783729](https://github.com/qq15725/modern-text/commit/b783729))
