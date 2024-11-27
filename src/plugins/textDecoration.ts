@@ -17,20 +17,35 @@ export function textDecoration(): TextPlugin {
       let group: Character[]
       let prevStyle: TextStyle | undefined
       text.forEachCharacter((character) => {
-        const { computedStyle: style, isVertical, inlineBox, underlinePosition, underlineThickness, strikeoutPosition, strikeoutSize } = character
-        if (!isNone(style.textDecoration)) {
+        const {
+          computedStyle: style,
+          isVertical,
+          inlineBox,
+          underlinePosition,
+          underlineThickness,
+          strikeoutPosition,
+          strikeoutSize,
+        } = character
+
+        const {
+          color,
+          textDecoration,
+          writingMode,
+        } = style
+
+        if (!isNone(textDecoration)) {
           let flag = false
           if (
-            prevStyle?.textDecoration === style.textDecoration
-            && prevStyle?.writingMode === style.writingMode
-            && prevStyle?.color === style.color
+            prevStyle?.textDecoration === textDecoration
+            && prevStyle?.writingMode === writingMode
+            && prevStyle?.color === color
             && (
               isVertical
                 ? group[0].inlineBox.left === inlineBox.left
                 : group[0].inlineBox.top === inlineBox.top
             )
           ) {
-            switch (style.textDecoration) {
+            switch (textDecoration) {
               case 'underline':
                 if (
                   group[0].underlinePosition === underlinePosition
@@ -65,8 +80,20 @@ export function textDecoration(): TextPlugin {
       })
 
       groups.forEach((group) => {
-        const { computedStyle: style, isVertical, underlinePosition, underlineThickness, strikeoutPosition, strikeoutSize } = group[0]
-        const { textDecoration, color } = style
+        const {
+          computedStyle: style,
+          isVertical,
+          underlinePosition,
+          underlineThickness,
+          strikeoutPosition,
+          strikeoutSize,
+        } = group[0]
+
+        const {
+          color,
+          textDecoration,
+        } = style
+
         const { left, top, width, height } = BoundingBox.from(...group.map(c => c.inlineBox))
 
         let position = isVertical ? (left + width) : top

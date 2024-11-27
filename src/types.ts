@@ -94,16 +94,15 @@ export type TextContent =
   | ParagraphContent
   | (string | FragmentContent | ParagraphContent | (string | FragmentContent)[])[]
 
-type PromiseLike<T> = T | Promise<T>
-
 export interface TextPlugin {
   name: string
   paths?: Path2D[]
   getBoundingBox?: (text: Text) => BoundingBox | undefined
+  update?: (text: Text) => void
   updateOrder?: number
-  update?: (text: Text) => PromiseLike<void>
+  render?: (ctx: CanvasRenderingContext2D, text: Text) => void
   renderOrder?: number
-  render?: (ctx: CanvasRenderingContext2D, text: Text) => PromiseLike<void>
+  load?: (text: Text) => Promise<void>
 }
 
 export interface TextOptions {

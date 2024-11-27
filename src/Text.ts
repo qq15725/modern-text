@@ -90,7 +90,7 @@ export class Text extends EventEmitter<TextEventMap> {
   glyphBox = new BoundingBox()
   pathBox = new BoundingBox()
   boundingBox = new BoundingBox()
-  measurer = new Measurer(this)
+  measurer = new Measurer()
   plugins = new Map<string, TextPlugin>()
   fonts?: Fonts
 
@@ -137,6 +137,10 @@ export class Text extends EventEmitter<TextEventMap> {
       })
     })
     return this
+  }
+
+  async load(): Promise<void> {
+    await Promise.all(Array.from(this.plugins.values()).map(p => p.load?.(this)))
   }
 
   updateParagraphs(): this {
@@ -196,7 +200,7 @@ export class Text extends EventEmitter<TextEventMap> {
     return this
   }
 
-  async measure(dom = this.measureDom): Promise<MeasureResult> {
+  measure(dom = this.measureDom): MeasureResult {
     const old = {
       paragraphs: this.paragraphs,
       lineBox: this.lineBox,
@@ -206,18 +210,18 @@ export class Text extends EventEmitter<TextEventMap> {
       boundingBox: this.boundingBox,
     }
     this.updateParagraphs()
-    const result = this.measurer.measure(dom) as MeasureResult
+    const result = this.measurer.measure(this.paragraphs, this.computedStyle, dom) as MeasureResult
     this.paragraphs = result.paragraphs
     this.lineBox = result.boundingBox
     this.characters.forEach((c) => {
       c.update(this.fonts)
     })
     this.rawGlyphBox = this.getGlyphBox()
-    const plugins = Array.from(this.plugins.values())
-    plugins.sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
-    for (let i = 0; i < plugins.length; i++) {
-      await plugins[i].update?.(this)
-    }
+    Array.from(this.plugins.values())
+      .sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
+      .forEach((plugin) => {
+        plugin.update?.(this)
+      })
     this.glyphBox = this.getGlyphBox()
     this
       .updatePathBox()
@@ -284,15 +288,16 @@ export class Text extends EventEmitter<TextEventMap> {
     return this
   }
 
-  async update(): Promise<void> {
-    const result = await this.measure()
+  update(): this {
+    const result = this.measure()
     for (const key in result) {
       (this as any)[key] = (result as any)[key]
     }
     this.emit('update', { text: this })
+    return this
   }
 
-  async render(options: TextRenderOptions): Promise<void> {
+  render(options: TextRenderOptions): void {
     const { view, pixelRatio = 2 } = options
 
     const ctx = view.getContext('2d')
@@ -301,30 +306,29 @@ export class Text extends EventEmitter<TextEventMap> {
     }
 
     if (this.needsUpdate) {
-      await this.update()
+      this.update()
     }
 
     setupView(ctx, pixelRatio, this.boundingBox)
     uploadColors(ctx, this)
 
-    const plugins = Array.from(this.plugins.values())
-    plugins.sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
-    for (let i = 0; i < plugins.length; i++) {
-      const plugin = plugins[i]
-      if (plugin.render) {
-        await plugin.render?.(ctx, this)
-      }
-      else if (plugin.paths) {
-        const style = this.computedStyle
-        plugin.paths.forEach((path) => {
-          drawPath({
-            ctx,
-            path,
-            fontSize: style.fontSize,
+    Array.from(this.plugins.values())
+      .sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
+      .forEach((plugin) => {
+        if (plugin.render) {
+          plugin.render?.(ctx, this)
+        }
+        else if (plugin.paths) {
+          const style = this.computedStyle
+          plugin.paths.forEach((path) => {
+            drawPath({
+              ctx,
+              path,
+              fontSize: style.fontSize,
+            })
           })
-        })
-      }
-    }
+        }
+      })
 
     this.emit('render', { text: this, view, pixelRatio })
   }

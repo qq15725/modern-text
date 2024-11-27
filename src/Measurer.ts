@@ -1,5 +1,4 @@
 import type { Paragraph } from './content'
-import type { Text } from './Text'
 import type { TextStyle } from './types'
 import { BoundingBox } from 'modern-path2d'
 
@@ -40,12 +39,6 @@ export interface MeasureDomResult {
 }
 
 export class Measurer {
-  constructor(
-    protected _text: Text,
-  ) {
-    //
-  }
-
   protected _styleToDomStyle(style: Partial<TextStyle>): Record<string, any> {
     const _style: Record<string, any> = { ...style }
     for (const key in style) {
@@ -81,8 +74,7 @@ export class Measurer {
    *   </ul>
    * </section>
    */
-  createDom(): { dom: HTMLElement, destory: () => void } {
-    const { paragraphs, computedStyle } = this._text
+  createDom(paragraphs: Paragraph[], rootStyle: TextStyle): { dom: HTMLElement, destory: () => void } {
     const documentFragment = document.createDocumentFragment()
     const dom = document.createElement('section')
     Object.assign(dom.style, {
@@ -90,7 +82,7 @@ export class Measurer {
       height: 'max-content',
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-all',
-      ...this._styleToDomStyle(computedStyle),
+      ...this._styleToDomStyle(rootStyle),
       position: 'fixed',
       visibility: 'hidden',
     })
@@ -187,8 +179,7 @@ export class Measurer {
     }
   }
 
-  measureDom(dom: HTMLElement): MeasureDomResult {
-    const { paragraphs } = this._text
+  measureDom(paragraphs: Paragraph[], dom: HTMLElement): MeasureDomResult {
     const rect = dom.getBoundingClientRect()
     const measured = this._measureDom(dom)
     measured.paragraphs.forEach((p) => {
@@ -245,12 +236,12 @@ export class Measurer {
     }
   }
 
-  measure(dom?: HTMLElement): MeasureDomResult {
+  measure(paragraphs: Paragraph[], rootStyle: TextStyle, dom?: HTMLElement): MeasureDomResult {
     let destory: undefined | (() => void)
     if (!dom) {
-      ({ dom, destory } = this.createDom())
+      ({ dom, destory } = this.createDom(paragraphs, rootStyle))
     }
-    const result = this.measureDom(dom)
+    const result = this.measureDom(paragraphs, dom)
     destory?.()
     return result
   }

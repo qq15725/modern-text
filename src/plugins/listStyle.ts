@@ -14,9 +14,20 @@ export function listStyle(): TextPlugin {
       const { paragraphs, isVertical, fontSize } = text
       const padding = fontSize * 0.45
       paragraphs.forEach((paragraph) => {
-        const { computedStyle: style } = paragraph
-        const { listStyleImage, listStyleColormap, listStyleSize, listStyleType, color } = style
+        const {
+          computedStyle: style,
+        } = paragraph
+
+        const {
+          color,
+          listStyleImage,
+          listStyleColormap,
+          listStyleSize,
+          listStyleType,
+        } = style
+
         const colormap = parseColormap(listStyleColormap)
+
         let size = listStyleSize
         let image: string | undefined
         if (!isNone(listStyleImage)) {
@@ -36,6 +47,7 @@ export function listStyle(): TextPlugin {
         if (!image) {
           return
         }
+
         const imagePaths = parseSvg(image)
         const imageBox = getPathsBoundingBox(imagePaths)!
         const box = paragraph.lineBox
@@ -48,19 +60,20 @@ export function listStyle(): TextPlugin {
           if (isVertical) {
             const reScale = (fontSize / imageBox.height) * scale
             m.translate(-imageBox.left, -imageBox.top)
-            m.rotate(Math.PI / 2)
-            m.scale(reScale, reScale)
-            m.translate(fontSize / 2 - (imageBox.height * reScale) / 2, 0)
-            m.translate(box.left + (box.width - fontSize) / 2, fBox.top - padding)
+              .rotate(Math.PI / 2)
+              .scale(reScale, reScale)
+              .translate(fontSize / 2 - (imageBox.height * reScale) / 2, 0)
+              .translate(box.left + (box.width - fontSize) / 2, fBox.top - padding)
           }
           else {
             const reScale = (fontSize / imageBox.height) * scale
             m.translate(-imageBox.left, -imageBox.top)
-            m.translate(-imageBox.width, 0)
-            m.scale(reScale, reScale)
-            m.translate(0, fontSize / 2 - (imageBox.height * reScale) / 2)
-            m.translate(fBox.left - padding, box.top + (box.height - fontSize) / 2)
+              .translate(-imageBox.width, 0)
+              .scale(reScale, reScale)
+              .translate(0, fontSize / 2 - (imageBox.height * reScale) / 2)
+              .translate(fBox.left - padding, box.top + (box.height - fontSize) / 2)
           }
+
           paths.push(...imagePaths.map((p) => {
             const path = p.clone()
             path.matrix(m)
