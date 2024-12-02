@@ -65,7 +65,6 @@ export function highlight(): TextPlugin {
       let prevStyle: TextStyle | undefined
       text.forEachCharacter((character) => {
         const {
-          glyphBox,
           computedStyle: style,
         } = character
 
@@ -73,7 +72,7 @@ export function highlight(): TextPlugin {
           highlightImage,
         } = style
 
-        if (!isNone(highlightImage) && glyphBox) {
+        if (!isNone(highlightImage)) {
           const {
             inlineBox,
             isVertical,
@@ -127,7 +126,13 @@ export function highlight(): TextPlugin {
       for (let i = 0; i < groups.length; i++) {
         const characters = groups[i]
         const char = characters[0]!
-        const groupBox = BoundingBox.from(...characters.map(c => c.glyphBox!))
+        const groupBox = BoundingBox.from(
+          ...(
+            characters
+              .filter(c => c.glyphBox)
+              .map(c => c.glyphBox) as BoundingBox[]
+          ),
+        )
 
         const {
           computedStyle: style,
