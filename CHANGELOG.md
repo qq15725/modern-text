@@ -1,3 +1,10 @@
+## 0.6.0 (2024-12-02)
+
+* fix: highlight ([5f4e04c](https://github.com/qq15725/modern-text/commit/5f4e04c))
+* feat: add text.load ([a2e4abb](https://github.com/qq15725/modern-text/commit/a2e4abb))
+
+
+
 ## [0.5.13](https://github.com/qq15725/modern-text/compare/v0.5.12...v0.5.13) (2024-11-25)
 
 
