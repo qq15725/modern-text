@@ -168,7 +168,7 @@ export class Measurer {
           height: fBox.height,
         })
         let characterIndex = 0
-        if (fDom.firstChild instanceof window.Text) {
+        if (!fDom.children.length && fDom.firstChild instanceof window.Text) {
           this.measureDomText(fDom.firstChild).forEach((char) => {
             characters.push({
               ...char,
