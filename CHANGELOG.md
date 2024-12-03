@@ -1,3 +1,9 @@
+## <small>0.6.1 (2024-12-03)</small>
+
+* feat: measurer export measureDomText method ([fcf4ea8](https://github.com/qq15725/modern-text/commit/fcf4ea8))
+
+
+
 ## 0.6.0 (2024-12-02)
 
 * fix: highlight ([5f4e04c](https://github.com/qq15725/modern-text/commit/5f4e04c))
