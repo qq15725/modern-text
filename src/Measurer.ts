@@ -74,7 +74,7 @@ export class Measurer {
    *   </ul>
    * </section>
    */
-  createDom(paragraphs: Paragraph[], rootStyle: TextStyle): { dom: HTMLElement, destory: () => void } {
+  createParagraphDom(paragraphs: Paragraph[], rootStyle: TextStyle): { dom: HTMLElement, destory: () => void } {
     const documentFragment = document.createDocumentFragment()
     const dom = document.createElement('section')
     Object.assign(dom.style, {
@@ -112,12 +112,44 @@ export class Measurer {
     }
   }
 
-  protected _measureDom(dom: HTMLElement): { paragraphs: MeasuredParagraph[], fragments: MeasuredFragment[], characters: MeasuredCharacter[] } {
+  measureDomText(text: Text): { content: string, top: number, left: number, width: number, height: number }[] {
+    const range = document.createRange()
+    range.selectNodeContents(text)
+    const data = text.data ?? ''
+    let offset = 0
+    return Array.from(data)
+      .map((char) => {
+        const start = offset += data.substring(offset).indexOf(char)
+        const end = start + char.length
+        offset += char.length
+        range.setStart(text, Math.max(start, 0))
+        range.setEnd(text, end)
+        const rects = range.getClientRects?.() ?? [range.getBoundingClientRect()]
+        let rect = rects[rects.length - 1]
+        if (rects.length > 1 && rect.width < 2) {
+          rect = rects[rects.length - 2]
+        }
+        const content = range.toString()
+        if (content !== '' && rect && rect.width + rect.height !== 0) {
+          return {
+            content,
+            top: rect.top,
+            left: rect.left,
+            height: rect.height,
+            width: rect.width,
+          }
+        }
+        return undefined
+      })
+      .filter(Boolean) as any
+  }
+
+  measureDom(dom: HTMLElement): { paragraphs: MeasuredParagraph[], fragments: MeasuredFragment[], characters: MeasuredCharacter[] } {
     const paragraphs: MeasuredParagraph[] = []
     const fragments: MeasuredFragment[] = []
     const characters: MeasuredCharacter[] = []
-    dom.querySelectorAll('li').forEach((li, paragraphIndex) => {
-      const pBox = li.getBoundingClientRect()
+    dom.querySelectorAll('li').forEach((pDom, paragraphIndex) => {
+      const pBox = pDom.getBoundingClientRect()
       paragraphs.push({
         paragraphIndex,
         left: pBox.left,
@@ -125,8 +157,8 @@ export class Measurer {
         width: pBox.width,
         height: pBox.height,
       })
-      li.querySelectorAll('span').forEach((span, fragmentIndex) => {
-        const fBox = span.getBoundingClientRect()
+      pDom.querySelectorAll(':scope > *').forEach((fDom, fragmentIndex) => {
+        const fBox = fDom.getBoundingClientRect()
         fragments.push({
           paragraphIndex,
           fragmentIndex,
@@ -135,37 +167,33 @@ export class Measurer {
           width: fBox.width,
           height: fBox.height,
         })
-        const text = span.firstChild
-        if (text instanceof window.Text) {
-          const range = document.createRange()
-          range.selectNodeContents(text)
-          const data = text.data ?? ''
-          let offset = 0
-          Array.from(data).forEach((char, index) => {
-            const start = offset += data.substring(offset).indexOf(char)
-            const end = start + char.length
-            offset += char.length
-            range.setStart(text, Math.max(start, 0))
-            range.setEnd(text, end)
-            const rects = range.getClientRects?.() ?? [range.getBoundingClientRect()]
-            let rect = rects[rects.length - 1]
-            if (rects.length > 1 && rect.width < 2) {
-              rect = rects[rects.length - 2]
-            }
-            const content = range.toString()
-            if (content !== '' && rect && rect.width + rect.height !== 0) {
-              characters.push({
-                content,
-                newParagraphIndex: -1,
-                paragraphIndex,
-                fragmentIndex,
-                characterIndex: index,
-                top: rect.top,
-                left: rect.left,
-                height: rect.height,
-                width: rect.width,
-                textWidth: -1,
-                textHeight: -1,
+        let characterIndex = 0
+        if (fDom.firstChild instanceof window.Text) {
+          this.measureDomText(fDom.firstChild).forEach((char) => {
+            characters.push({
+              ...char,
+              newParagraphIndex: -1,
+              paragraphIndex,
+              fragmentIndex,
+              characterIndex: characterIndex++,
+              textWidth: -1,
+              textHeight: -1,
+            })
+          })
+        }
+        else {
+          fDom.querySelectorAll(':scope > *').forEach((cDom) => {
+            if (cDom.firstChild instanceof window.Text) {
+              this.measureDomText(cDom.firstChild).forEach((char) => {
+                characters.push({
+                  ...char,
+                  newParagraphIndex: -1,
+                  paragraphIndex,
+                  fragmentIndex,
+                  characterIndex: characterIndex++,
+                  textWidth: -1,
+                  textHeight: -1,
+                })
               })
             }
           })
@@ -179,9 +207,9 @@ export class Measurer {
     }
   }
 
-  measureDom(paragraphs: Paragraph[], dom: HTMLElement): MeasureDomResult {
+  measureParagraphDom(paragraphs: Paragraph[], dom: HTMLElement): MeasureDomResult {
     const rect = dom.getBoundingClientRect()
-    const measured = this._measureDom(dom)
+    const measured = this.measureDom(dom)
     measured.paragraphs.forEach((p) => {
       const _p = paragraphs[p.paragraphIndex]
       _p.lineBox.left = p.left - rect.left
@@ -239,9 +267,9 @@ export class Measurer {
   measure(paragraphs: Paragraph[], rootStyle: TextStyle, dom?: HTMLElement): MeasureDomResult {
     let destory: undefined | (() => void)
     if (!dom) {
-      ({ dom, destory } = this.createDom(paragraphs, rootStyle))
+      ({ dom, destory } = this.createParagraphDom(paragraphs, rootStyle))
     }
-    const result = this.measureDom(paragraphs, dom)
+    const result = this.measureParagraphDom(paragraphs, dom)
     destory?.()
     return result
   }
