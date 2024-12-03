@@ -1,3 +1,9 @@
+## <small>0.6.2 (2024-12-03)</small>
+
+* fix: measureDomText ([b8b2722](https://github.com/qq15725/modern-text/commit/b8b2722))
+
+
+
 ## <small>0.6.1 (2024-12-03)</small>
 
 * feat: measurer export measureDomText method ([fcf4ea8](https://github.com/qq15725/modern-text/commit/fcf4ea8))
