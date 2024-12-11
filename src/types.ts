@@ -77,6 +77,14 @@ export interface TextStyle extends
   TextLineStyle,
   TextInlineStyle,
   TextDrawStyle {
+  marginLeft?: number
+  marginTop?: number
+  marginRight?: number
+  marginBottom?: number
+  paddingLeft?: number
+  paddingTop?: number
+  paddingRight?: number
+  paddingBottom?: number
   width?: number
   height?: number
 }
