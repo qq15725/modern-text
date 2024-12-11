@@ -113,6 +113,7 @@ export class Measurer {
     }
     const isFlex = Boolean(style.justifyContent || style.alignItems)
     Object.assign(dom.style, {
+      boxSizing: 'border-box',
       display: isFlex ? 'inline-flex' : undefined,
       width: 'max-content',
       height: 'max-content',
