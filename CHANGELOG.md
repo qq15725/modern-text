@@ -1,3 +1,11 @@
+## 0.7.0 (2024-12-11)
+
+* feat: padding margin type ([a01111b](https://github.com/qq15725/modern-text/commit/a01111b))
+* type: fix ([0f02971](https://github.com/qq15725/modern-text/commit/0f02971))
+* fix: verticalAlign ([045d093](https://github.com/qq15725/modern-text/commit/045d093))
+
+
+
 ## <small>0.6.2 (2024-12-03)</small>
 
 * fix: measureDomText ([b8b2722](https://github.com/qq15725/modern-text/commit/b8b2722))
