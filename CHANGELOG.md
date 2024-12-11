@@ -1,3 +1,9 @@
+## <small>0.7.1 (2024-12-11)</small>
+
+* fix: box-sizing ([a866cb0](https://github.com/qq15725/modern-text/commit/a866cb0))
+
+
+
 ## 0.7.0 (2024-12-11)
 
 * feat: padding margin type ([a01111b](https://github.com/qq15725/modern-text/commit/a01111b))
