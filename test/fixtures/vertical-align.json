@@ -1,0 +1,39 @@
+{
+  "content": [
+    {
+      "content": "vertical-align"
+    },
+    {
+      "content": "baseline",
+      "verticalAlign": "baseline"
+    },
+    {
+      "content": "top",
+      "verticalAlign": "top"
+    },
+    {
+      "content": "middle",
+      "verticalAlign": "middle"
+    },
+    {
+      "content": "bottom",
+      "verticalAlign": "bottom"
+    },
+    {
+      "content": "sub",
+      "verticalAlign": "sub"
+    },
+    {
+      "content": "super",
+      "verticalAlign": "super"
+    },
+    {
+      "content": "text-top",
+      "verticalAlign": "text-top"
+    },
+    {
+      "content": "text-bottom",
+      "verticalAlign": "text-bottom"
+    }
+  ]
+}

@@ -1,19 +1,19 @@
 {
   "content": [
     {
-      "content": "TextDecoration"
+      "content": "default"
     },
     {
-      "content": "TextDecorationNone",
+      "content": "none",
       "textDecoration": "none"
     },
     {
-      "content": "TextDecorationUnderline",
+      "content": "underline",
       "color": "#FF0000",
       "textDecoration": "underline"
     },
     {
-      "content": "TextDecorationLineThrough",
+      "content": "line-through",
       "textDecoration": "line-through"
     }
   ]

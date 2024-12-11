@@ -1,18 +1,18 @@
 {
   "content": [
     {
-      "content": "TextTransform"
+      "content": "text-transform"
     },
     {
-      "content": "TextTransformNone",
+      "content": "none",
       "textTransform": "none"
     },
     {
-      "content": "TextTransformUppercase",
+      "content": "uppercase",
       "textTransform": "uppercase"
     },
     {
-      "content": "TextTransformLowercase",
+      "content": "lowercase",
       "textTransform": "lowercase"
     }
   ]

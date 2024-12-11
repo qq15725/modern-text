@@ -77,7 +77,9 @@ export interface TextStyle extends
   TextLineStyle,
   TextInlineStyle,
   TextDrawStyle {
-  //
+  [key: string]: any
+  width?: number
+  height?: number
 }
 
 export interface FragmentContent extends Partial<TextStyle> {

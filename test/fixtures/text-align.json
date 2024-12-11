@@ -1,0 +1,30 @@
+{
+  "style": {
+    "width": 200
+  },
+  "content": [
+    {
+      "content": "text-align"
+    },
+    {
+      "content": "start",
+      "textAlign": "start"
+    },
+    {
+      "content": "left",
+      "textAlign": "left"
+    },
+    {
+      "content": "center",
+      "textAlign": "center"
+    },
+    {
+      "content": "end",
+      "textAlign": "end"
+    },
+    {
+      "content": "right",
+      "textAlign": "right"
+    }
+  ]
+}

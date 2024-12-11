@@ -39,22 +39,30 @@ export interface MeasureDomResult {
 }
 
 export class Measurer {
-  protected _styleToDomStyle(style: Partial<TextStyle>): Record<string, any> {
+  static pxStyles = new Set([
+    'width',
+    'height',
+    'fontSize',
+    'letterSpacing',
+    'textStrokeWidth',
+    'textIndent',
+    'shadowOffsetX',
+    'shadowOffsetY',
+    'shadowBlur',
+    'marginLeft',
+    'marginTop',
+    'marginRight',
+    'marginBottom',
+    'paddingLeft',
+    'paddingTop',
+    'paddingRight',
+    'paddingBottom',
+  ])
+
+  protected _styleToDomStyle(style: Record<string, any>): Record<string, any> {
     const _style: Record<string, any> = { ...style }
     for (const key in style) {
-      if (
-        [
-          'width',
-          'height',
-          'fontSize',
-          'letterSpacing',
-          'textStrokeWidth',
-          'textIndent',
-          'shadowOffsetX',
-          'shadowOffsetY',
-          'shadowBlur',
-        ].includes(key)
-      ) {
+      if (Measurer.pxStyles.has(key)) {
         _style[key] = `${(style as any)[key]}px`
       }
       else {
@@ -77,27 +85,64 @@ export class Measurer {
   createParagraphDom(paragraphs: Paragraph[], rootStyle: TextStyle): { dom: HTMLElement, destory: () => void } {
     const documentFragment = document.createDocumentFragment()
     const dom = document.createElement('section')
+    const style: Record<string, any> = { ...rootStyle }
+    const isHorizontal = rootStyle.writingMode.includes('horizontal')
+    switch (rootStyle.textAlign) {
+      case 'start':
+      case 'left':
+        style.justifyContent = 'start'
+        break
+      case 'center':
+        style.justifyContent = 'center'
+        break
+      case 'end':
+      case 'right':
+        style.justifyContent = 'end'
+        break
+    }
+    switch (rootStyle.verticalAlign) {
+      case 'top':
+        style.alignItems = 'top'
+        break
+      case 'middle':
+        style.alignItems = 'center'
+        break
+      case 'bottom':
+        style.alignItems = 'end'
+        break
+    }
+    const isFlex = Boolean(style.justifyContent || style.alignItems)
     Object.assign(dom.style, {
+      display: isFlex ? 'inline-flex' : undefined,
       width: 'max-content',
       height: 'max-content',
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-all',
-      ...this._styleToDomStyle(rootStyle),
+      ...this._styleToDomStyle(style),
       position: 'fixed',
       visibility: 'hidden',
     })
     const ul = document.createElement('ul')
     Object.assign(ul.style, {
+      verticalAlign: 'inherit',
       listStyleType: 'inherit',
       padding: '0',
       margin: '0',
+      width: isFlex && isHorizontal ? '100%' : undefined,
+      height: isFlex && !isHorizontal ? '100%' : undefined,
     })
     paragraphs.forEach((paragraph) => {
       const li = document.createElement('li')
-      Object.assign(li.style, this._styleToDomStyle(paragraph.style))
+      Object.assign(li.style, {
+        verticalAlign: 'inherit',
+        ...this._styleToDomStyle(paragraph.style),
+      })
       paragraph.fragments.forEach((fragment) => {
         const span = document.createElement('span')
-        Object.assign(span.style, this._styleToDomStyle(fragment.style))
+        Object.assign(span.style, {
+          verticalAlign: 'inherit',
+          ...this._styleToDomStyle(fragment.style),
+        })
         span.appendChild(document.createTextNode(fragment.content))
         li.appendChild(span)
       })
