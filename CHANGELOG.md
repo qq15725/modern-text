@@ -1,3 +1,12 @@
+## [0.7.3](https://github.com/qq15725/modern-text/compare/v0.7.2...v0.7.3) (2024-12-13)
+
+
+### Features
+
+* up deps ([72854cc](https://github.com/qq15725/modern-text/commit/72854ccd6b9d81ae71666c6309239af24060ffbf))
+
+
+
 ## <small>0.7.2 (2024-12-13)</small>
 
 * fix: listStyle render ([3861a62](https://github.com/qq15725/modern-text/commit/3861a62))
