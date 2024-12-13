@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       modern-font:
-        specifier: ^0.3.2
-        version: 0.3.2
+        specifier: ^0.3.4
+        version: 0.3.4
       modern-path2d:
         specifier: ^0.2.6
         version: 0.2.6
@@ -2366,8 +2366,8 @@ packages:
   mlly@1.7.2:
     resolution: {integrity: sha512-tN3dvVHYVz4DhSXinXIk7u9syPYaJvio118uomkovAtWBT+RdbP6Lfh/5Lvo519YMmwBafwlh20IPTXIStscpA==}
 
-  modern-font@0.3.2:
-    resolution: {integrity: sha512-CnYmp7foUnv9j356UWo/MuF8x5HG9iOOimBfzh7i/z6oB2b1z1bvAyhq2UzSh6fyfg3vqSae1DIaPAG3MBZhjQ==}
+  modern-font@0.3.4:
+    resolution: {integrity: sha512-fSV8CRYSgCxOTTHb6ZHgo0xI/ns3ExaUaBc3q5GG1MP6n0J+ua3Fz7LN5IDcIRhNbbJ3rus0qIKo8DPudfVGEQ==}
 
   modern-path2d@0.2.6:
     resolution: {integrity: sha512-6xd9H3oadG4li3RS+AdqhpzubBf8A1IOx8SKyOcM5q+hBUH7gNnqiIDZUBz/0bYLPxdWjlv1bPnkvXzfhtx6uA==}
@@ -5730,7 +5730,7 @@ snapshots:
       pkg-types: 1.2.1
       ufo: 1.5.4
 
-  modern-font@0.3.2:
+  modern-font@0.3.4:
     dependencies:
       fflate: 0.8.2
 
