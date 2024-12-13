@@ -1,3 +1,9 @@
+## <small>0.7.2 (2024-12-13)</small>
+
+* fix: listStyle render ([3861a62](https://github.com/qq15725/modern-text/commit/3861a62))
+
+
+
 ## <small>0.7.1 (2024-12-11)</small>
 
 * fix: box-sizing ([a866cb0](https://github.com/qq15725/modern-text/commit/a866cb0))
