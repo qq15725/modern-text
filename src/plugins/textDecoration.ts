@@ -13,6 +13,7 @@ export function textDecoration(): TextPlugin {
     paths,
     update: (text) => {
       paths.length = 0
+
       const groups: Character[][] = []
       let group: Character[]
       let prevStyle: TextStyle | undefined

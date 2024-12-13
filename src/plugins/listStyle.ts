@@ -1,8 +1,15 @@
 import type { Path2D } from 'modern-path2d'
+import type { Character } from '../content'
 import type { TextPlugin } from '../types'
 import { getPathsBoundingBox, Matrix3, parseSvg } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
 import { isNone, parseColormap, parseValueNumber } from '../utils'
+
+function genDisc(r: number, color: string): string {
+  return `<svg width="${r * 2}" height="${r * 2}" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="${r}" cy="${r}" r="${r}" fill="${color}" />
+</svg>`
+}
 
 export function listStyle(): TextPlugin {
   const paths: Path2D[] = []
@@ -13,6 +20,7 @@ export function listStyle(): TextPlugin {
       paths.length = 0
       const { paragraphs, isVertical, fontSize } = text
       const padding = fontSize * 0.45
+
       paragraphs.forEach((paragraph) => {
         const {
           computedStyle: style,
@@ -38,54 +46,66 @@ export function listStyle(): TextPlugin {
           size = size === 'cover' ? r * 2 : size
           switch (listStyleType) {
             case 'disc':
-              image = `<svg width="${r * 2}" height="${r * 2}" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="${r}" cy="${r}" r="${r}" fill="${color}" />
-</svg>`
+              image = genDisc(r, String(color))
               break
           }
         }
+
         if (!image) {
           return
         }
 
         const imagePaths = parseSvg(image)
         const imageBox = getPathsBoundingBox(imagePaths)!
-        const box = paragraph.lineBox
-        const fBox = paragraph.fragments[0].inlineBox
-        if (fBox) {
-          const scale = size === 'cover'
-            ? 1
-            : parseValueNumber(size, { total: fontSize, fontSize }) / fontSize
-          const m = new Matrix3()
-          if (isVertical) {
-            const reScale = (fontSize / imageBox.height) * scale
-            m.translate(-imageBox.left, -imageBox.top)
-              .rotate(Math.PI / 2)
-              .scale(reScale, reScale)
-              .translate(fontSize / 2 - (imageBox.height * reScale) / 2, 0)
-              .translate(box.left + (box.width - fontSize) / 2, fBox.top - padding)
-          }
-          else {
-            const reScale = (fontSize / imageBox.height) * scale
-            m.translate(-imageBox.left, -imageBox.top)
-              .translate(-imageBox.width, 0)
-              .scale(reScale, reScale)
-              .translate(0, fontSize / 2 - (imageBox.height * reScale) / 2)
-              .translate(fBox.left - padding, box.top + (box.height - fontSize) / 2)
-          }
 
-          paths.push(...imagePaths.map((p) => {
-            const path = p.clone()
-            path.matrix(m)
-            if (path.style.fill && (path.style.fill as string) in colormap) {
-              path.style.fill = colormap[path.style.fill as string]
+        let prevChar: Character | undefined
+        paragraph.fragments.forEach((f) => {
+          f.characters.forEach((c) => {
+            const { inlineBox } = c
+            if (
+              isVertical
+                ? prevChar?.inlineBox.left !== inlineBox.left
+                : prevChar?.inlineBox.top !== inlineBox.top
+            ) {
+              prevChar = c
+              const scale = size === 'cover'
+                ? 1
+                : parseValueNumber(size, { total: fontSize, fontSize }) / fontSize
+              const m = new Matrix3()
+              if (isVertical) {
+                const _scale = (fontSize / imageBox.height) * scale
+                m.translate(-imageBox.left, -imageBox.top)
+                  .rotate(Math.PI / 2)
+                  .scale(_scale, _scale)
+                  .translate(
+                    inlineBox.left + (inlineBox.width - (imageBox.height * _scale)) / 2,
+                    inlineBox.top - padding,
+                  )
+              }
+              else {
+                const _scale = (fontSize / imageBox.height) * scale
+                m
+                  .translate(-imageBox.left, -imageBox.top)
+                  .scale(_scale, _scale)
+                  .translate(
+                    inlineBox.left - (imageBox.width * _scale) - padding,
+                    inlineBox.top + (inlineBox.height - (imageBox.height * _scale)) / 2,
+                  )
+              }
+              paths.push(...imagePaths.map((p) => {
+                const path = p.clone()
+                path.matrix(m)
+                if (path.style.fill && (path.style.fill as string) in colormap) {
+                  path.style.fill = colormap[path.style.fill as string]
+                }
+                if (path.style.stroke && (path.style.stroke as string) in colormap) {
+                  path.style.stroke = colormap[path.style.stroke as string]
+                }
+                return path
+              }))
             }
-            if (path.style.stroke && (path.style.stroke as string) in colormap) {
-              path.style.stroke = colormap[path.style.stroke as string]
-            }
-            return path
-          }))
-        }
+          })
+        })
       })
     },
   })
