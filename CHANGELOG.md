@@ -1,3 +1,13 @@
+## [0.7.4](https://github.com/qq15725/modern-text/compare/v0.7.3...v0.7.4) (2024-12-23)
+
+
+### Features
+
+* add highlightStyle ([f43b193](https://github.com/qq15725/modern-text/commit/f43b19328f73bc67d000715c9ded900656e3286c))
+* up deps ([c19de0b](https://github.com/qq15725/modern-text/commit/c19de0b921462339d306a5eb64cf888bc942271a))
+
+
+
 ## [0.7.3](https://github.com/qq15725/modern-text/compare/v0.7.2...v0.7.3) (2024-12-13)
 
 
