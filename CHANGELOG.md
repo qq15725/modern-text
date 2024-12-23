@@ -1,3 +1,12 @@
+# [1.0.0](https://github.com/qq15725/modern-text/compare/v0.7.4...v1.0.0) (2024-12-23)
+
+
+### Features
+
+* up deps ([b5c7f46](https://github.com/qq15725/modern-text/commit/b5c7f46bb504488e63d4bca853a5a4ffff893d19))
+
+
+
 ## [0.7.4](https://github.com/qq15725/modern-text/compare/v0.7.3...v0.7.4) (2024-12-23)
 
 
