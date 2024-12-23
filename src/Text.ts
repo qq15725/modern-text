@@ -52,13 +52,6 @@ export const defaultTextStyles: TextStyle = {
   listStyleColormap: 'none',
   listStyleSize: 'cover',
   listStylePosition: 'outside',
-  // highlight
-  highlightImage: 'none',
-  highlightReferImage: 'none',
-  highlightColormap: 'none',
-  highlightLine: 'none',
-  highlightSize: 'cover',
-  highlightThickness: '100%',
   // shadow
   shadowColor: 'rgba(0, 0, 0, 0)',
   shadowOffsetX: 0,
@@ -121,6 +114,8 @@ export class Text extends EventEmitter<TextEventMap> {
       .use(textDecoration())
       .use(highlight())
       .use(render())
+
+    this.updateParagraphs()
   }
 
   use(plugin: TextPlugin): this {
@@ -294,6 +289,7 @@ export class Text extends EventEmitter<TextEventMap> {
       (this as any)[key] = (result as any)[key]
     }
     this.emit('update', { text: this })
+    this.needsUpdate = false
     return this
   }
 

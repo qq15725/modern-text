@@ -1,10 +1,37 @@
 import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
-import type { HighlightLine, TextPlugin, TextStyle } from '../types'
+import type {
+  HighlightLine,
+  HighlightStyle,
+  TextPlugin,
+  TextStyle,
+} from '../types'
 import { BoundingBox, getPathsBoundingBox, Matrix3, parseSvg, parseSvgToDom } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
+
 import { isEqualValue, isNone, needsFetch, parseColormap, parseValueNumber } from '../utils'
+
+export function getHighlightStyle(style: TextStyle): HighlightStyle {
+  const {
+    highlight,
+    highlightImage,
+    highlightReferImage,
+    highlightColormap,
+    highlightLine,
+    highlightSize,
+    highlightThickness,
+  } = style
+
+  return {
+    image: highlight?.image ?? highlightImage ?? 'none',
+    referImage: highlight?.referImage ?? highlightReferImage ?? 'none',
+    colormap: highlight?.colormap ?? highlightColormap ?? 'none',
+    line: highlight?.line ?? highlightLine ?? 'none',
+    size: highlight?.size ?? highlightSize ?? 'cover',
+    thickness: highlight?.thickness ?? highlightThickness ?? '100%',
+  }
+}
 
 export function highlight(): TextPlugin {
   const paths: Path2D[] = []
@@ -44,35 +71,41 @@ export function highlight(): TextPlugin {
     name: 'highlight',
     paths,
     load: async (text) => {
-      const promises: Promise<void>[] = []
+      const set = new Set<string>()
       text.forEachCharacter((character) => {
         const { computedStyle: style } = character
-        const { highlightImage, highlightReferImage } = style
-        if (needsFetch(highlightImage)) {
-          promises.push(loadSvg(highlightImage))
+        const { image, referImage } = getHighlightStyle(style)
+        if (needsFetch(image)) {
+          set.add(image)
         }
-        if (needsFetch(highlightReferImage)) {
-          promises.push(loadSvg(highlightReferImage))
+        if (needsFetch(referImage)) {
+          set.add(referImage)
         }
       })
-      await Promise.all(promises)
+      await Promise.all(Array.from(set).map(src => loadSvg(src)))
     },
     update: (text) => {
       clipRects.length = 0
       paths.length = 0
       let groups: Character[][] = []
       let group: Character[]
-      let prevStyle: TextStyle | undefined
+      let prevHighlight: HighlightStyle | undefined
       text.forEachCharacter((character) => {
         const {
           computedStyle: style,
         } = character
 
-        const {
-          highlightImage,
-        } = style
+        const highlight = getHighlightStyle(style)
 
-        if (!isNone(highlightImage)) {
+        const {
+          image,
+          colormap,
+          line,
+          size,
+          thickness,
+        } = highlight
+
+        if (!isNone(image)) {
           const {
             inlineBox,
             isVertical,
@@ -80,20 +113,16 @@ export function highlight(): TextPlugin {
 
           const {
             fontSize,
-            highlightColormap,
-            highlightLine,
-            highlightSize,
-            highlightThickness,
           } = style
 
           if (
             (
-              !prevStyle || (
-                isEqualValue(prevStyle.highlightImage, highlightImage)
-                && isEqualValue(prevStyle.highlightColormap, highlightColormap)
-                && isEqualValue(prevStyle.highlightLine, highlightLine)
-                && isEqualValue(prevStyle.highlightSize, highlightSize)
-                && isEqualValue(prevStyle.highlightThickness, highlightThickness)
+              !prevHighlight || (
+                isEqualValue(prevHighlight.image, image)
+                && isEqualValue(prevHighlight.colormap, colormap)
+                && isEqualValue(prevHighlight.line, line)
+                && isEqualValue(prevHighlight.size, size)
+                && isEqualValue(prevHighlight.thickness, thickness)
               )
             )
             && group?.length
@@ -118,7 +147,7 @@ export function highlight(): TextPlugin {
             groups.push(group)
           }
         }
-        prevStyle = style
+        prevHighlight = highlight
       })
 
       groups = groups.filter(characters => characters.length)
@@ -141,18 +170,21 @@ export function highlight(): TextPlugin {
         const {
           fontSize,
           writingMode,
-          highlightImage,
-          highlightReferImage,
-          highlightColormap,
-          highlightLine,
-          highlightSize,
-          highlightThickness,
         } = style
 
+        const {
+          image,
+          referImage,
+          colormap,
+          line,
+          size,
+          thickness,
+        } = getHighlightStyle(style)
+
         const isVertical = writingMode.includes('vertical')
-        const thickness = parseValueNumber(highlightThickness, { fontSize, total: groupBox.width }) / groupBox.width
-        const colormap = parseColormap(highlightColormap)
-        const { paths: svgPaths, dom: svgDom } = getPaths(highlightImage)
+        const _thickness = parseValueNumber(thickness, { fontSize, total: groupBox.width }) / groupBox.width
+        const _colormap = parseColormap(colormap)
+        const { paths: svgPaths, dom: svgDom } = getPaths(image)
         const aBox = getPathsBoundingBox(svgPaths, true)!
         const styleScale = fontSize / aBox.width * 2
         const cBox = new BoundingBox().copy(groupBox)
@@ -163,43 +195,43 @@ export function highlight(): TextPlugin {
         }
         const rawWidth = Math.floor(cBox.width)
         let userWidth = rawWidth
-        if (highlightSize !== 'cover') {
-          userWidth = parseValueNumber(highlightSize, { fontSize, total: groupBox.width })
+        if (size !== 'cover') {
+          userWidth = parseValueNumber(size, { fontSize, total: groupBox.width }) || rawWidth
           cBox.width = userWidth
         }
-        if (!isNone(highlightReferImage) && isNone(highlightLine)) {
-          const bBox = getPathsBoundingBox(getPaths(highlightReferImage).paths, true)!
+        if (!isNone(referImage) && isNone(line)) {
+          const bBox = getPathsBoundingBox(getPaths(referImage).paths, true)!
           aBox.copy(bBox)
         }
         else {
-          let line: Omit<HighlightLine, 'none'>
-          if (isNone(highlightLine)) {
+          let _line: Omit<HighlightLine, 'none'>
+          if (isNone(line)) {
             if (aBox.width / aBox.height > 4) {
-              line = 'underline'
+              _line = 'underline'
               const viewBox = svgDom.getAttribute('viewBox')
               if (viewBox) {
                 const [_x, y, _w, h] = viewBox.split(' ').map(v => Number(v))
                 const viewCenter = y + h / 2
                 if (aBox.y < viewCenter && aBox.y + aBox.height > viewCenter) {
-                  line = 'line-through'
+                  _line = 'line-through'
                 }
                 else if (aBox.y + aBox.height < viewCenter) {
-                  line = 'overline'
+                  _line = 'overline'
                 }
                 else {
-                  line = 'underline'
+                  _line = 'underline'
                 }
               }
             }
             else {
-              line = 'outline'
+              _line = 'outline'
             }
           }
           else {
-            line = highlightLine
+            _line = line
           }
 
-          switch (line) {
+          switch (_line) {
             case 'outline': {
               const paddingX = cBox.width * 0.2
               const paddingY = cBox.height * 0.2
@@ -265,7 +297,7 @@ export function highlight(): TextPlugin {
           svgPaths.forEach((originalPath) => {
             const path = originalPath.clone().matrix(_transform)
             if (path.style.strokeWidth) {
-              path.style.strokeWidth *= styleScale * thickness
+              path.style.strokeWidth *= styleScale * _thickness
             }
             if (path.style.strokeMiterlimit) {
               path.style.strokeMiterlimit *= styleScale
@@ -276,11 +308,11 @@ export function highlight(): TextPlugin {
             if (path.style.strokeDasharray) {
               path.style.strokeDasharray = path.style.strokeDasharray.map(v => v * styleScale)
             }
-            if (path.style.fill && (path.style.fill as string) in colormap) {
-              path.style.fill = colormap[path.style.fill as string]
+            if (path.style.fill && (path.style.fill as string) in _colormap) {
+              path.style.fill = _colormap[path.style.fill as string]
             }
-            if (path.style.stroke && (path.style.stroke as string) in colormap) {
-              path.style.stroke = colormap[path.style.stroke as string]
+            if (path.style.stroke && (path.style.stroke as string) in _colormap) {
+              path.style.stroke = _colormap[path.style.stroke as string]
             }
             paths.push(path)
             if (rawWidth !== userWidth) {

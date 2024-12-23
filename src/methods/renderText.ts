@@ -2,6 +2,16 @@ import type { TextRenderOptions } from '../Text'
 import type { TextOptions } from '../types'
 import { Text } from '../Text'
 
-export function renderText(options: TextOptions & TextRenderOptions): void {
-  new Text(options).render(options)
+export type RenderTextOptions = TextOptions & TextRenderOptions
+
+export function renderText(options: RenderTextOptions & { load: true }): Promise<void>
+export function renderText(options: RenderTextOptions & { load?: false }): void
+export function renderText(options: RenderTextOptions & { load?: boolean }): void | Promise<void> {
+  const text = new Text(options)
+  if (options.load) {
+    return text.load().then(() => {
+      return text.render(options)
+    })
+  }
+  return text.render(options)
 }

@@ -31,13 +31,20 @@ window.onload = async () => {
     text.on('measure', (ev) => {
       console.warn(ev)
     })
+    await text.load()
     text.render({ view: view1 })
     document.body.append(view1)
 
     // 2
     const view2 = document.createElement('canvas')
     view2.dataset.file = key
-    renderText({ ...sharedOptions, ...fixture, style: { ...fixture.style, writingMode: 'vertical-lr' }, view: view2 })
+    await renderText({
+      ...sharedOptions,
+      ...fixture,
+      style: { ...fixture.style, writingMode: 'vertical-lr' },
+      view: view2,
+      load: true,
+    })
     document.body.append(view2)
   }
 }

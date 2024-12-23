@@ -38,7 +38,26 @@ export interface TextLineStyle {
   listStylePosition: ListStylePosition
 }
 
-export interface TextInlineStyle {
+export interface HighlightStyle {
+  image: HighlightImage
+  referImage: HighlightReferImage
+  colormap: HighlightColormap
+  line: HighlightLine
+  size: HighlightSize
+  thickness: HighlightThickness
+}
+
+export interface TextHighlightStyle {
+  highlight?: Partial<HighlightStyle>
+  highlightImage?: HighlightImage
+  highlightReferImage?: HighlightReferImage
+  highlightColormap?: HighlightColormap
+  highlightLine?: HighlightLine
+  highlightSize?: HighlightSize
+  highlightThickness?: HighlightThickness
+}
+
+export interface TextInlineStyle extends TextHighlightStyle {
   verticalAlign: VerticalAlign
   letterSpacing: number
   fontSize: number
@@ -49,13 +68,7 @@ export interface TextInlineStyle {
   textTransform: TextTransform
   textOrientation: TextOrientation
   textDecoration: TextDecorationLine
-  // extended part
-  highlightImage: HighlightImage
-  highlightReferImage: HighlightReferImage
-  highlightColormap: HighlightColormap
-  highlightLine: HighlightLine
-  highlightSize: HighlightSize
-  highlightThickness: HighlightThickness
+
 }
 
 export interface TextDrawStyle {
