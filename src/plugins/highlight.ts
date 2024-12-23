@@ -6,7 +6,7 @@ import type {
   TextPlugin,
   TextStyle,
 } from '../types'
-import { BoundingBox, getPathsBoundingBox, Matrix3, parseSvg, parseSvgToDom } from 'modern-path2d'
+import { BoundingBox, getPathsBoundingBox, Matrix3, parseSVG, parseSVGToDOM } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
 
@@ -55,12 +55,12 @@ export function highlight(): TextPlugin {
   function getPaths(svg: string): { dom: SVGElement, paths: Path2D[] } {
     let result = parsed.get(svg)
     if (!result) {
-      const dom = parseSvgToDom(
+      const dom = parseSVGToDOM(
         needsFetch(svg)
           ? loaded.get(svg) ?? svg
           : svg,
       )
-      const paths = parseSvg(dom)
+      const paths = parseSVG(dom)
       result = { dom, paths }
       parsed.set(svg, result)
     }

@@ -1,7 +1,7 @@
 import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
 import type { TextPlugin } from '../types'
-import { getPathsBoundingBox, Matrix3, parseSvg } from 'modern-path2d'
+import { getPathsBoundingBox, Matrix3, parseSVG } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
 import { isNone, parseColormap, parseValueNumber } from '../utils'
 
@@ -55,7 +55,7 @@ export function listStyle(): TextPlugin {
           return
         }
 
-        const imagePaths = parseSvg(image)
+        const imagePaths = parseSVG(image)
         const imageBox = getPathsBoundingBox(imagePaths)!
 
         let prevChar: Character | undefined
