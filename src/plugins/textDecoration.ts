@@ -1,5 +1,6 @@
+import type { ITextStyle } from 'modern-idoc'
 import type { Character } from '../content'
-import type { TextPlugin, TextStyle } from '../types'
+import type { TextPlugin } from '../types'
 import { BoundingBox, Path2D } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
@@ -16,7 +17,7 @@ export function textDecoration(): TextPlugin {
 
       const groups: Character[][] = []
       let group: Character[]
-      let prevStyle: TextStyle | undefined
+      let prevStyle: ITextStyle | undefined
       text.forEachCharacter((character) => {
         const {
           computedStyle: style,
