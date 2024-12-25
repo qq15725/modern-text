@@ -12,8 +12,8 @@ importers:
         specifier: ^0.3.4
         version: 0.3.4
       modern-idoc:
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.3
+        version: 0.0.3
       modern-path2d:
         specifier: ^1.0.0
         version: 1.0.0
@@ -2254,8 +2254,8 @@ packages:
   modern-font@0.3.4:
     resolution: {integrity: sha512-fSV8CRYSgCxOTTHb6ZHgo0xI/ns3ExaUaBc3q5GG1MP6n0J+ua3Fz7LN5IDcIRhNbbJ3rus0qIKo8DPudfVGEQ==}
 
-  modern-idoc@0.0.2:
-    resolution: {integrity: sha512-kzLfVc5f8XF0fAm/JTsRsPuThEzoUfBC6pTr0UjgVLjie/RM5XOVy6yOaEjQh9eC6Y+pqRxP5dTMx7Ja2UYMRw==}
+  modern-idoc@0.0.3:
+    resolution: {integrity: sha512-TEptyw0S5j25AotyvNnMWzawiTwR784aSUDMJ1pJz6ipQMKwnYf/KPyTH+FXJKuquTTx5CVDl1R2N/aVrheqKg==}
 
   modern-path2d@1.0.0:
     resolution: {integrity: sha512-pS9Qc0YEJSR58AgVS3nbNSEY3gp/pT6HpsXj1VWs0s74rfBmXJjWb86oOBqg8vG5M3AtjVf4xBaxdeFVDTeJpQ==}
@@ -5477,7 +5477,7 @@ snapshots:
     dependencies:
       fflate: 0.8.2
 
-  modern-idoc@0.0.2: {}
+  modern-idoc@0.0.3: {}
 
   modern-path2d@1.0.0: {}
 
