@@ -1,3 +1,12 @@
+## [1.0.1](https://github.com/qq15725/modern-text/compare/v1.0.0...v1.0.1) (2024-12-25)
+
+
+### Features
+
+* use IDoc type ([472ef68](https://github.com/qq15725/modern-text/commit/472ef68c2601f1a999e9ada60c5de203666673d0))
+
+
+
 # [1.0.0](https://github.com/qq15725/modern-text/compare/v0.7.4...v1.0.0) (2024-12-23)
 
 
