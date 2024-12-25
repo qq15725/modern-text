@@ -1,5 +1,5 @@
+import type { ITextStyle } from 'modern-idoc'
 import type { Paragraph } from '../content'
-import type { TextStyle } from '../types'
 import { BoundingBox } from 'modern-path2d'
 import { Character } from '../content'
 import { filterEmpty } from '../utils'
@@ -7,7 +7,7 @@ import { filterEmpty } from '../utils'
 export class Fragment {
   inlineBox = new BoundingBox()
   declare characters: Character[]
-  declare computedStyle: TextStyle
+  declare computedStyle: ITextStyle
 
   get computedContent(): string {
     const style = this.computedStyle
@@ -20,7 +20,7 @@ export class Fragment {
 
   constructor(
     public content: string,
-    public style: Partial<TextStyle> = {},
+    public style: Partial<ITextStyle> = {},
     public parent: Paragraph,
   ) {
     this.updateComputedStyle().initCharacters()
@@ -29,8 +29,8 @@ export class Fragment {
   updateComputedStyle(): this {
     this.computedStyle = {
       ...this.parent.computedStyle,
-      ...(filterEmpty(this.style) as Partial<TextStyle>),
-    } as TextStyle
+      ...(filterEmpty(this.style) as Partial<ITextStyle>),
+    } as ITextStyle
     return this
   }
 

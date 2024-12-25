@@ -1,4 +1,4 @@
-import type { TextStyle } from '../types'
+import type { ITextStyle } from 'modern-idoc'
 import { BoundingBox } from 'modern-path2d'
 import { filterEmpty } from '../utils'
 import { Fragment } from './Fragment'
@@ -6,11 +6,11 @@ import { Fragment } from './Fragment'
 export class Paragraph {
   lineBox = new BoundingBox()
   fragments: Fragment[] = []
-  declare computedStyle: TextStyle
+  declare computedStyle: ITextStyle
 
   constructor(
-    public style: Partial<TextStyle>,
-    public parentStyle: TextStyle,
+    public style: Partial<ITextStyle>,
+    public parentStyle: ITextStyle,
   ) {
     this.updateComputedStyle()
   }
@@ -19,11 +19,11 @@ export class Paragraph {
     this.computedStyle = {
       ...filterEmpty(this.parentStyle),
       ...filterEmpty(this.style),
-    } as TextStyle
+    } as ITextStyle
     return this
   }
 
-  addFragment(content: string, style?: Partial<TextStyle>): Fragment {
+  addFragment(content: string, style?: Partial<ITextStyle>): Fragment {
     const fragment = new Fragment(content, style, this)
     this.fragments.push(fragment)
     return fragment

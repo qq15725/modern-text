@@ -1,6 +1,6 @@
 import type { Fonts, Sfnt } from 'modern-font'
+import type { FontWeight, ITextStyle } from 'modern-idoc'
 import type { Vector2, VectorLike } from 'modern-path2d'
-import type { FontWeight, TextStyle } from '../types'
 import type { Fragment } from './Fragment'
 import { fonts as globalFonts } from 'modern-font'
 import { BoundingBox, Path2D, setCanvasContext } from 'modern-path2d'
@@ -72,7 +72,7 @@ export class Character {
     return this.glyphBox?.center
   }
 
-  get computedStyle(): TextStyle {
+  get computedStyle(): ITextStyle {
     return this.parent.computedStyle
   }
 
@@ -290,7 +290,7 @@ export class Character {
     return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
   }
 
-  drawTo(ctx: CanvasRenderingContext2D, config: Partial<TextStyle> = {}): void {
+  drawTo(ctx: CanvasRenderingContext2D, config: Partial<ITextStyle> = {}): void {
     const style = this.computedStyle
     const options = {
       ctx,

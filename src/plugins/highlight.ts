@@ -1,18 +1,14 @@
+import type { Highlight, HighlightLine, ITextStyle } from 'modern-idoc'
 import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
-import type {
-  HighlightLine,
-  HighlightStyle,
-  TextPlugin,
-  TextStyle,
-} from '../types'
+import type { TextPlugin } from '../types'
 import { BoundingBox, getPathsBoundingBox, Matrix3, parseSVG, parseSVGToDOM } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
 
 import { isEqualValue, isNone, needsFetch, parseColormap, parseValueNumber } from '../utils'
 
-export function getHighlightStyle(style: TextStyle): HighlightStyle {
+export function getHighlightStyle(style: ITextStyle): Highlight {
   const {
     highlight,
     highlightImage,
@@ -89,7 +85,7 @@ export function highlight(): TextPlugin {
       paths.length = 0
       let groups: Character[][] = []
       let group: Character[]
-      let prevHighlight: HighlightStyle | undefined
+      let prevHighlight: Highlight | undefined
       text.forEachCharacter((character) => {
         const {
           computedStyle: style,

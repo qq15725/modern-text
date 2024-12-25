@@ -1,6 +1,8 @@
 import type { Fonts } from 'modern-font'
+import type { ITextContent, ITextStyle } from 'modern-idoc'
 import type { Character } from './content'
-import type { TextContent, TextOptions, TextPlugin, TextStyle } from './types'
+import type { TextOptions, TextPlugin } from './types'
+import { getDefaultTextStyle } from 'modern-idoc'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
@@ -22,46 +24,7 @@ export interface MeasureResult {
   boundingBox: BoundingBox
 }
 
-export const defaultTextStyles: TextStyle = {
-  writingMode: 'horizontal-tb',
-  verticalAlign: 'baseline',
-  lineHeight: 1.2,
-  letterSpacing: 0,
-  // font
-  fontSize: 14,
-  fontWeight: 'normal',
-  fontFamily: '',
-  fontStyle: 'normal',
-  fontKerning: 'normal',
-  // text
-  textWrap: 'wrap',
-  textAlign: 'start',
-  textIndent: 0,
-  textTransform: 'none',
-  textOrientation: 'mixed',
-  textDecoration: 'none',
-  // textStroke
-  textStrokeWidth: 0,
-  textStrokeColor: '#000',
-  // color
-  color: '#000',
-  backgroundColor: 'rgba(0, 0, 0, 0)',
-  // listStyle
-  listStyleType: 'none',
-  listStyleImage: 'none',
-  listStyleColormap: 'none',
-  listStyleSize: 'cover',
-  listStylePosition: 'outside',
-  // shadow
-  shadowColor: 'rgba(0, 0, 0, 0)',
-  shadowOffsetX: 0,
-  shadowOffsetY: 0,
-  shadowBlur: 0,
-  translateX: 0,
-  translateY: 0,
-  skewX: 0,
-  skewY: 0,
-}
+export const defaultTextStyles: ITextStyle = getDefaultTextStyle()
 
 export interface TextEventMap {
   update: { text: Text }
@@ -71,12 +34,12 @@ export interface TextEventMap {
 
 export class Text extends EventEmitter<TextEventMap> {
   debug: boolean
-  content: TextContent
-  style: Partial<TextStyle>
-  effects?: Partial<TextStyle>[]
+  content: ITextContent
+  style: Partial<ITextStyle>
+  effects?: Partial<ITextStyle>[]
   measureDom?: HTMLElement
   needsUpdate = true
-  computedStyle: TextStyle = { ...defaultTextStyles }
+  computedStyle: ITextStyle = { ...defaultTextStyles }
   paragraphs: Paragraph[] = []
   lineBox = new BoundingBox()
   rawGlyphBox = new BoundingBox()

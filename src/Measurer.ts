@@ -1,5 +1,5 @@
+import type { ITextStyle } from 'modern-idoc'
 import type { Paragraph } from './content'
-import type { TextStyle } from './types'
 import { BoundingBox } from 'modern-path2d'
 
 export interface MeasuredParagraph {
@@ -82,7 +82,7 @@ export class Measurer {
    *   </ul>
    * </section>
    */
-  createParagraphDom(paragraphs: Paragraph[], rootStyle: TextStyle): { dom: HTMLElement, destory: () => void } {
+  createParagraphDom(paragraphs: Paragraph[], rootStyle: ITextStyle): { dom: HTMLElement, destory: () => void } {
     const documentFragment = document.createDocumentFragment()
     const dom = document.createElement('section')
     const style: Record<string, any> = { ...rootStyle }
@@ -310,7 +310,7 @@ export class Measurer {
     }
   }
 
-  measure(paragraphs: Paragraph[], rootStyle: TextStyle, dom?: HTMLElement): MeasureDomResult {
+  measure(paragraphs: Paragraph[], rootStyle: ITextStyle, dom?: HTMLElement): MeasureDomResult {
     let destory: undefined | (() => void)
     if (!dom) {
       ({ dom, destory } = this.createParagraphDom(paragraphs, rootStyle))
