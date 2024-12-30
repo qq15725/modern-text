@@ -1,3 +1,12 @@
+## [1.0.3](https://github.com/qq15725/modern-text/compare/v1.0.2...v1.0.3) (2024-12-30)
+
+
+### Features
+
+* up idoc ([1943e9d](https://github.com/qq15725/modern-text/commit/1943e9d0c534cae31233e13cc635dd8df7485df0))
+
+
+
 ## [1.0.2](https://github.com/qq15725/modern-text/compare/v1.0.1...v1.0.2) (2024-12-25)
 
 
