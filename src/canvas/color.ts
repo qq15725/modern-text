@@ -1,4 +1,4 @@
-import type { ITextStyle } from 'modern-idoc'
+import type { IDOCStyleDeclaration } from 'modern-idoc'
 import type { BoundingBox } from 'modern-path2d'
 
 export function parseColor(
@@ -15,7 +15,7 @@ export function parseColor(
   return source
 }
 
-export function uploadColor(style: Partial<ITextStyle>, box: BoundingBox, ctx: CanvasRenderingContext2D): void {
+export function uploadColor(style: Partial<IDOCStyleDeclaration>, box: BoundingBox, ctx: CanvasRenderingContext2D): void {
   if (style?.color) {
     style.color = parseColor(ctx, style.color, box) as any // TODO
   }

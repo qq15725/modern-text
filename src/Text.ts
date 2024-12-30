@@ -1,8 +1,8 @@
 import type { Fonts } from 'modern-font'
-import type { ITextContent, ITextStyle } from 'modern-idoc'
+import type { IDOCStyleDeclaration, IDOCTextContent } from 'modern-idoc'
 import type { Character } from './content'
 import type { TextOptions, TextPlugin } from './types'
-import { getDefaultTextStyle } from 'modern-idoc'
+import { getDefaultStyle } from 'modern-idoc'
 import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
@@ -24,7 +24,7 @@ export interface MeasureResult {
   boundingBox: BoundingBox
 }
 
-export const defaultTextStyles: ITextStyle = getDefaultTextStyle()
+export const textDefaultStyle: IDOCStyleDeclaration = getDefaultStyle()
 
 export interface TextEventMap {
   update: { text: Text }
@@ -34,12 +34,12 @@ export interface TextEventMap {
 
 export class Text extends EventEmitter<TextEventMap> {
   debug: boolean
-  content: ITextContent
-  style: Partial<ITextStyle>
-  effects?: Partial<ITextStyle>[]
+  content: IDOCTextContent
+  style: Partial<IDOCStyleDeclaration>
+  effects?: Partial<IDOCStyleDeclaration>[]
   measureDom?: HTMLElement
   needsUpdate = true
-  computedStyle: ITextStyle = { ...defaultTextStyles }
+  computedStyle: IDOCStyleDeclaration = { ...textDefaultStyle }
   paragraphs: Paragraph[] = []
   lineBox = new BoundingBox()
   rawGlyphBox = new BoundingBox()
@@ -102,7 +102,7 @@ export class Text extends EventEmitter<TextEventMap> {
   }
 
   updateParagraphs(): this {
-    this.computedStyle = { ...defaultTextStyles, ...this.style }
+    this.computedStyle = { ...textDefaultStyle, ...this.style }
     let { content, computedStyle: style } = this
     const paragraphs: Paragraph[] = []
     if (typeof content === 'string') {

@@ -1,4 +1,4 @@
-import type { ITextStyle } from 'modern-idoc'
+import type { IDOCStyleDeclaration } from 'modern-idoc'
 import type { Paragraph } from './content'
 import { BoundingBox } from 'modern-path2d'
 
@@ -39,6 +39,11 @@ export interface MeasureDomResult {
 }
 
 export class Measurer {
+  static notZeroStyles = new Set([
+    'width',
+    'height',
+  ])
+
   static pxStyles = new Set([
     'width',
     'height',
@@ -60,13 +65,17 @@ export class Measurer {
   ])
 
   protected _styleToDomStyle(style: Record<string, any>): Record<string, any> {
-    const _style: Record<string, any> = { ...style }
+    const _style: Record<string, any> = {}
     for (const key in style) {
-      if (Measurer.pxStyles.has(key)) {
-        _style[key] = `${(style as any)[key]}px`
+      const value = (style as any)[key]
+      if (Measurer.notZeroStyles.has(key) && !value) {
+        //
+      }
+      else if (Measurer.pxStyles.has(key)) {
+        _style[key] = `${value}px`
       }
       else {
-        _style[key] = (style as any)[key]
+        _style[key] = value
       }
     }
     return _style
@@ -82,7 +91,7 @@ export class Measurer {
    *   </ul>
    * </section>
    */
-  createParagraphDom(paragraphs: Paragraph[], rootStyle: ITextStyle): { dom: HTMLElement, destory: () => void } {
+  createParagraphDom(paragraphs: Paragraph[], rootStyle: IDOCStyleDeclaration): { dom: HTMLElement, destory: () => void } {
     const documentFragment = document.createDocumentFragment()
     const dom = document.createElement('section')
     const style: Record<string, any> = { ...rootStyle }
@@ -310,7 +319,7 @@ export class Measurer {
     }
   }
 
-  measure(paragraphs: Paragraph[], rootStyle: ITextStyle, dom?: HTMLElement): MeasureDomResult {
+  measure(paragraphs: Paragraph[], rootStyle: IDOCStyleDeclaration, dom?: HTMLElement): MeasureDomResult {
     let destory: undefined | (() => void)
     if (!dom) {
       ({ dom, destory } = this.createParagraphDom(paragraphs, rootStyle))

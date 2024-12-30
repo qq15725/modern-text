@@ -1,7 +1,7 @@
-import type { ITextStyle } from 'modern-idoc'
+import type { IDOCStyleDeclaration } from 'modern-idoc'
 import type { BoundingBox, Path2D } from 'modern-path2d'
 
-export interface DrawShapePathsOptions extends Partial<ITextStyle> {
+export interface DrawShapePathsOptions extends Partial<IDOCStyleDeclaration> {
   ctx: CanvasRenderingContext2D
   path: Path2D
   fontSize: number
