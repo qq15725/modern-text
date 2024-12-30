@@ -1,3 +1,12 @@
+## [1.0.4](https://github.com/qq15725/modern-text/compare/v1.0.3...v1.0.4) (2024-12-30)
+
+
+### Bug Fixes
+
+* measure ([16fb9cc](https://github.com/qq15725/modern-text/commit/16fb9cc8dbc80e58581bed379ad427b345f09c8b))
+
+
+
 ## [1.0.3](https://github.com/qq15725/modern-text/compare/v1.0.2...v1.0.3) (2024-12-30)
 
 
