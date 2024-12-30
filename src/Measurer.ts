@@ -68,10 +68,10 @@ export class Measurer {
     const _style: Record<string, any> = {}
     for (const key in style) {
       const value = (style as any)[key]
-      if (Measurer.notZeroStyles.has(key) && !value) {
+      if (Measurer.notZeroStyles.has(key) && value === 0) {
         //
       }
-      else if (Measurer.pxStyles.has(key)) {
+      else if (typeof value === 'number' && Measurer.pxStyles.has(key)) {
         _style[key] = `${value}px`
       }
       else {

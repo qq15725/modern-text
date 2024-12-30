@@ -17,6 +17,12 @@
       "fragments": [
         { "content": "TextIndent3" }
       ]
+    },
+    {
+      "textIndent": "1em",
+      "fragments": [
+        { "content": "TextIndent3" }
+      ]
     }
   ]
 }
