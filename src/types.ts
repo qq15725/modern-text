@@ -16,7 +16,7 @@ export interface TextPlugin {
 
 export interface TextOptions {
   style?: Partial<IDOCStyleDeclaration>
-  content: IDOCTextContent
+  content?: IDOCTextContent
   effects?: Partial<IDOCStyleDeclaration>[]
   debug?: boolean
   measureDom?: HTMLElement
