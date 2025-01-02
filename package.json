@@ -48,7 +48,7 @@
   "scripts": {
     "build": "vite build && unbuild",
     "dev": "vite docs",
-    "lint": "eslint .",
+    "lint": "eslint src",
     "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
     "release": "bumpp package.json --commit \"release: v%s\" --push --all --tag",
     "start": "esno src/index.ts",
@@ -78,6 +78,6 @@
     "pre-commit": "pnpm lint-staged"
   },
   "lint-staged": {
-    "*": "eslint --fix"
+    "*": "eslint src --fix"
   }
 }
