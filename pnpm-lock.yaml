@@ -15,8 +15,8 @@ importers:
         specifier: ^0.1.4
         version: 0.1.4
       modern-path2d:
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^1.1.0
+        version: 1.1.0
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^3.12.1
@@ -1291,6 +1291,9 @@ packages:
     resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
     engines: {node: '>=12'}
 
+  earcut@3.0.1:
+    resolution: {integrity: sha512-0l1/0gOjESMeQyYaK5IDiPNvFeu93Z/cO0TjZh9eZ1vyCtZnA7KMZ8rQggpsJHIbGSdrqYq9OhuveadOVHCshw==}
+
   electron-to-chromium@1.5.76:
     resolution: {integrity: sha512-CjVQyG7n7Sr+eBXE86HIulnL5N8xZY1sgmOPGuq/F0Rr0FJq63lg0kEtOIDfZBk44FnDLf6FUJ+dsJcuiUDdDQ==}
 
@@ -2108,8 +2111,8 @@ packages:
   modern-idoc@0.1.4:
     resolution: {integrity: sha512-YMxkXGY5opmys0YX7lAYAkIrvj8nneJDvGjRSfacNI05GMj8HuyS6hP/UNIP/PsWUpHcbttZEQ172IxgKf14RQ==}
 
-  modern-path2d@1.0.1:
-    resolution: {integrity: sha512-dJ7bUR3d27RFNkAF4CUW+NV3hYvBKYkNtePjUsMe8pZYpy8wQlsXNcUyIr9tiRud3pm9Qr93TfnC7RXyXo6U8g==}
+  modern-path2d@1.1.0:
+    resolution: {integrity: sha512-popYCYuCaQs8PYf0Tu2IyZKSbLezx2RtL+hyn741SJ5j8LWPX+O2m29OOFU1AbNKhtoMqo1UXVn8BtaADZfwaw==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -4157,6 +4160,8 @@ snapshots:
 
   dotenv@16.4.7: {}
 
+  earcut@3.0.1: {}
+
   electron-to-chromium@1.5.76: {}
 
   emoji-regex@10.4.0: {}
@@ -5236,7 +5241,9 @@ snapshots:
 
   modern-idoc@0.1.4: {}
 
-  modern-path2d@1.0.1: {}
+  modern-path2d@1.1.0:
+    dependencies:
+      earcut: 3.0.1
 
   ms@2.1.3: {}
 

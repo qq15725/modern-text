@@ -2,7 +2,7 @@ import type { HighlightLine, IDOCHighlightDeclaration, IDOCStyleDeclaration } fr
 import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
 import type { TextPlugin } from '../types'
-import { BoundingBox, getPathsBoundingBox, Matrix3, parseSVG, parseSVGToDOM } from 'modern-path2d'
+import { BoundingBox, Matrix3, parseSVG, parseSVGToDOM, Path2DSet } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
 
@@ -33,7 +33,7 @@ export function highlight(): TextPlugin {
   const paths: Path2D[] = []
   const clipRects: (BoundingBox | undefined)[] = []
   const loaded = new Map<string, string>()
-  const parsed = new Map<string, { dom: SVGElement, paths: Path2D[] }>()
+  const parsed = new Map<string, { dom: SVGElement, pathSet: Path2DSet }>()
 
   async function loadSvg(svg: string): Promise<void> {
     if (!loaded.has(svg)) {
@@ -48,7 +48,7 @@ export function highlight(): TextPlugin {
     }
   }
 
-  function getPaths(svg: string): { dom: SVGElement, paths: Path2D[] } {
+  function getPaths(svg: string): { dom: SVGElement, pathSet: Path2DSet } {
     let result = parsed.get(svg)
     if (!result) {
       const dom = parseSVGToDOM(
@@ -56,8 +56,8 @@ export function highlight(): TextPlugin {
           ? loaded.get(svg) ?? svg
           : svg,
       )
-      const paths = parseSVG(dom)
-      result = { dom, paths }
+      const pathSet = parseSVG(dom)
+      result = { dom, pathSet }
       parsed.set(svg, result)
     }
     return result
@@ -180,8 +180,8 @@ export function highlight(): TextPlugin {
         const isVertical = writingMode.includes('vertical')
         const _thickness = parseValueNumber(thickness, { fontSize, total: groupBox.width }) / groupBox.width
         const _colormap = parseColormap(colormap)
-        const { paths: svgPaths, dom: svgDom } = getPaths(image)
-        const aBox = getPathsBoundingBox(svgPaths, true)!
+        const { pathSet: svgPathSet, dom: svgDom } = getPaths(image)
+        const aBox = svgPathSet.getBoundingBox(true)!
         const styleScale = fontSize / aBox.width * 2
         const cBox = new BoundingBox().copy(groupBox)
         if (isVertical) {
@@ -196,7 +196,7 @@ export function highlight(): TextPlugin {
           cBox.width = userWidth
         }
         if (!isNone(referImage) && isNone(line)) {
-          const bBox = getPathsBoundingBox(getPaths(referImage).paths, true)!
+          const bBox = getPaths(referImage).pathSet.getBoundingBox(true)!
           aBox.copy(bBox)
         }
         else {
@@ -290,7 +290,7 @@ export function highlight(): TextPlugin {
           else {
             _transform.translate(i * cBox.width, 0)
           }
-          svgPaths.forEach((originalPath) => {
+          svgPathSet.paths.forEach((originalPath) => {
             const path = originalPath.clone().matrix(_transform)
             if (path.style.strokeWidth) {
               path.style.strokeWidth *= styleScale * _thickness
@@ -344,7 +344,7 @@ export function highlight(): TextPlugin {
         })
 
         if (text.debug) {
-          const box = getPathsBoundingBox([path])
+          const box = new Path2DSet([path]).getBoundingBox()
           if (box) {
             ctx.strokeRect(box.x, box.y, box.width, box.height)
           }

@@ -1,7 +1,7 @@
 import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
 import type { TextPlugin } from '../types'
-import { getPathsBoundingBox, Matrix3, parseSVG } from 'modern-path2d'
+import { Matrix3, parseSVG } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
 import { isNone, parseColormap, parseValueNumber } from '../utils'
 
@@ -55,8 +55,8 @@ export function listStyle(): TextPlugin {
           return
         }
 
-        const imagePaths = parseSVG(image)
-        const imageBox = getPathsBoundingBox(imagePaths)!
+        const imagePathSet = parseSVG(image)
+        const imageBox = imagePathSet.getBoundingBox()!
 
         let prevChar: Character | undefined
         paragraph.fragments.forEach((f) => {
@@ -92,7 +92,7 @@ export function listStyle(): TextPlugin {
                     inlineBox.top + (inlineBox.height - (imageBox.height * _scale)) / 2,
                   )
               }
-              paths.push(...imagePaths.map((p) => {
+              paths.push(...imagePathSet.paths.map((p) => {
                 const path = p.clone()
                 path.matrix(m)
                 if (path.style.fill && (path.style.fill as string) in colormap) {

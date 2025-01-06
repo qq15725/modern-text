@@ -3,7 +3,7 @@ import type { IDOCStyleDeclaration, IDOCTextContent } from 'modern-idoc'
 import type { Character } from './content'
 import type { TextOptions, TextPlugin } from './types'
 import { getDefaultStyle } from 'modern-idoc'
-import { BoundingBox, getPathsBoundingBox, Vector2 } from 'modern-path2d'
+import { BoundingBox, Path2DSet, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
 import { EventEmitter } from './EventEmitter'
@@ -219,7 +219,7 @@ export class Text extends EventEmitter<TextEventMap> {
         .map((plugin) => {
           return plugin.getBoundingBox
             ? plugin.getBoundingBox(this)
-            : getPathsBoundingBox(plugin.paths ?? [])
+            : new Path2DSet(plugin.paths ?? []).getBoundingBox()!
         })
         .filter(Boolean) as BoundingBox[],
     )
