@@ -2,7 +2,7 @@ import type { HighlightLine, IDOCHighlightDeclaration, IDOCStyleDeclaration } fr
 import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
 import type { TextPlugin } from '../types'
-import { BoundingBox, Matrix3, parseSVG, parseSVGToDOM, Path2DSet } from 'modern-path2d'
+import { BoundingBox, Matrix3, Path2DSet, svgToDOM, svgToPath2DSet } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
 
@@ -51,12 +51,12 @@ export function highlight(): TextPlugin {
   function getPaths(svg: string): { dom: SVGElement, pathSet: Path2DSet } {
     let result = parsed.get(svg)
     if (!result) {
-      const dom = parseSVGToDOM(
+      const dom = svgToDOM(
         needsFetch(svg)
           ? loaded.get(svg) ?? svg
           : svg,
       )
-      const pathSet = parseSVG(dom)
+      const pathSet = svgToPath2DSet(dom)
       result = { dom, pathSet }
       parsed.set(svg, result)
     }
@@ -291,7 +291,7 @@ export function highlight(): TextPlugin {
             _transform.translate(i * cBox.width, 0)
           }
           svgPathSet.paths.forEach((originalPath) => {
-            const path = originalPath.clone().matrix(_transform)
+            const path = originalPath.clone().applyTransform(_transform)
             if (path.style.strokeWidth) {
               path.style.strokeWidth *= styleScale * _thickness
             }
