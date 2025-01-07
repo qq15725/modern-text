@@ -15,8 +15,8 @@ importers:
         specifier: ^0.1.4
         version: 0.1.4
       modern-path2d:
-        specifier: ^1.2.1
-        version: 1.2.1
+        specifier: ^1.2.2
+        version: 1.2.2
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^3.12.1
@@ -2111,8 +2111,8 @@ packages:
   modern-idoc@0.1.4:
     resolution: {integrity: sha512-YMxkXGY5opmys0YX7lAYAkIrvj8nneJDvGjRSfacNI05GMj8HuyS6hP/UNIP/PsWUpHcbttZEQ172IxgKf14RQ==}
 
-  modern-path2d@1.2.1:
-    resolution: {integrity: sha512-cw5ZHP7oBdvtoMx2GCNbis/QhI/Z8FqujCAw6HYFpDenk1hgC0KY3ql85wzjK69ewdq9jOU/iiB7k6eFAjk4Bg==}
+  modern-path2d@1.2.2:
+    resolution: {integrity: sha512-RHOFVxVp6bMCOiKLSmy4nsqQIhaeyQGug4tvYSGQncLgV/ZS5MDB++4OAUcgvB+2NmrJ3zBhifje/4+j4rSP0w==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -5241,7 +5241,7 @@ snapshots:
 
   modern-idoc@0.1.4: {}
 
-  modern-path2d@1.2.1:
+  modern-path2d@1.2.2:
     dependencies:
       earcut: 3.0.1
 
