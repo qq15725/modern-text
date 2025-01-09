@@ -1,3 +1,12 @@
+## [1.2.2](https://github.com/qq15725/modern-text/compare/v1.2.1...v1.2.2) (2025-01-09)
+
+
+### Features
+
+* up modern-font ([02f1d0e](https://github.com/qq15725/modern-text/commit/02f1d0e71ef8009e3166302e4ad769a4eea2a7ca))
+
+
+
 ## [1.2.1](https://github.com/qq15725/modern-text/compare/v1.2.0...v1.2.1) (2025-01-08)
 
 
