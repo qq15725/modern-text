@@ -1,4 +1,4 @@
-import type { Fonts, Sfnt } from 'modern-font'
+import type { Fonts, SFNT } from 'modern-font'
 import type { FontWeight, IDOCStyleDeclaration } from 'modern-idoc'
 import type { Vector2, VectorLike } from 'modern-path2d'
 import type { Fragment } from './Fragment'
@@ -96,16 +96,16 @@ export class Character {
     //
   }
 
-  protected _getFontSfnt(fonts?: Fonts): Sfnt | undefined {
+  protected _getFontSFNT(fonts?: Fonts): SFNT | undefined {
     const fontFamily = this.computedStyle.fontFamily
     const _fonts = (fonts ?? globalFonts)
     const font = fontFamily
       ? _fonts.get(fontFamily)
       : _fonts.fallbackFont
-    return font?.getSfnt()
+    return font?.getSFNT()
   }
 
-  updateGlyph(sfnt = this._getFontSfnt()): this {
+  updateGlyph(sfnt = this._getFontSFNT()): this {
     if (!sfnt) {
       return this
     }
@@ -143,7 +143,7 @@ export class Character {
   }
 
   update(fonts?: Fonts): this {
-    const sfnt = this._getFontSfnt(fonts)
+    const sfnt = this._getFontSFNT(fonts)
 
     if (!sfnt) {
       return this
