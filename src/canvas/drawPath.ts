@@ -1,5 +1,5 @@
 import type { IDOCStyleDeclaration } from 'modern-idoc'
-import type { BoundingBox, Path2D } from 'modern-path2d'
+import type { BoundingBox, Path2D, Path2DStyle } from 'modern-path2d'
 
 export interface DrawShapePathsOptions extends Partial<IDOCStyleDeclaration> {
   ctx: CanvasRenderingContext2D
@@ -14,13 +14,15 @@ export function drawPath(options: DrawShapePathsOptions): void {
   ctx.save()
   ctx.beginPath()
   const pathStyle = path.style
-  const style = {
+  const style: Partial<Path2DStyle> = {
     ...pathStyle,
     fill: options.color ?? pathStyle.fill,
     stroke: options.textStrokeColor ?? pathStyle.stroke,
     strokeWidth: options.textStrokeWidth
       ? options.textStrokeWidth * fontSize
       : pathStyle.strokeWidth,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
     shadowOffsetX: (options.shadowOffsetX ?? 0) * fontSize,
     shadowOffsetY: (options.shadowOffsetY ?? 0) * fontSize,
     shadowBlur: (options.shadowBlur ?? 0) * fontSize,

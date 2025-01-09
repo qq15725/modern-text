@@ -1,0 +1,33 @@
+{
+  "content": "effect.4",
+  "style": {
+    "fontSize": 20,
+    "fontFamily": "Slidefu"
+  },
+  "effects": [
+    {
+      "translateX": 0,
+      "translateY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "textStrokeWidth": 0.17058823529411765,
+      "textStrokeColor": "rgba(36,79,113,1)",
+      "shadowOffsetX": 0,
+      "shadowOffsetY": 0,
+      "shadowBlur": 0,
+      "shadowColor": "#000000ff",
+      "color": "rgba(36,79,113,1)"
+    },
+    {
+      "translateX": 0,
+      "translateY": 0,
+      "skewX": 0,
+      "skewY": 0,
+      "shadowOffsetX": 0,
+      "shadowOffsetY": 0,
+      "shadowBlur": 0,
+      "shadowColor": "#000000ff",
+      "color": "#ffffffff"
+    }
+  ]
+}
