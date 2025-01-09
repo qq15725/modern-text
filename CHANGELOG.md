@@ -1,3 +1,12 @@
+## [1.2.3](https://github.com/qq15725/modern-text/compare/v1.2.2...v1.2.3) (2025-01-09)
+
+
+### Features
+
+* set default strokeLinejoin to round ([785049b](https://github.com/qq15725/modern-text/commit/785049b63459131aa341942fc7bfe2e9f75b87d6))
+
+
+
 ## [1.2.2](https://github.com/qq15725/modern-text/compare/v1.2.1...v1.2.2) (2025-01-09)
 
 
