@@ -1,3 +1,12 @@
+## [1.3.1](https://github.com/qq15725/modern-text/compare/v1.3.0...v1.3.1) (2025-03-11)
+
+
+### Bug Fixes
+
+* bug ([67a79a3](https://github.com/qq15725/modern-text/commit/67a79a3680a5fbe87be777adc5201d71a4b1a6b5))
+
+
+
 # [1.3.0](https://github.com/qq15725/modern-text/compare/v1.2.3...v1.3.0) (2025-03-11)
 
 
