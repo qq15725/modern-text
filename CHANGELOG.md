@@ -1,3 +1,13 @@
+# [1.3.0](https://github.com/qq15725/modern-text/compare/v1.2.3...v1.3.0) (2025-03-11)
+
+
+### Features
+
+* add background and outline plugin (todo) ([3deb0a7](https://github.com/qq15725/modern-text/commit/3deb0a76202797f73119d25cd484f612ee397525))
+* up dep ([1b600b0](https://github.com/qq15725/modern-text/commit/1b600b08da55c24a46262539c8e66dfdf91b3f53))
+
+
+
 ## [1.2.3](https://github.com/qq15725/modern-text/compare/v1.2.2...v1.2.3) (2025-01-09)
 
 
