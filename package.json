@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "modern-font": "^0.4.0",
-    "modern-idoc": "^0.2.10",
+    "modern-idoc": "^0.2.11",
     "modern-path2d": "^1.2.10"
   },
   "devDependencies": {

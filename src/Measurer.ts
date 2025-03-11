@@ -94,44 +94,47 @@ export class Measurer {
   createParagraphDom(paragraphs: Paragraph[], rootStyle: StyleDeclaration): { dom: HTMLElement, destory: () => void } {
     const documentFragment = document.createDocumentFragment()
     const dom = document.createElement('section')
-    const style: Record<string, any> = { ...rootStyle }
+    const style: StyleDeclaration = { ...rootStyle }
     const isHorizontal = rootStyle.writingMode.includes('horizontal')
     switch (rootStyle.textAlign) {
       case 'start':
       case 'left':
-        style.justifyContent = 'start'
+        style.justifyContent = 'flex-start'
         break
       case 'center':
         style.justifyContent = 'center'
         break
       case 'end':
       case 'right':
-        style.justifyContent = 'end'
+        style.justifyContent = 'flex-end'
         break
     }
     switch (rootStyle.verticalAlign) {
       case 'top':
-        style.alignItems = 'top'
+        style.alignItems = 'flex-start'
         break
       case 'middle':
         style.alignItems = 'center'
         break
       case 'bottom':
-        style.alignItems = 'end'
+        style.alignItems = 'flex-end'
         break
     }
     const isFlex = Boolean(style.justifyContent || style.alignItems)
     Object.assign(dom.style, {
-      boxSizing: 'border-box',
-      display: isFlex ? 'inline-flex' : undefined,
-      width: 'max-content',
-      height: 'max-content',
+      ...this._styleToDomStyle({
+        ...style,
+        boxSizing: style.boxSizing ?? 'border-box',
+        display: style.display ?? (isFlex ? 'inline-flex' : undefined),
+        width: style.width ?? 'max-content',
+        height: style.height ?? 'max-content',
+      }),
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-all',
-      ...this._styleToDomStyle(style),
       position: 'fixed',
       visibility: 'hidden',
     })
+
     const ul = document.createElement('ul')
     Object.assign(ul.style, {
       verticalAlign: 'inherit',
