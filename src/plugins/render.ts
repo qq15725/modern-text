@@ -1,4 +1,4 @@
-import type { IDOCStyleDeclaration } from 'modern-idoc'
+import type { StyleDeclaration } from 'modern-idoc'
 import type { Text } from '../Text'
 import type { TextPlugin } from '../types'
 import { BoundingBox, Matrix3, Vector2 } from 'modern-path2d'
@@ -93,7 +93,7 @@ export function render(): TextPlugin {
   })
 }
 
-export function getTransform2D(text: Text, style: Partial<IDOCStyleDeclaration>): Matrix3 {
+export function getTransform2D(text: Text, style: Partial<StyleDeclaration>): Matrix3 {
   const { fontSize, glyphBox } = text
   const translateX = (style.translateX ?? 0) * fontSize
   const translateY = (style.translateY ?? 0) * fontSize

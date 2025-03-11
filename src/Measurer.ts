@@ -1,4 +1,4 @@
-import type { IDOCStyleDeclaration } from 'modern-idoc'
+import type { StyleDeclaration } from 'modern-idoc'
 import type { Paragraph } from './content'
 import { BoundingBox } from 'modern-path2d'
 
@@ -91,7 +91,7 @@ export class Measurer {
    *   </ul>
    * </section>
    */
-  createParagraphDom(paragraphs: Paragraph[], rootStyle: IDOCStyleDeclaration): { dom: HTMLElement, destory: () => void } {
+  createParagraphDom(paragraphs: Paragraph[], rootStyle: StyleDeclaration): { dom: HTMLElement, destory: () => void } {
     const documentFragment = document.createDocumentFragment()
     const dom = document.createElement('section')
     const style: Record<string, any> = { ...rootStyle }
@@ -319,7 +319,7 @@ export class Measurer {
     }
   }
 
-  measure(paragraphs: Paragraph[], rootStyle: IDOCStyleDeclaration, dom?: HTMLElement): MeasureDomResult {
+  measure(paragraphs: Paragraph[], rootStyle: StyleDeclaration, dom?: HTMLElement): MeasureDomResult {
     let destory: undefined | (() => void)
     if (!dom) {
       ({ dom, destory } = this.createParagraphDom(paragraphs, rootStyle))

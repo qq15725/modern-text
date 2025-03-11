@@ -1,5 +1,5 @@
 import type { Fonts } from 'modern-font'
-import type { IDOCStyleDeclaration, IDOCTextContent } from 'modern-idoc'
+import type { StyleDeclaration, TextContent } from 'modern-idoc'
 import type { BoundingBox, Path2D } from 'modern-path2d'
 import type { Text } from './Text'
 
@@ -15,9 +15,9 @@ export interface TextPlugin {
 }
 
 export interface TextOptions {
-  style?: Partial<IDOCStyleDeclaration>
-  content?: IDOCTextContent
-  effects?: Partial<IDOCStyleDeclaration>[]
+  style?: Partial<StyleDeclaration>
+  content?: TextContent
+  effects?: Partial<StyleDeclaration>[]
   debug?: boolean
   measureDom?: HTMLElement
   fonts?: Fonts

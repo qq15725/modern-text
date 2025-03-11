@@ -1,4 +1,4 @@
-import type { HighlightLine, IDOCHighlightDeclaration, IDOCStyleDeclaration } from 'modern-idoc'
+import type { HighlightDeclaration, HighlightLine, StyleDeclaration } from 'modern-idoc'
 import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
 import type { TextPlugin } from '../types'
@@ -8,7 +8,7 @@ import { definePlugin } from '../definePlugin'
 
 import { isEqualValue, isNone, needsFetch, parseColormap, parseValueNumber } from '../utils'
 
-export function getHighlightStyle(style: IDOCStyleDeclaration): IDOCHighlightDeclaration {
+export function getHighlightStyle(style: StyleDeclaration): HighlightDeclaration {
   const {
     highlight,
     highlightImage,
@@ -85,7 +85,7 @@ export function highlight(): TextPlugin {
       paths.length = 0
       let groups: Character[][] = []
       let group: Character[]
-      let prevHighlight: IDOCHighlightDeclaration | undefined
+      let prevHighlight: HighlightDeclaration | undefined
       text.forEachCharacter((character) => {
         const {
           computedStyle: style,

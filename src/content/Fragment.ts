@@ -1,4 +1,4 @@
-import type { IDOCStyleDeclaration } from 'modern-idoc'
+import type { StyleDeclaration } from 'modern-idoc'
 import type { Paragraph } from '../content'
 import { BoundingBox } from 'modern-path2d'
 import { Character } from '../content'
@@ -7,7 +7,7 @@ import { filterEmpty } from '../utils'
 export class Fragment {
   inlineBox = new BoundingBox()
   declare characters: Character[]
-  declare computedStyle: IDOCStyleDeclaration
+  declare computedStyle: StyleDeclaration
 
   get computedContent(): string {
     const style = this.computedStyle
@@ -20,7 +20,7 @@ export class Fragment {
 
   constructor(
     public content: string,
-    public style: Partial<IDOCStyleDeclaration> = {},
+    public style: Partial<StyleDeclaration> = {},
     public parent: Paragraph,
   ) {
     this.updateComputedStyle().initCharacters()
@@ -29,8 +29,8 @@ export class Fragment {
   updateComputedStyle(): this {
     this.computedStyle = {
       ...this.parent.computedStyle,
-      ...(filterEmpty(this.style) as Partial<IDOCStyleDeclaration>),
-    } as IDOCStyleDeclaration
+      ...(filterEmpty(this.style) as Partial<StyleDeclaration>),
+    } as StyleDeclaration
     return this
   }
 
