@@ -8,7 +8,7 @@ import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
 import { EventEmitter } from './EventEmitter'
 import { Measurer } from './Measurer'
-import { highlight, listStyle, render, textDecoration } from './plugins'
+import { background, highlight, listStyle, outline, render, textDecoration } from './plugins'
 
 export interface TextRenderOptions {
   view: HTMLCanvasElement
@@ -73,6 +73,8 @@ export class Text extends EventEmitter<TextEventMap> {
     this.fonts = options.fonts
 
     this
+      .use(background())
+      .use(outline())
       .use(listStyle())
       .use(textDecoration())
       .use(highlight())

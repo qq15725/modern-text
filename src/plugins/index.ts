@@ -1,4 +1,6 @@
+export * from './background'
 export * from './highlight'
 export * from './listStyle'
+export * from './outline'
 export * from './render'
 export * from './textDecoration'
