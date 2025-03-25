@@ -1,19 +1,19 @@
 import type { StyleDeclaration } from 'modern-idoc'
 import type { Character } from '../content'
 import type { TextPlugin } from '../types'
-import { BoundingBox, Path2D } from 'modern-path2d'
+import { BoundingBox, Path2D, Path2DSet } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
 import { isNone } from '../utils'
 import { getTransform2D } from './render'
 
 export function textDecoration(): TextPlugin {
-  const paths: Path2D[] = []
+  const pathSet = new Path2DSet()
   return definePlugin({
     name: 'textDecoration',
-    paths,
+    pathSet,
     update: (text) => {
-      paths.length = 0
+      pathSet.paths.length = 0
 
       const groups: Character[][] = []
       let group: Character[]
@@ -96,7 +96,17 @@ export function textDecoration(): TextPlugin {
           textDecoration,
         } = style
 
-        const { left, top, width, height } = BoundingBox.from(...group.map(c => c.inlineBox))
+        const glyphBox = BoundingBox.from(...group.map(c => c.glyphBox ?? c.inlineBox))
+        const inlineBox = BoundingBox.from(...group.map(c => c.inlineBox))
+
+        let left, top, width, height
+        if (isVertical) {
+          ;({ left } = glyphBox)
+          ;({ top, width, height } = inlineBox)
+        }
+        else {
+          ;({ left, top, width, height } = inlineBox)
+        }
 
         let position = isVertical ? (left + width) : top
         const direction = isVertical ? -1 : 1
@@ -140,7 +150,7 @@ export function textDecoration(): TextPlugin {
             fill: color,
           })
         }
-        paths.push(path)
+        pathSet.paths.push(path)
       })
     },
     render: (ctx, text) => {
@@ -150,7 +160,7 @@ export function textDecoration(): TextPlugin {
           ctx.save()
           const [a, c, e, b, d, f] = getTransform2D(text, effectStyle).transpose().elements
           ctx.transform(a, b, c, d, e, f)
-          paths.forEach((path) => {
+          pathSet.paths.forEach((path) => {
             drawPath({
               ctx,
               path,
@@ -162,7 +172,7 @@ export function textDecoration(): TextPlugin {
         })
       }
       else {
-        paths.forEach((path) => {
+        pathSet.paths.forEach((path) => {
           drawPath({
             ctx,
             path,

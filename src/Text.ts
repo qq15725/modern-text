@@ -3,7 +3,7 @@ import type { StyleDeclaration, TextContent } from 'modern-idoc'
 import type { Character } from './content'
 import type { TextOptions, TextPlugin } from './types'
 import { getDefaultStyle } from 'modern-idoc'
-import { BoundingBox, Path2DSet, Vector2 } from 'modern-path2d'
+import { BoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
 import { EventEmitter } from './EventEmitter'
@@ -221,7 +221,7 @@ export class Text extends EventEmitter<TextEventMap> {
         .map((plugin) => {
           return plugin.getBoundingBox
             ? plugin.getBoundingBox(this)
-            : new Path2DSet(plugin.paths ?? []).getBoundingBox()!
+            : plugin.pathSet?.getBoundingBox()
         })
         .filter(Boolean) as BoundingBox[],
     )
@@ -229,16 +229,10 @@ export class Text extends EventEmitter<TextEventMap> {
   }
 
   updateBoundingBox(): this {
-    const { lineBox, rawGlyphBox, pathBox } = this
-    const left = Math.min(pathBox.left, pathBox.left + lineBox.left - rawGlyphBox.left)
-    const top = Math.min(pathBox.top, pathBox.top + lineBox.top - rawGlyphBox.top)
-    const right = Math.max(pathBox.right, pathBox.right + lineBox.right - rawGlyphBox.right)
-    const bottom = Math.max(pathBox.bottom, pathBox.bottom + lineBox.bottom - rawGlyphBox.bottom)
-    this.boundingBox = new BoundingBox(
-      left,
-      top,
-      right - left,
-      bottom - top,
+    this.boundingBox = BoundingBox.from(
+      this.rawGlyphBox,
+      this.lineBox,
+      this.pathBox,
     )
     return this
   }
@@ -279,9 +273,9 @@ export class Text extends EventEmitter<TextEventMap> {
         if (plugin.render) {
           plugin.render?.(ctx, this)
         }
-        else if (plugin.paths) {
+        else if (plugin.pathSet) {
           const style = this.computedStyle
-          plugin.paths.forEach((path) => {
+          plugin.pathSet.paths.forEach((path) => {
             drawPath({
               ctx,
               path,

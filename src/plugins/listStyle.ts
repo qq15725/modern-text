@@ -1,7 +1,6 @@
-import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
 import type { TextPlugin } from '../types'
-import { Matrix3, svgToPath2DSet } from 'modern-path2d'
+import { Matrix3, Path2DSet, svgToPath2DSet } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
 import { isNone, parseColormap, parseValueNumber } from '../utils'
 
@@ -12,12 +11,12 @@ function genDisc(r: number, color: string): string {
 }
 
 export function listStyle(): TextPlugin {
-  const paths: Path2D[] = []
+  const pathSet = new Path2DSet()
   return definePlugin({
     name: 'listStyle',
-    paths,
+    pathSet,
     update: (text) => {
-      paths.length = 0
+      pathSet.paths.length = 0
       const { paragraphs, isVertical, fontSize } = text
       const padding = fontSize * 0.45
 
@@ -92,7 +91,7 @@ export function listStyle(): TextPlugin {
                     inlineBox.top + (inlineBox.height - (imageBox.height * _scale)) / 2,
                   )
               }
-              paths.push(...imagePathSet.paths.map((p) => {
+              pathSet.paths.push(...imagePathSet.paths.map((p) => {
                 const path = p.clone()
                 path.applyTransform(m)
                 if (path.style.fill && (path.style.fill as string) in colormap) {

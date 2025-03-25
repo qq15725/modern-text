@@ -43,19 +43,8 @@ export function render(): TextPlugin {
       return boxes.length ? BoundingBox.from(...boxes) : undefined
     },
     render: (ctx, text) => {
-      const { paragraphs, glyphBox, effects, style } = text
-      function fillBackground(color: any, box: BoundingBox): void {
-        ctx.fillStyle = color
-        ctx.fillRect(box.left, box.top, box.width, box.height)
-      }
-      if (style?.backgroundColor) {
-        fillBackground(style.backgroundColor, new BoundingBox(0, 0, ctx.canvas.width, ctx.canvas.height))
-      }
-      paragraphs.forEach((paragraph) => {
-        if (paragraph.style?.backgroundColor) {
-          fillBackground(paragraph.style.backgroundColor, paragraph.lineBox)
-        }
-      })
+      const { paragraphs, glyphBox, effects } = text
+
       if (effects) {
         effects.forEach((style) => {
           uploadColor(style, glyphBox, ctx)
@@ -63,9 +52,6 @@ export function render(): TextPlugin {
           const [a, c, e, b, d, f] = getTransform2D(text, style).transpose().elements
           ctx.transform(a, b, c, d, e, f)
           text.forEachCharacter((character) => {
-            if (character.parent.style?.backgroundColor) {
-              fillBackground(character.parent.style.backgroundColor, character.inlineBox)
-            }
             character.drawTo(ctx, style)
           })
           ctx.restore()
@@ -74,9 +60,6 @@ export function render(): TextPlugin {
       else {
         paragraphs.forEach((paragraph) => {
           paragraph.fragments.forEach((fragment) => {
-            if (fragment.style?.backgroundColor) {
-              fillBackground(fragment.computedStyle.backgroundColor, fragment.inlineBox)
-            }
             fragment.characters.forEach((character) => {
               character.drawTo(ctx)
             })

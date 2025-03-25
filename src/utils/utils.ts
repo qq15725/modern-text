@@ -91,9 +91,3 @@ export function filterEmpty(val: Record<string, any> | undefined): Record<string
   }
   return res
 }
-
-export function needsFetch(source: string): boolean {
-  return source.startsWith('http://')
-    || source.startsWith('https://')
-    || source.startsWith('blob://')
-}

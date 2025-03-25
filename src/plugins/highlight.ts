@@ -1,12 +1,17 @@
 import type { HighlightDeclaration, HighlightLine, StyleDeclaration } from 'modern-idoc'
-import type { Path2D } from 'modern-path2d'
 import type { Character } from '../content'
 import type { TextPlugin } from '../types'
-import { BoundingBox, Matrix3, Path2DSet, svgToDOM, svgToPath2DSet } from 'modern-path2d'
+import { BoundingBox, Matrix3, Path2DSet } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
-
-import { isEqualValue, isNone, needsFetch, parseColormap, parseValueNumber } from '../utils'
+import {
+  createSVGLoader,
+  createSVGParser,
+  isEqualValue,
+  isNone,
+  parseColormap,
+  parseValueNumber,
+} from '../utils'
 
 export function getHighlightStyle(style: StyleDeclaration): HighlightDeclaration {
   const {
@@ -30,59 +35,31 @@ export function getHighlightStyle(style: StyleDeclaration): HighlightDeclaration
 }
 
 export function highlight(): TextPlugin {
-  const paths: Path2D[] = []
+  const pathSet = new Path2DSet()
   const clipRects: (BoundingBox | undefined)[] = []
-  const loaded = new Map<string, string>()
-  const parsed = new Map<string, { dom: SVGElement, pathSet: Path2DSet }>()
-
-  async function loadSvg(svg: string): Promise<void> {
-    if (!loaded.has(svg)) {
-      loaded.set(svg, svg)
-      try {
-        loaded.set(svg, await fetch(svg).then(rep => rep.text()))
-      }
-      catch (err) {
-        console.warn(err)
-        loaded.delete(svg)
-      }
-    }
-  }
-
-  function getPaths(svg: string): { dom: SVGElement, pathSet: Path2DSet } {
-    let result = parsed.get(svg)
-    if (!result) {
-      const dom = svgToDOM(
-        needsFetch(svg)
-          ? loaded.get(svg) ?? svg
-          : svg,
-      )
-      const pathSet = svgToPath2DSet(dom)
-      result = { dom, pathSet }
-      parsed.set(svg, result)
-    }
-    return result
-  }
+  const loader = createSVGLoader()
+  const parser = createSVGParser(loader)
 
   return definePlugin({
     name: 'highlight',
-    paths,
+    pathSet,
     load: async (text) => {
       const set = new Set<string>()
       text.forEachCharacter((character) => {
         const { computedStyle: style } = character
         const { image, referImage } = getHighlightStyle(style)
-        if (needsFetch(image)) {
+        if (loader.needsLoad(image)) {
           set.add(image)
         }
-        if (needsFetch(referImage)) {
+        if (loader.needsLoad(referImage)) {
           set.add(referImage)
         }
       })
-      await Promise.all(Array.from(set).map(src => loadSvg(src)))
+      await Promise.all(Array.from(set).map(src => loader.load(src)))
     },
     update: (text) => {
       clipRects.length = 0
-      paths.length = 0
+      pathSet.paths.length = 0
       let groups: Character[][] = []
       let group: Character[]
       let prevHighlight: HighlightDeclaration | undefined
@@ -161,11 +138,15 @@ export function highlight(): TextPlugin {
 
         const {
           computedStyle: style,
+          isVertical,
+          inlineBox,
+          glyphBox = inlineBox,
+          strikeoutPosition,
+          underlinePosition,
         } = char
 
         const {
           fontSize,
-          writingMode,
         } = style
 
         const {
@@ -177,41 +158,45 @@ export function highlight(): TextPlugin {
           thickness,
         } = getHighlightStyle(style)
 
-        const isVertical = writingMode.includes('vertical')
         const _thickness = parseValueNumber(thickness, { fontSize, total: groupBox.width }) / groupBox.width
         const _colormap = parseColormap(colormap)
-        const { pathSet: svgPathSet, dom: svgDom } = getPaths(image)
-        const aBox = svgPathSet.getBoundingBox(true)!
-        const styleScale = fontSize / aBox.width * 2
-        const cBox = new BoundingBox().copy(groupBox)
+        const { pathSet: imagePathSet, dom: imageDom } = parser.parse(image)
+        const imageBox = imagePathSet.getBoundingBox(true)!
+        const styleScale = fontSize / imageBox.width * 2
+        const targetBox = new BoundingBox().copy(groupBox)
         if (isVertical) {
-          cBox.width = groupBox.height
-          cBox.height = groupBox.width
-          cBox.left = groupBox.left + groupBox.width
+          targetBox.width = groupBox.height
+          targetBox.height = groupBox.width
+          targetBox.left = groupBox.left + groupBox.width
         }
-        const rawWidth = Math.floor(cBox.width)
+        const rawWidth = Math.floor(targetBox.width)
         let userWidth = rawWidth
         if (size !== 'cover') {
           userWidth = parseValueNumber(size, { fontSize, total: groupBox.width }) || rawWidth
-          cBox.width = userWidth
+          targetBox.width = userWidth
         }
-        if (!isNone(referImage) && isNone(line)) {
-          const bBox = getPaths(referImage).pathSet.getBoundingBox(true)!
-          aBox.copy(bBox)
+        const hasReferImage = !isNone(referImage) && isNone(line)
+        if (hasReferImage) {
+          imageBox.copy(
+            parser
+              .parse(referImage)
+              .pathSet
+              .getBoundingBox(true)!,
+          )
         }
         else {
           let _line: Omit<HighlightLine, 'none'>
           if (isNone(line)) {
-            if (aBox.width / aBox.height > 4) {
+            if (imageBox.width / imageBox.height > 4) {
               _line = 'underline'
-              const viewBox = svgDom.getAttribute('viewBox')
+              const viewBox = imageDom.getAttribute('viewBox')
               if (viewBox) {
                 const [_x, y, _w, h] = viewBox.split(' ').map(v => Number(v))
                 const viewCenter = y + h / 2
-                if (aBox.y < viewCenter && aBox.y + aBox.height > viewCenter) {
+                if (imageBox.y < viewCenter && imageBox.y + imageBox.height > viewCenter) {
                   _line = 'line-through'
                 }
-                else if (aBox.y + aBox.height < viewCenter) {
+                else if (imageBox.y + imageBox.height < viewCenter) {
                   _line = 'overline'
                 }
                 else {
@@ -229,91 +214,95 @@ export function highlight(): TextPlugin {
 
           switch (_line) {
             case 'outline': {
-              const paddingX = cBox.width * 0.2
-              const paddingY = cBox.height * 0.2
-              cBox.width += paddingX
-              cBox.height += paddingY
+              const paddingX = targetBox.width * 0.2
+              const paddingY = targetBox.height * 0.2
               if (isVertical) {
-                cBox.x -= paddingY / 2
-                cBox.y -= paddingX / 2
-                cBox.x += cBox.height
+                targetBox.x -= paddingY / 2
+                targetBox.y -= paddingX / 2
+                targetBox.x -= targetBox.height
               }
               else {
-                cBox.x -= paddingX / 2
-                cBox.y -= paddingY / 2
+                targetBox.x -= paddingX / 2
+                targetBox.y -= paddingY / 2
               }
+              targetBox.width += paddingX
+              targetBox.height += paddingY
               break
             }
             case 'overline':
-              cBox.height = aBox.height * styleScale
+              targetBox.height = imageBox.height * styleScale
               if (isVertical) {
-                cBox.x = char.inlineBox.left + char.inlineBox.width
+                targetBox.x = inlineBox.left + inlineBox.width
               }
               else {
-                cBox.y = char.inlineBox.top
+                targetBox.y = inlineBox.top
               }
               break
             case 'line-through':
-              cBox.height = aBox.height * styleScale
+              targetBox.height = imageBox.height * styleScale
               if (isVertical) {
-                cBox.x = char.inlineBox.left + char.inlineBox.width - char.strikeoutPosition + cBox.height / 2
+                targetBox.x = inlineBox.left + inlineBox.width - strikeoutPosition + targetBox.height / 2
               }
               else {
-                cBox.y = char.inlineBox.top + char.strikeoutPosition - cBox.height / 2
+                targetBox.y = inlineBox.top + strikeoutPosition - targetBox.height / 2
               }
               break
             case 'underline':
-              cBox.height = aBox.height * styleScale
+              targetBox.height = imageBox.height * styleScale
               if (isVertical) {
-                cBox.x = char.inlineBox.left + char.inlineBox.width - char.underlinePosition
+                targetBox.x = glyphBox.left + glyphBox.width - underlinePosition
               }
               else {
-                cBox.y = char.inlineBox.top + char.underlinePosition
+                targetBox.y = inlineBox.top + underlinePosition
               }
               break
           }
         }
 
         const transform = new Matrix3()
-          .translate(-aBox.x, -aBox.y)
-          .scale(cBox.width / aBox.width, cBox.height / aBox.height)
+        transform.translate(-imageBox.x, -imageBox.y)
+        transform.scale(targetBox.width / imageBox.width, targetBox.height / imageBox.height)
         if (isVertical) {
+          const tx = targetBox.width / 2
+          const ty = targetBox.height / 2
+          if (!hasReferImage) {
+            transform.translate(-tx, -ty)
+          }
           transform.rotate(-Math.PI / 2)
+          if (!hasReferImage) {
+            transform.translate(ty, tx)
+          }
         }
-        transform.translate(cBox.x, cBox.y)
+        transform.translate(targetBox.x, targetBox.y)
 
         for (let i = 0; i < Math.ceil(rawWidth / userWidth); i++) {
           const _transform = transform.clone()
           if (isVertical) {
-            _transform.translate(0, i * cBox.width)
+            _transform.translate(0, i * targetBox.width)
           }
           else {
-            _transform.translate(i * cBox.width, 0)
+            _transform.translate(i * targetBox.width, 0)
           }
-          svgPathSet.paths.forEach((originalPath) => {
+          imagePathSet.paths.forEach((originalPath) => {
             const path = originalPath.clone().applyTransform(_transform)
-            if (path.style.strokeWidth) {
+            if (path.style.strokeWidth)
               path.style.strokeWidth *= styleScale * _thickness
-            }
-            if (path.style.strokeMiterlimit) {
+            if (path.style.strokeMiterlimit)
               path.style.strokeMiterlimit *= styleScale
-            }
-            if (path.style.strokeDashoffset) {
+            if (path.style.strokeDashoffset)
               path.style.strokeDashoffset *= styleScale
-            }
-            if (path.style.strokeDasharray) {
+            if (path.style.strokeDasharray)
               path.style.strokeDasharray = path.style.strokeDasharray.map(v => v * styleScale)
-            }
             if (path.style.fill && (path.style.fill as string) in _colormap) {
               path.style.fill = _colormap[path.style.fill as string]
             }
             if (path.style.stroke && (path.style.stroke as string) in _colormap) {
               path.style.stroke = _colormap[path.style.stroke as string]
             }
-            paths.push(path)
+            pathSet.paths.push(path)
             if (rawWidth !== userWidth) {
               if (isVertical) {
-                clipRects[paths.length - 1] = new BoundingBox(
+                clipRects[pathSet.paths.length - 1] = new BoundingBox(
                   groupBox.left - groupBox.width * 2,
                   groupBox.top,
                   groupBox.width * 4,
@@ -321,7 +310,7 @@ export function highlight(): TextPlugin {
                 )
               }
               else {
-                clipRects[paths.length - 1] = new BoundingBox(
+                clipRects[pathSet.paths.length - 1] = new BoundingBox(
                   groupBox.left,
                   groupBox.top - groupBox.height * 2,
                   groupBox.width,
@@ -335,7 +324,7 @@ export function highlight(): TextPlugin {
     },
     renderOrder: -1,
     render: (ctx, text) => {
-      paths.forEach((path, index) => {
+      pathSet.paths.forEach((path, index) => {
         drawPath({
           ctx,
           path,
