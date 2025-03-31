@@ -57,22 +57,22 @@
     "prepare": "simple-git-hooks"
   },
   "dependencies": {
-    "modern-font": "^0.4.0",
-    "modern-idoc": "^0.2.12",
-    "modern-path2d": "^1.2.10"
+    "modern-font": "^0.4.1",
+    "modern-idoc": "^0.2.13",
+    "modern-path2d": "^1.2.18"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.8.1",
-    "@types/node": "^22.13.10",
-    "bumpp": "^10.0.3",
+    "@antfu/eslint-config": "^4.11.0",
+    "@types/node": "^22.13.14",
+    "bumpp": "^10.1.0",
     "conventional-changelog-cli": "^5.0.0",
-    "eslint": "^9.22.0",
-    "lint-staged": "^15.4.3",
-    "simple-git-hooks": "^2.11.1",
+    "eslint": "^9.23.0",
+    "lint-staged": "^15.5.0",
+    "simple-git-hooks": "^2.12.1",
     "typescript": "^5.8.2",
     "unbuild": "^3.5.0",
-    "vite": "^6.2.1",
-    "vitest": "^3.0.8"
+    "vite": "^6.2.3",
+    "vitest": "^3.0.9"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged"

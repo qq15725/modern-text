@@ -21,29 +21,32 @@
 ## Usage
 
 ```ts
+import { fonts } from 'modern-font'
 import { renderText } from 'modern-text'
 
-const view = document.createElement('canvas')
-document.body.append(view)
+fonts.loadFallbackFont('/fallback.woff').then(() => {
+  const view = document.createElement('canvas')
+  document.body.append(view)
 
-renderText({
-  view,
-  style: {
-    width: 100,
-    height: 200,
-    fontSize: 22,
-    textDecoration: 'underline',
-  },
-  content: [
-    {
-      letterSpacing: 3,
-      fragments: [
-        { content: 'He', color: 'red', fontSize: 12 },
-        { content: 'llo', color: 'black' },
-      ],
+  renderText({
+    view,
+    style: {
+      width: 100,
+      height: 200,
+      fontSize: 22,
+      textDecoration: 'underline',
     },
-    { content: ', ', color: 'grey' },
-    { content: 'World!', color: 'black' },
-  ],
+    content: [
+      {
+        letterSpacing: 3,
+        fragments: [
+          { content: 'He', color: 'red', fontSize: 12 },
+          { content: 'llo', color: 'black' },
+        ],
+      },
+      { content: ', ', color: 'grey' },
+      { content: 'World!', color: 'black' },
+    ],
+  })
 })
 ```
