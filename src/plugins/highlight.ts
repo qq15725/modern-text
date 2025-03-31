@@ -323,6 +323,22 @@ export function highlight(): TextPlugin {
       }
     },
     renderOrder: -1,
+    getBoundingBox: () => {
+      const boundingBoxs: BoundingBox[] = []
+      pathSet.paths.forEach((path, index) => {
+        const clipRect = clipRects[index]
+        let box = path.getBoundingBox()
+        if (clipRect) {
+          const x = Math.max(box.x, clipRect.x)
+          const y = Math.max(box.y, clipRect.y)
+          const right = Math.min(box.right, clipRect.right)
+          const bottom = Math.min(box.bottom, clipRect.bottom)
+          box = new BoundingBox(x, y, right - x, bottom - y)
+        }
+        boundingBoxs.push(box)
+      })
+      return BoundingBox.from(...boundingBoxs)
+    },
     render: (ctx, text) => {
       pathSet.paths.forEach((path, index) => {
         drawPath({
