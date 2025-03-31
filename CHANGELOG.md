@@ -1,3 +1,19 @@
+## [1.3.2](https://github.com/qq15725/modern-text/compare/v1.3.1...v1.3.2) (2025-03-31)
+
+
+### Bug Fixes
+
+* highlight bbox ([0971dc2](https://github.com/qq15725/modern-text/commit/0971dc2dbec9d279cfbd7781a055f8bacdc8f71d))
+* textDecoration ([b859b0c](https://github.com/qq15725/modern-text/commit/b859b0c9cc9989c63ec6b9a36eb8645f6f1b4bb6))
+
+
+### Features
+
+* supports svg backgroundImage ([8a80321](https://github.com/qq15725/modern-text/commit/8a80321b3f0e144a4ee50581f1a8d376f58ab247))
+* up deps ([42b3122](https://github.com/qq15725/modern-text/commit/42b31222b4c3ff053ccb7971b38e5c1b5b8ee26c))
+
+
+
 ## [1.3.1](https://github.com/qq15725/modern-text/compare/v1.3.0...v1.3.1) (2025-03-11)
 
 
