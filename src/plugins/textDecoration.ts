@@ -96,17 +96,9 @@ export function textDecoration(): TextPlugin {
           textDecoration,
         } = style
 
-        const glyphBox = BoundingBox.from(...group.map(c => c.glyphBox ?? c.inlineBox))
         const inlineBox = BoundingBox.from(...group.map(c => c.inlineBox))
 
-        let left, top, width, height
-        if (isVertical) {
-          ;({ left } = glyphBox)
-          ;({ top, width, height } = inlineBox)
-        }
-        else {
-          ;({ left, top, width, height } = inlineBox)
-        }
+        const { left, top, width, height } = inlineBox
 
         let position = isVertical ? (left + width) : top
         const direction = isVertical ? -1 : 1
