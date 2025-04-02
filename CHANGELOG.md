@@ -1,3 +1,13 @@
+## [1.3.3](https://github.com/qq15725/modern-text/compare/v1.3.2...v1.3.3) (2025-04-02)
+
+
+### Bug Fixes
+
+* space character render for highlight ([2f327f8](https://github.com/qq15725/modern-text/commit/2f327f8fde9c41acf0b6b07223cb335762cb0f99))
+* space character render for highlight ([9e50e1c](https://github.com/qq15725/modern-text/commit/9e50e1c5481d526333e292a72693174ac005a1c4))
+
+
+
 ## [1.3.2](https://github.com/qq15725/modern-text/compare/v1.3.1...v1.3.2) (2025-03-31)
 
 
