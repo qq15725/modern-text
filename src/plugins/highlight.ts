@@ -129,18 +129,14 @@ export function highlight(): TextPlugin {
         const characters = groups[i]
         const char = characters[0]!
         const groupBox = BoundingBox.from(
-          ...(
-            characters
-              .filter(c => c.glyphBox)
-              .map(c => c.glyphBox) as BoundingBox[]
-          ),
+          ...(characters.map(c => c.compatibleGlyphBox) as BoundingBox[]),
         )
 
         const {
           computedStyle: style,
           isVertical,
           inlineBox,
-          glyphBox = inlineBox,
+          compatibleGlyphBox: glyphBox,
           strikeoutPosition,
           underlinePosition,
         } = char

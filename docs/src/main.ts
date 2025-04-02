@@ -8,7 +8,7 @@ const sharedOptions: Partial<TextOptions> = {
 }
 
 async function loadFallbackFont(): Promise<void> {
-  await fonts.loadFallbackFont('/fallback.woff')
+  await fonts.loadFallbackFont({ family: 'Fallback', src: '/fallback.woff' })
   await fonts.load({ family: 'AaHouDiHei', src: '/AaHouDiHei.woff' })
   await fonts.load({ family: 'Slidefu', src: '/Slidefu.woff' })
 }

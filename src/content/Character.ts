@@ -68,8 +68,8 @@ export class Character {
   centerDiviation = 0
   fontStyle?: 'bold' | 'italic'
 
-  get center(): Vector2 | undefined {
-    return this.glyphBox?.center
+  get center(): Vector2 {
+    return this.compatibleGlyphBox.center
   }
 
   get computedStyle(): StyleDeclaration {
@@ -86,6 +86,24 @@ export class Character {
 
   get fontHeight(): number {
     return this.fontSize * this.computedStyle.lineHeight
+  }
+
+  get compatibleGlyphBox(): BoundingBox {
+    return this.glyphBox ?? (
+      this.isVertical
+        ? new BoundingBox(
+          this.inlineBox.left + this.inlineBox.width / 2,
+          this.inlineBox.top,
+          0,
+          this.inlineBox.height,
+        )
+        : new BoundingBox(
+          this.inlineBox.left,
+          this.inlineBox.top + this.inlineBox.height / 2,
+          this.inlineBox.width,
+          0,
+        )
+    )
   }
 
   constructor(
