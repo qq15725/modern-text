@@ -199,8 +199,8 @@ export class Text extends EventEmitter<TextEventMap> {
     const max = Vector2.MIN
     this.characters.forEach((c) => {
       if (!c.getGlyphMinMax(min, max)) {
-        const { inlineBox } = c
-        const { left, top, width, height } = inlineBox
+        const { inlineBox: glyphBox } = c
+        const { left, top, width, height } = glyphBox
         const a = new Vector2(left, top)
         const b = new Vector2(left + width, top + height)
         min.min(a, b)

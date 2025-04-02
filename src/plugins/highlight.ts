@@ -128,9 +128,11 @@ export function highlight(): TextPlugin {
       for (let i = 0; i < groups.length; i++) {
         const characters = groups[i]
         const char = characters[0]!
-        const groupBox = BoundingBox.from(
-          ...(characters.map(c => c.compatibleGlyphBox) as BoundingBox[]),
-        )
+        const groupBox = BoundingBox.from(...characters.map(c => c.compatibleGlyphBox))
+
+        if (!groupBox.height || !groupBox.width) {
+          continue
+        }
 
         const {
           computedStyle: style,
