@@ -80,6 +80,10 @@ export class Text extends EventEmitter<TextEventMap> {
       .use(highlight())
       .use(render())
 
+    ;(options.plugins ?? []).forEach((plugin) => {
+      this.use(plugin)
+    })
+
     this.updateParagraphs()
   }
 

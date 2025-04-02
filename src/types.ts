@@ -21,4 +21,5 @@ export interface TextOptions {
   debug?: boolean
   measureDom?: HTMLElement
   fonts?: Fonts
+  plugins?: TextPlugin[]
 }
