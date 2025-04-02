@@ -1,3 +1,12 @@
+## [1.3.4](https://github.com/qq15725/modern-text/compare/v1.3.3...v1.3.4) (2025-04-02)
+
+
+### Features
+
+* add plugins options ([3446c2c](https://github.com/qq15725/modern-text/commit/3446c2c200ea33bec380519e05bf22cdce6adfd7))
+
+
+
 ## [1.3.3](https://github.com/qq15725/modern-text/compare/v1.3.2...v1.3.3) (2025-04-02)
 
 
