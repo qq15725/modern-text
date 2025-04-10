@@ -79,14 +79,8 @@ export function highlight(): TextPlugin {
         } = highlight
 
         if (!isNone(image)) {
-          const {
-            inlineBox,
-            isVertical,
-          } = character
-
-          const {
-            fontSize,
-          } = style
+          const { inlineBox, isVertical } = character
+          const { fontSize } = style
 
           if (
             (
@@ -143,9 +137,7 @@ export function highlight(): TextPlugin {
           underlinePosition,
         } = char
 
-        const {
-          fontSize,
-        } = style
+        const { fontSize } = style
 
         const {
           image,

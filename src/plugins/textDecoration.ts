@@ -29,11 +29,7 @@ export function textDecoration(): TextPlugin {
           strikeoutSize,
         } = character
 
-        const {
-          color,
-          textDecoration,
-          writingMode,
-        } = style
+        const { color, textDecoration, writingMode } = style
 
         if (!isNone(textDecoration)) {
           let flag = false
