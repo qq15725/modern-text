@@ -1,3 +1,12 @@
+## [1.3.6](https://github.com/qq15725/modern-text/compare/v1.3.5...v1.3.6) (2025-04-12)
+
+
+### Bug Fixes
+
+* text-align justify ([5a07e11](https://github.com/qq15725/modern-text/commit/5a07e11f44475b5be7b52086968d4d13dcf3a52e))
+
+
+
 ## [1.3.5](https://github.com/qq15725/modern-text/compare/v1.3.4...v1.3.5) (2025-04-10)
 
 
