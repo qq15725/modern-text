@@ -1,3 +1,13 @@
+## [1.3.7](https://github.com/qq15725/modern-text/compare/v1.3.6...v1.3.7) (2025-04-23)
+
+
+### Features
+
+* supports style padding ([57713a5](https://github.com/qq15725/modern-text/commit/57713a53e8b559b086f166adab69f5ae8c84d52d))
+* updep ([3deeb52](https://github.com/qq15725/modern-text/commit/3deeb526d41f7f06666ee1cd0774866719817045))
+
+
+
 ## [1.3.6](https://github.com/qq15725/modern-text/compare/v1.3.5...v1.3.6) (2025-04-12)
 
 
