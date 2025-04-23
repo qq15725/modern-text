@@ -24,20 +24,22 @@ export function background(): TextPlugin {
         return
       const { pathSet: imagePathSet } = parser.parse(style.backgroundImage!)
       const imageBox = imagePathSet.getBoundingBox(true)!
+      const { x, y, width, height } = lineBox
       const transform = new Matrix3()
       transform.translate(-imageBox.x, -imageBox.y)
       if (isVertical) {
-        transform.scale(lineBox.height / imageBox.width, lineBox.width / imageBox.height)
-        const tx = lineBox.height / 2
-        const ty = lineBox.width / 2
+        transform.scale(height / imageBox.width, width / imageBox.height)
+        const tx = height / 2
+        const ty = width / 2
         transform.translate(-tx, -ty)
         transform.rotate(-Math.PI / 2)
         transform.translate(ty, tx)
       }
       else {
-        transform.scale(lineBox.width / imageBox.width, lineBox.height / imageBox.height)
+        transform.scale(width / imageBox.width, height / imageBox.height)
       }
-      transform.translate(lineBox.x, lineBox.y)
+      transform.translate(x, y)
+
       imagePathSet.paths.forEach((originalPath) => {
         pathSet.paths.push(
           originalPath.clone().applyTransform(transform),
