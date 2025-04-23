@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "modern-font": "^0.4.1",
-    "modern-idoc": "^0.4.3",
+    "modern-idoc": "^0.5.1",
     "modern-path2d": "^1.2.18"
   },
   "devDependencies": {
@@ -66,13 +66,13 @@
     "@types/node": "^22.14.1",
     "bumpp": "^10.1.0",
     "conventional-changelog-cli": "^5.0.0",
-    "eslint": "^9.24.0",
+    "eslint": "^9.25.1",
     "lint-staged": "^15.5.1",
     "simple-git-hooks": "^2.12.1",
     "typescript": "^5.8.3",
     "unbuild": "^3.5.0",
-    "vite": "^6.2.6",
-    "vitest": "^3.1.1"
+    "vite": "^6.3.2",
+    "vitest": "^3.1.2"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged"
