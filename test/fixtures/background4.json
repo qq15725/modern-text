@@ -1,0 +1,8 @@
+{
+  "style": {
+    "fontSize": 40,
+    "padding": 20,
+    "backgroundImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MiIgaGVpZ2h0PSI3MiIgdmlld0JveD0iMCAwIDcyIDcyIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTI0LjU4MyAyMEg2M1YzNS45OTU0QzYzIDQ0LjgyNTIgNTYuMDE0MiA1MiA0Ny40MTcgNTJIOVYzNi4wMDQ2QzkgMjcuMTc0OCAxNS45ODU4IDIwIDI0LjU4MyAyMFoiIGZpbGw9IiNDNERGRjAiLz4KPC9zdmc+"
+  },
+  "content": "Background"
+}

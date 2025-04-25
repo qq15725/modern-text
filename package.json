@@ -58,20 +58,20 @@
   },
   "dependencies": {
     "modern-font": "^0.4.1",
-    "modern-idoc": "^0.5.1",
-    "modern-path2d": "^1.2.18"
+    "modern-idoc": "^0.5.2",
+    "modern-path2d": "^1.2.19"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.12.0",
-    "@types/node": "^22.14.1",
+    "@types/node": "^22.15.2",
     "bumpp": "^10.1.0",
     "conventional-changelog-cli": "^5.0.0",
     "eslint": "^9.25.1",
     "lint-staged": "^15.5.1",
-    "simple-git-hooks": "^2.12.1",
+    "simple-git-hooks": "^2.13.0",
     "typescript": "^5.8.3",
     "unbuild": "^3.5.0",
-    "vite": "^6.3.2",
+    "vite": "^6.3.3",
     "vitest": "^3.1.2"
   },
   "simple-git-hooks": {

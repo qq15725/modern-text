@@ -1,5 +1,5 @@
 import type { TextPlugin } from '../types'
-import { Matrix3, Path2DSet } from 'modern-path2d'
+import { Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { createSVGLoader, createSVGParser, isNone } from '../utils'
 
@@ -20,32 +20,67 @@ export function background(): TextPlugin {
     update: (text) => {
       pathSet.paths.length = 0
       const { style, lineBox, isVertical } = text
-      if (isNone(style.backgroundImage))
+      const { backgroundImage, backgroundSize } = style
+      if (isNone(backgroundImage))
         return
-      const { pathSet: imagePathSet } = parser.parse(style.backgroundImage!)
+      const { pathSet: imagePathSet } = parser.parse(backgroundImage!)
       const imageBox = imagePathSet.getBoundingBox(true)!
-      const { x, y, width, height } = lineBox
-      const transform = new Matrix3()
-      transform.translate(-imageBox.x, -imageBox.y)
+
+      let x, y, width, height
       if (isVertical) {
-        transform.scale(height / imageBox.width, width / imageBox.height)
-        const tx = height / 2
-        const ty = width / 2
-        transform.translate(-tx, -ty)
-        transform.rotate(-Math.PI / 2)
-        transform.translate(ty, tx)
+        ({ x: y, y: x, width: height, height: width } = lineBox)
       }
       else {
-        transform.scale(width / imageBox.width, height / imageBox.height)
+        ({ x, y, width, height } = lineBox)
+      }
+
+      const paths = imagePathSet.paths.map(p => p.clone())
+
+      let scaleX: number
+      let scaleY: number
+      if (backgroundSize === 'rigid') {
+        scaleX = Math.max((text.fontSize * 5) / imageBox.width)
+        scaleY = scaleX
+        const dist = new Vector2()
+        dist.x = imageBox.width - width / scaleX
+        dist.y = imageBox.height - height / scaleY
+        paths.forEach((path) => {
+          path.applyTransform((p) => {
+            const hasX = p.x > imageBox.left + imageBox.width / 2
+            const hasY = p.y > imageBox.top + imageBox.height / 2
+            if (hasX) {
+              p.x -= dist.x
+            }
+            if (hasY) {
+              p.y -= dist.y
+            }
+          })
+        })
+      }
+      else {
+        scaleX = width / imageBox.width
+        scaleY = height / imageBox.height
+      }
+
+      const transform = new Matrix3()
+      transform.translate(-imageBox.x, -imageBox.y)
+      transform.scale(scaleX, scaleY)
+      if (isVertical) {
+        transform.translate(-width / 2, -height / 2)
+        transform.rotate(-Math.PI / 2)
+        transform.translate(height / 2, width / 2)
       }
       transform.translate(x, y)
 
-      imagePathSet.paths.forEach((originalPath) => {
-        pathSet.paths.push(
-          originalPath.clone().applyTransform(transform),
-        )
+      paths.forEach((path) => {
+        path.applyTransform((p) => {
+          p.applyMatrix3(transform)
+        })
       })
+
+      pathSet.paths.push(...paths)
     },
+    renderOrder: -2,
     render: (ctx, text) => {
       const { boundingBox, computedStyle: style } = text
       if (!isNone(style.backgroundColor)) {
