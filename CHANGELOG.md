@@ -1,3 +1,12 @@
+## [1.3.8](https://github.com/qq15725/modern-text/compare/v1.3.7...v1.3.8) (2025-04-25)
+
+
+### Features
+
+* background ([6c85e1f](https://github.com/qq15725/modern-text/commit/6c85e1f06bcb3a9ea47e7d31411b72ed21e17744))
+
+
+
 ## [1.3.7](https://github.com/qq15725/modern-text/compare/v1.3.6...v1.3.7) (2025-04-23)
 
 
