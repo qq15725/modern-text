@@ -1,3 +1,12 @@
+## [1.3.9](https://github.com/qq15725/modern-text/compare/v1.3.8...v1.3.9) (2025-05-06)
+
+
+### Bug Fixes
+
+* list-style ([7a44d9f](https://github.com/qq15725/modern-text/commit/7a44d9fa556cb5754e4c8ac86aa0865c3ee3b47f))
+
+
+
 ## [1.3.8](https://github.com/qq15725/modern-text/compare/v1.3.7...v1.3.8) (2025-04-25)
 
 
