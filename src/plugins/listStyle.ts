@@ -1,4 +1,3 @@
-import type { Character } from '../content'
 import type { TextPlugin } from '../types'
 import { Matrix3, Path2DSet, svgToPath2DSet } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
@@ -57,54 +56,49 @@ export function listStyle(): TextPlugin {
         const imagePathSet = svgToPath2DSet(image)
         const imageBox = imagePathSet.getBoundingBox()!
 
-        let prevChar: Character | undefined
-        paragraph.fragments.forEach((f) => {
-          f.characters.forEach((c) => {
-            const { inlineBox } = c
-            if (
-              isVertical
-                ? prevChar?.inlineBox.left !== inlineBox.left
-                : prevChar?.inlineBox.top !== inlineBox.top
-            ) {
-              prevChar = c
-              const scale = size === 'cover'
-                ? 1
-                : parseValueNumber(size, { total: fontSize, fontSize }) / fontSize
-              const m = new Matrix3()
-              if (isVertical) {
-                const _scale = (fontSize / imageBox.height) * scale
-                m.translate(-imageBox.left, -imageBox.top)
-                  .rotate(Math.PI / 2)
-                  .scale(_scale, _scale)
-                  .translate(
-                    inlineBox.left + (inlineBox.width - (imageBox.height * _scale)) / 2,
-                    inlineBox.top - padding,
-                  )
-              }
-              else {
-                const _scale = (fontSize / imageBox.height) * scale
-                m
-                  .translate(-imageBox.left, -imageBox.top)
-                  .scale(_scale, _scale)
-                  .translate(
-                    inlineBox.left - (imageBox.width * _scale) - padding,
-                    inlineBox.top + (inlineBox.height - (imageBox.height * _scale)) / 2,
-                  )
-              }
-              pathSet.paths.push(...imagePathSet.paths.map((p) => {
-                const path = p.clone()
-                path.applyTransform(m)
-                if (path.style.fill && (path.style.fill as string) in colormap) {
-                  path.style.fill = colormap[path.style.fill as string]
-                }
-                if (path.style.stroke && (path.style.stroke as string) in colormap) {
-                  path.style.stroke = colormap[path.style.stroke as string]
-                }
-                return path
-              }))
-            }
-          })
-        })
+        const char = paragraph.fragments[0]?.characters[0]
+
+        if (!char) {
+          return
+        }
+
+        const { inlineBox } = char
+
+        const scale = size === 'cover'
+          ? 1
+          : parseValueNumber(size, { total: fontSize, fontSize }) / fontSize
+        const m = new Matrix3()
+        if (isVertical) {
+          const _scale = (fontSize / imageBox.height) * scale
+          m.translate(-imageBox.left, -imageBox.top)
+            .rotate(Math.PI / 2)
+            .scale(_scale, _scale)
+            .translate(
+              inlineBox.left + (inlineBox.width - (imageBox.height * _scale)) / 2,
+              inlineBox.top - padding,
+            )
+        }
+        else {
+          const _scale = (fontSize / imageBox.height) * scale
+          m
+            .translate(-imageBox.left, -imageBox.top)
+            .scale(_scale, _scale)
+            .translate(
+              inlineBox.left - (imageBox.width * _scale) - padding,
+              inlineBox.top + (inlineBox.height - (imageBox.height * _scale)) / 2,
+            )
+        }
+        pathSet.paths.push(...imagePathSet.paths.map((p) => {
+          const path = p.clone()
+          path.applyTransform(m)
+          if (path.style.fill && (path.style.fill as string) in colormap) {
+            path.style.fill = colormap[path.style.fill as string]
+          }
+          if (path.style.stroke && (path.style.stroke as string) in colormap) {
+            path.style.stroke = colormap[path.style.stroke as string]
+          }
+          return path
+        }))
       })
     },
   })

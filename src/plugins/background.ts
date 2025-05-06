@@ -1,7 +1,7 @@
 import type { TextPlugin } from '../types'
 import { Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
 import { drawPath } from '../canvas'
-import { createSVGLoader, createSVGParser, isNone } from '../utils'
+import { createSVGLoader, createSVGParser, isNone, parseColormap } from '../utils'
 
 export function background(): TextPlugin {
   const pathSet = new Path2DSet()
@@ -20,9 +20,15 @@ export function background(): TextPlugin {
     update: (text) => {
       pathSet.paths.length = 0
       const { style, lineBox, isVertical } = text
-      const { backgroundImage, backgroundSize } = style
+      const {
+        backgroundImage,
+        backgroundSize,
+        backgroundColormap = 'none',
+      } = style
+
       if (isNone(backgroundImage))
         return
+
       const { pathSet: imagePathSet } = parser.parse(backgroundImage!)
       const imageBox = imagePathSet.getBoundingBox(true)!
 
@@ -34,7 +40,17 @@ export function background(): TextPlugin {
         ({ x, y, width, height } = lineBox)
       }
 
-      const paths = imagePathSet.paths.map(p => p.clone())
+      const colormap = parseColormap(backgroundColormap)
+      const paths = imagePathSet.paths.map((p) => {
+        const cloned = p.clone()
+        if (cloned.style.fill && (cloned.style.fill as string) in colormap) {
+          cloned.style.fill = colormap[cloned.style.fill as string]
+        }
+        if (cloned.style.stroke && (cloned.style.stroke as string) in colormap) {
+          cloned.style.stroke = colormap[cloned.style.stroke as string]
+        }
+        return cloned
+      })
 
       let scaleX: number
       let scaleY: number

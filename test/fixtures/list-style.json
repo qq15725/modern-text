@@ -12,6 +12,10 @@
       "listStyleType": "none"
     },
     {
+      "content": " ",
+      "listStyleType": "disc"
+    },
+    {
       "content": "discdiscdiscdiscdiscdiscdiscdiscdiscdiscdiscdiscdisc",
       "listStyleType": "disc"
     },
