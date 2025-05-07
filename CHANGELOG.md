@@ -1,3 +1,12 @@
+## [1.3.10](https://github.com/qq15725/modern-text/compare/v1.3.9...v1.3.10) (2025-05-07)
+
+
+### Bug Fixes
+
+* parseColormap ([ba10cf2](https://github.com/qq15725/modern-text/commit/ba10cf2f1cdd06ba2d97623893a3285c14438bb3))
+
+
+
 ## [1.3.9](https://github.com/qq15725/modern-text/compare/v1.3.8...v1.3.9) (2025-05-06)
 
 
