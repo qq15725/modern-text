@@ -27,20 +27,7 @@ export function parseValueNumber(value: string | number, ctx: ValueContext): num
 }
 
 export function parseColormap(colormap: 'none' | Record<string, string>): Record<string, string> {
-  const _colormap = (isNone(colormap) ? {} : colormap) as Record<string, string>
-  return Object.keys(_colormap).reduce((obj, key) => {
-    let value = _colormap[key]
-    const keyRgb = hexToRgb(key)
-    const valueRgb = hexToRgb(value)
-    if (keyRgb) {
-      key = keyRgb
-    }
-    if (valueRgb) {
-      value = valueRgb
-    }
-    obj[key] = value
-    return obj
-  }, {} as Record<string, string>)
+  return (isNone(colormap) ? {} : colormap) as Record<string, string>
 }
 
 export function isNone(val: any): boolean {
