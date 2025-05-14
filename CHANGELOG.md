@@ -1,3 +1,12 @@
+## [1.3.12](https://github.com/qq15725/modern-text/compare/v1.3.11...v1.3.12) (2025-05-14)
+
+
+### Features
+
+* background render sort ([2dcbed5](https://github.com/qq15725/modern-text/commit/2dcbed54945957217fa9727e5e342845df898c04))
+
+
+
 ## [1.3.11](https://github.com/qq15725/modern-text/compare/v1.3.10...v1.3.11) (2025-05-14)
 
 
