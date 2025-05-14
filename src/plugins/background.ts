@@ -103,12 +103,22 @@ export function background(): TextPlugin {
         ctx.fillStyle = style.backgroundColor!
         ctx.fillRect(...boundingBox.array)
       }
-      pathSet.paths.forEach((path) => {
-        drawPath({
-          ctx,
-          path,
-          fontSize: style.fontSize,
+      text.paragraphs.forEach((p) => {
+        const { lineBox, style } = p
+        if (!isNone(style.backgroundColor)) {
+          ctx.fillStyle = style.backgroundColor!
+          ctx.fillRect(...lineBox.array)
+        }
+        p.fragments.forEach((f) => {
+          const { inlineBox, style } = f
+          if (!isNone(style.backgroundColor)) {
+            ctx.fillStyle = style.backgroundColor!
+            ctx.fillRect(...inlineBox.array)
+          }
         })
+      })
+      pathSet.paths.forEach((path) => {
+        drawPath({ ctx, path, fontSize: style.fontSize })
         if (text.debug) {
           const box = new Path2DSet([path]).getBoundingBox()
           if (box) {
