@@ -1,4 +1,4 @@
-import type { StyleDeclaration } from 'modern-idoc'
+import type { NormalizedStyle } from 'modern-idoc'
 import type { Paragraph } from './content'
 import { BoundingBox } from 'modern-path2d'
 
@@ -93,10 +93,10 @@ export class Measurer {
    *   </ul>
    * </section>
    */
-  createParagraphDom(paragraphs: Paragraph[], rootStyle: StyleDeclaration): { dom: HTMLElement, destory: () => void } {
+  createParagraphDom(paragraphs: Paragraph[], rootStyle: NormalizedStyle): { dom: HTMLElement, destory: () => void } {
     const documentFragment = document.createDocumentFragment()
     const dom = document.createElement('section')
-    const style: StyleDeclaration = { ...rootStyle }
+    const style: NormalizedStyle = { ...rootStyle }
     const isHorizontal = rootStyle.writingMode.includes('horizontal')
     switch (rootStyle.textAlign) {
       case 'start':
@@ -324,7 +324,7 @@ export class Measurer {
     }
   }
 
-  measure(paragraphs: Paragraph[], rootStyle: StyleDeclaration, dom?: HTMLElement): MeasureDomResult {
+  measure(paragraphs: Paragraph[], rootStyle: NormalizedStyle, dom?: HTMLElement): MeasureDomResult {
     let destory: undefined | (() => void)
     if (!dom) {
       ({ dom, destory } = this.createParagraphDom(paragraphs, rootStyle))

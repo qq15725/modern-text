@@ -1,5 +1,5 @@
 import type { Fonts } from 'modern-font'
-import type { StyleDeclaration, TextContent } from 'modern-idoc'
+import type { NormalizedStyle, TextContent } from 'modern-idoc'
 import type { Character } from './content'
 import type { TextOptions, TextPlugin } from './types'
 import { getDefaultStyle } from 'modern-idoc'
@@ -24,7 +24,7 @@ export interface MeasureResult {
   boundingBox: BoundingBox
 }
 
-export const textDefaultStyle: StyleDeclaration = getDefaultStyle()
+export const textDefaultStyle: NormalizedStyle = getDefaultStyle()
 
 export interface TextEventMap {
   update: { text: Text }
@@ -35,11 +35,11 @@ export interface TextEventMap {
 export class Text extends EventEmitter<TextEventMap> {
   debug: boolean
   content: TextContent
-  style: Partial<StyleDeclaration>
-  effects?: Partial<StyleDeclaration>[]
+  style: Partial<NormalizedStyle>
+  effects?: Partial<NormalizedStyle>[]
   measureDom?: HTMLElement
   needsUpdate = true
-  computedStyle: StyleDeclaration = { ...textDefaultStyle }
+  computedStyle: NormalizedStyle = { ...textDefaultStyle }
   paragraphs: Paragraph[] = []
   lineBox = new BoundingBox()
   rawGlyphBox = new BoundingBox()

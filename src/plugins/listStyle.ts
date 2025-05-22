@@ -1,7 +1,8 @@
 import type { TextPlugin } from '../types'
+import { isNone } from 'modern-idoc'
 import { Matrix3, Path2DSet, svgToPath2DSet } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
-import { isNone, parseColormap, parseValueNumber } from '../utils'
+import { parseColormap, parseValueNumber } from '../utils'
 
 function genDisc(r: number, color: string): string {
   return `<svg width="${r * 2}" height="${r * 2}" xmlns="http://www.w3.org/2000/svg">
@@ -32,7 +33,7 @@ export function listStyle(): TextPlugin {
           listStyleType,
         } = style
 
-        const colormap = parseColormap(listStyleColormap)
+        const colormap = parseColormap(listStyleColormap!)
 
         let size = listStyleSize
         let image: string | undefined

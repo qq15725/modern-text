@@ -1,3 +1,5 @@
+import { isNone } from 'modern-idoc'
+
 interface ValueContext {
   total: number
   fontSize: number
@@ -28,10 +30,6 @@ export function parseValueNumber(value: string | number, ctx: ValueContext): num
 
 export function parseColormap(colormap: 'none' | Record<string, string>): Record<string, string> {
   return (isNone(colormap) ? {} : colormap) as Record<string, string>
-}
-
-export function isNone(val: any): boolean {
-  return !val || val === 'none'
 }
 
 export function isEqualObject(obj1: Record<string, any>, obj2: Record<string, any>): boolean {

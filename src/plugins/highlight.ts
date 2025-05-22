@@ -1,6 +1,7 @@
-import type { HighlightDeclaration, HighlightLine, StyleDeclaration } from 'modern-idoc'
+import type { HighlightLine, NormalizedHighlight, NormalizedStyle } from 'modern-idoc'
 import type { Character } from '../content'
 import type { TextPlugin } from '../types'
+import { isNone } from 'modern-idoc'
 import { BoundingBox, Matrix3, Path2DSet } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
@@ -8,12 +9,11 @@ import {
   createSVGLoader,
   createSVGParser,
   isEqualValue,
-  isNone,
   parseColormap,
   parseValueNumber,
 } from '../utils'
 
-export function getHighlightStyle(style: StyleDeclaration): HighlightDeclaration {
+export function getHighlightStyle(style: NormalizedStyle): NormalizedHighlight {
   const {
     highlight,
     highlightImage,
@@ -48,10 +48,10 @@ export function highlight(): TextPlugin {
       text.forEachCharacter((character) => {
         const { computedStyle: style } = character
         const { image, referImage } = getHighlightStyle(style)
-        if (loader.needsLoad(image)) {
+        if (image && loader.needsLoad(image)) {
           set.add(image)
         }
-        if (loader.needsLoad(referImage)) {
+        if (referImage && loader.needsLoad(referImage)) {
           set.add(referImage)
         }
       })
@@ -62,7 +62,7 @@ export function highlight(): TextPlugin {
       pathSet.paths.length = 0
       let groups: Character[][] = []
       let group: Character[]
-      let prevHighlight: HighlightDeclaration | undefined
+      let prevHighlight: NormalizedHighlight | undefined
       text.forEachCharacter((character) => {
         const {
           computedStyle: style,
@@ -149,8 +149,8 @@ export function highlight(): TextPlugin {
         } = getHighlightStyle(style)
 
         const _thickness = parseValueNumber(thickness, { fontSize, total: groupBox.width }) / groupBox.width
-        const _colormap = parseColormap(colormap)
-        const { pathSet: imagePathSet, dom: imageDom } = parser.parse(image)
+        const _colormap = parseColormap(colormap!)
+        const { pathSet: imagePathSet, dom: imageDom } = parser.parse(image!)
         const imageBox = imagePathSet.getBoundingBox(true)!
         const styleScale = fontSize / imageBox.width * 2
         const targetBox = new BoundingBox().copy(groupBox)
