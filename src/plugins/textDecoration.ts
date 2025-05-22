@@ -1,10 +1,10 @@
 import type { NormalizedStyle } from 'modern-idoc'
 import type { Character } from '../content'
 import type { TextPlugin } from '../types'
+import { isNone } from 'modern-idoc'
 import { BoundingBox, Path2D, Path2DSet } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
-import { isNone } from '../utils'
 import { getTransform2D } from './render'
 
 export function textDecoration(): TextPlugin {

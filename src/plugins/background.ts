@@ -1,7 +1,8 @@
 import type { TextPlugin } from '../types'
+import { isNone } from 'modern-idoc'
 import { Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
 import { drawPath } from '../canvas'
-import { createSVGLoader, createSVGParser, isNone, parseColormap } from '../utils'
+import { createSVGLoader, createSVGParser, parseColormap } from '../utils'
 
 export function background(): TextPlugin {
   const pathSet = new Path2DSet()
@@ -23,7 +24,7 @@ export function background(): TextPlugin {
       const {
         backgroundImage,
         backgroundSize,
-        backgroundColormap = 'none',
+        backgroundColormap,
       } = style
 
       if (isNone(backgroundImage))
@@ -40,7 +41,7 @@ export function background(): TextPlugin {
         ({ x, y, width, height } = lineBox)
       }
 
-      const colormap = parseColormap(backgroundColormap)
+      const colormap = parseColormap(backgroundColormap ?? 'none')
       const paths = imagePathSet.paths.map((p) => {
         const cloned = p.clone()
         if (cloned.style.fill && (cloned.style.fill as string) in colormap) {
