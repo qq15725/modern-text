@@ -1,3 +1,13 @@
+# [1.4.0](https://github.com/qq15725/modern-text/compare/v1.3.12...v1.4.0) (2025-05-22)
+
+
+### Features
+
+* up idoc ([f530965](https://github.com/qq15725/modern-text/commit/f530965c8b2db64da3bbc7370394ff1035f52d32))
+* up idoc ([cbfbc96](https://github.com/qq15725/modern-text/commit/cbfbc96b9361969ec6cddb3b539ad8b4f2c4a100))
+
+
+
 ## [1.3.12](https://github.com/qq15725/modern-text/compare/v1.3.11...v1.3.12) (2025-05-14)
 
 
