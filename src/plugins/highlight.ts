@@ -149,8 +149,8 @@ export function highlight(): TextPlugin {
         } = getHighlightStyle(style)
 
         const _thickness = parseValueNumber(thickness, { fontSize, total: groupBox.width }) / groupBox.width
-        const _colormap = parseColormap(colormap!)
-        const { pathSet: imagePathSet, dom: imageDom } = parser.parse(image!)
+        const _colormap = parseColormap(colormap)
+        const { pathSet: imagePathSet, dom: imageDom } = parser.parse(image)
         const imageBox = imagePathSet.getBoundingBox(true)!
         const styleScale = fontSize / imageBox.width * 2
         const targetBox = new BoundingBox().copy(groupBox)

@@ -30,7 +30,7 @@ export function background(): TextPlugin {
       if (isNone(backgroundImage))
         return
 
-      const { pathSet: imagePathSet } = parser.parse(backgroundImage!)
+      const { pathSet: imagePathSet } = parser.parse(backgroundImage)
       const imageBox = imagePathSet.getBoundingBox(true)!
 
       let x, y, width, height

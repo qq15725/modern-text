@@ -33,7 +33,7 @@ export function listStyle(): TextPlugin {
           listStyleType,
         } = style
 
-        const colormap = parseColormap(listStyleColormap!)
+        const colormap = parseColormap(listStyleColormap)
 
         let size = listStyleSize
         let image: string | undefined

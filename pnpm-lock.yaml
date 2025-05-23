@@ -12,8 +12,8 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1
       modern-idoc:
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.6.6
+        version: 0.6.6
       modern-path2d:
         specifier: ^1.3.0
         version: 1.3.0
@@ -1199,8 +1199,8 @@ packages:
   earcut@3.0.1:
     resolution: {integrity: sha512-0l1/0gOjESMeQyYaK5IDiPNvFeu93Z/cO0TjZh9eZ1vyCtZnA7KMZ8rQggpsJHIbGSdrqYq9OhuveadOVHCshw==}
 
-  electron-to-chromium@1.5.155:
-    resolution: {integrity: sha512-ps5KcGGmwL8VaeJlvlDlu4fORQpv3+GIcF5I3f9tUKUlJ/wsysh6HU8P5L1XWRYeXfA0oJd4PyM8ds8zTFf6Ng==}
+  electron-to-chromium@1.5.157:
+    resolution: {integrity: sha512-/0ybgsQd1muo8QlnuTpKwtl0oX5YMlUGbm8xyqgDU00motRkKFFbUJySAQBWcY79rVqNLWIWa87BGVGClwAB2w==}
 
   emoji-regex@10.4.0:
     resolution: {integrity: sha512-EC+0oUMY1Rqm4O6LLrgjtYDvcVYTy7chDnM4Q7030tP4Kwj3u/pR6gP9ygnp2CJMK5Gq+9Q2oqmrFJAz01DXjw==}
@@ -1943,8 +1943,8 @@ packages:
   modern-font@0.4.1:
     resolution: {integrity: sha512-yaq7zIRxNHHJRzEUnrRKFZJGsBSi1dYlXkLZ1n2nk1B/aQKm8JrjMtwGM7aUAicc/CQOmHh890KNqN7FtS7Pog==}
 
-  modern-idoc@0.6.4:
-    resolution: {integrity: sha512-ELNOVCvf5h4+7bsqcVZ2iDUZxloyAjqKrL5n6pQoHsXQm+0gX6lL4e2RbLH+d6w7UGt76fVo2K4gDh4lNA7Orw==}
+  modern-idoc@0.6.6:
+    resolution: {integrity: sha512-OjtpeGliQJJJwCH6nYIf2UNVKDxb78eJTGKjkBXOnHJzJrMX0GJlFcQia0SaJWN8EaccHu0sX5FpAdpo4TkwIw==}
 
   modern-path2d@1.3.0:
     resolution: {integrity: sha512-43LdKLsaYtPA+8YQMzpNiFFO1er5a9v8wjIeEWrv7avJ6zXXQ4lbqRelRyDaNTAiPuA+nn0A0LcjB7Rh+UFx4w==}
@@ -3460,7 +3460,7 @@ snapshots:
   browserslist@4.24.5:
     dependencies:
       caniuse-lite: 1.0.30001718
-      electron-to-chromium: 1.5.155
+      electron-to-chromium: 1.5.157
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.24.5)
 
@@ -3802,7 +3802,7 @@ snapshots:
 
   earcut@3.0.1: {}
 
-  electron-to-chromium@1.5.155: {}
+  electron-to-chromium@1.5.157: {}
 
   emoji-regex@10.4.0: {}
 
@@ -4809,7 +4809,7 @@ snapshots:
     dependencies:
       fflate: 0.8.2
 
-  modern-idoc@0.6.4:
+  modern-idoc@0.6.6:
     dependencies:
       colord: 2.9.3
 

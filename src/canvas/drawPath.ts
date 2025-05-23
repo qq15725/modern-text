@@ -1,7 +1,9 @@
 import type { NormalizedStyle } from 'modern-idoc'
 import type { BoundingBox, Path2D, Path2DDrawStyle, Path2DStyle } from 'modern-path2d'
 
-export interface DrawShapePathsOptions extends Omit<Partial<NormalizedStyle>, 'fill' | 'outline'>, Partial<Path2DDrawStyle> {
+export interface DrawShapePathsOptions extends
+  Partial<NormalizedStyle>,
+  Omit<Partial<Path2DDrawStyle>, 'fill' | 'outline'> {
   ctx: CanvasRenderingContext2D
   path: Path2D
   fontSize: number
