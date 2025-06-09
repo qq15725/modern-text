@@ -1,8 +1,8 @@
 import type { Fonts } from 'modern-font'
-import type { NormalizedStyle, TextContent } from 'modern-idoc'
+import type { NormalizedStyle, NormalizedTextContent } from 'modern-idoc'
 import type { Character } from './content'
 import type { TextOptions, TextPlugin } from './types'
-import { getDefaultStyle } from 'modern-idoc'
+import { getDefaultStyle, normalizeTextContent } from 'modern-idoc'
 import { BoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
@@ -33,11 +33,11 @@ export interface TextEventMap {
 }
 
 export class Text extends EventEmitter<TextEventMap> {
-  debug: boolean
-  content: TextContent
-  style: Partial<NormalizedStyle>
+  debug!: boolean
+  content!: NormalizedTextContent
+  style!: Partial<NormalizedStyle>
   effects?: Partial<NormalizedStyle>[]
-  measureDom?: HTMLElement
+  measureDOM?: HTMLElement
   needsUpdate = true
   computedStyle: NormalizedStyle = { ...textDefaultStyle }
   paragraphs: Paragraph[] = []
@@ -65,10 +65,14 @@ export class Text extends EventEmitter<TextEventMap> {
   constructor(options: TextOptions = {}) {
     super()
 
+    this.set(options)
+  }
+
+  set(options: TextOptions = {}): void {
     this.debug = options.debug ?? false
-    this.content = options.content ?? ''
+    this.content = normalizeTextContent(options.content ?? '')
     this.style = options.style ?? {}
-    this.measureDom = options.measureDom
+    this.measureDOM = options.measureDOM
     this.effects = options.effects
     this.fonts = options.fonts
 
@@ -109,62 +113,29 @@ export class Text extends EventEmitter<TextEventMap> {
 
   updateParagraphs(): this {
     this.computedStyle = { ...textDefaultStyle, ...this.style }
-    let { content, computedStyle: style } = this
+    const { content, computedStyle: style } = this
     const paragraphs: Paragraph[] = []
-    if (typeof content === 'string') {
-      const paragraph = new Paragraph({}, style)
-      paragraph.addFragment(content)
+    content.forEach((p) => {
+      const { fragments, ...pStyle } = p
+      const paragraph = new Paragraph(pStyle, style)
+      fragments.forEach((f) => {
+        const { content, ...fStyle } = f
+        if (content !== undefined) {
+          paragraph.addFragment(content, fStyle)
+        }
+      })
       paragraphs.push(paragraph)
-    }
-    else {
-      content = Array.isArray(content) ? content : [content]
-      for (const p of content) {
-        if (typeof p === 'string') {
-          const paragraph = new Paragraph({}, style)
-          paragraph.addFragment(p)
-          paragraphs.push(paragraph)
-        }
-        else if (Array.isArray(p)) {
-          const paragraph = new Paragraph({}, style)
-          p.forEach((f) => {
-            if (typeof f === 'string') {
-              paragraph.addFragment(f)
-            }
-            else {
-              const { content, ...fStyle } = f
-              if (content !== undefined) {
-                paragraph.addFragment(content, fStyle)
-              }
-            }
-          })
-          paragraphs.push(paragraph)
-        }
-        else if ('fragments' in p) {
-          const { fragments, ...pStyle } = p
-          const paragraph = new Paragraph(pStyle, style)
-          fragments.forEach((f) => {
-            const { content, ...fStyle } = f
-            if (content !== undefined) {
-              paragraph.addFragment(content, fStyle)
-            }
-          })
-          paragraphs.push(paragraph)
-        }
-        else if ('content' in p) {
-          const { content: pData, ...pStyle } = p
-          if (pData !== undefined) {
-            const paragraph = new Paragraph(pStyle, style)
-            paragraph.addFragment(pData)
-            paragraphs.push(paragraph)
-          }
-        }
-      }
-    }
+    })
     this.paragraphs = paragraphs
     return this
   }
 
-  measure(dom = this.measureDom): MeasureResult {
+  createDOM(): HTMLElement {
+    this.updateParagraphs()
+    return this.measurer.createDOM(this.paragraphs, this.computedStyle)
+  }
+
+  measure(dom = this.measureDOM): MeasureResult {
     const old = {
       paragraphs: this.paragraphs,
       lineBox: this.lineBox,
@@ -247,8 +218,8 @@ export class Text extends EventEmitter<TextEventMap> {
     return this
   }
 
-  update(): this {
-    const result = this.measure()
+  update(dom = this.measureDOM): this {
+    const result = this.measure(dom)
     for (const key in result) {
       (this as any)[key] = (result as any)[key]
     }

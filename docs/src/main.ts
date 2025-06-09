@@ -1,6 +1,8 @@
 import type { TextOptions } from '../../src'
 import { fonts } from 'modern-font'
-import { renderText, Text } from '../../src'
+import { renderText, Text, TextEditor } from '../../src'
+
+TextEditor.define()
 
 const sharedOptions: Partial<TextOptions> = {
   // debug: true,
@@ -22,10 +24,21 @@ window.onload = async () => {
 
     const fixture = await (importJson as () => Promise<any>)().then(rep => rep.default)
 
-    // 1
+    // horizontal
     const view1 = document.createElement('canvas')
     view1.dataset.file = key
-    const text = new Text({ ...sharedOptions, ...fixture })
+    const options = { ...sharedOptions, ...fixture }
+    // editor
+    view1.addEventListener('dblclick', () => {
+      const textEditor = document.querySelector('text-editor') as TextEditor
+      textEditor.left = view1.offsetLeft
+      textEditor.top = view1.offsetTop
+      textEditor.update(options)
+      view1.style.visibility = 'hidden'
+    })
+
+    // text
+    const text = new Text(options)
     text.on('render', (ev) => {
       console.warn(ev)
     })
@@ -36,7 +49,7 @@ window.onload = async () => {
     text.render({ view: view1 })
     document.body.append(view1)
 
-    // 2
+    // vertical
     const view2 = document.createElement('canvas')
     view2.dataset.file = key
     await renderText({

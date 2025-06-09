@@ -19,7 +19,7 @@ export interface TextOptions {
   content?: TextContent
   effects?: Partial<NormalizedStyle>[]
   debug?: boolean
-  measureDom?: HTMLElement
+  measureDOM?: HTMLElement
   fonts?: Fonts
   plugins?: TextPlugin[]
 }

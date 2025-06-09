@@ -33,7 +33,7 @@ export interface MeasuredCharacter {
   textWidth: number
 }
 
-export interface MeasureDomResult {
+export interface measureDOMResult {
   paragraphs: Paragraph[]
   boundingBox: BoundingBox
 }
@@ -66,7 +66,7 @@ export class Measurer {
     'paddingBottom',
   ])
 
-  protected _styleToDomStyle(style: Record<string, any>): Record<string, any> {
+  protected _toDOMStyle(style: Record<string, any>): Record<string, any> {
     const _style: Record<string, any> = {}
     for (const key in style) {
       const value = (style as any)[key]
@@ -93,8 +93,7 @@ export class Measurer {
    *   </ul>
    * </section>
    */
-  createParagraphDom(paragraphs: Paragraph[], rootStyle: NormalizedStyle): { dom: HTMLElement, destory: () => void } {
-    const documentFragment = document.createDocumentFragment()
+  createDOM(paragraphs: Paragraph[], rootStyle: NormalizedStyle): HTMLElement {
     const dom = document.createElement('section')
     const style: NormalizedStyle = { ...rootStyle }
     const isHorizontal = rootStyle.writingMode.includes('horizontal')
@@ -124,7 +123,7 @@ export class Measurer {
     }
     const isFlex = Boolean(style.justifyContent || style.alignItems)
     Object.assign(dom.style, {
-      ...this._styleToDomStyle({
+      ...this._toDOMStyle({
         ...style,
         boxSizing: style.boxSizing ?? 'border-box',
         display: style.display ?? (isFlex ? 'inline-flex' : undefined),
@@ -133,8 +132,6 @@ export class Measurer {
       }),
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-all',
-      position: 'fixed',
-      visibility: 'hidden',
     })
 
     const ul = document.createElement('ul')
@@ -150,13 +147,13 @@ export class Measurer {
       const li = document.createElement('li')
       Object.assign(li.style, {
         verticalAlign: 'inherit',
-        ...this._styleToDomStyle(paragraph.style),
+        ...this._toDOMStyle(paragraph.style),
       })
       paragraph.fragments.forEach((fragment) => {
         const span = document.createElement('span')
         Object.assign(span.style, {
           verticalAlign: 'inherit',
-          ...this._styleToDomStyle(fragment.style),
+          ...this._toDOMStyle(fragment.style),
         })
         span.appendChild(document.createTextNode(fragment.content))
         li.appendChild(span)
@@ -164,15 +161,10 @@ export class Measurer {
       ul.appendChild(li)
     })
     dom.appendChild(ul)
-    documentFragment.appendChild(dom)
-    document.body.appendChild(documentFragment)
-    return {
-      dom,
-      destory: () => dom.parentNode?.removeChild(dom),
-    }
+    return dom
   }
 
-  measureDomText(text: Text): { content: string, top: number, left: number, width: number, height: number }[] {
+  measureDOMText(text: Text): { content: string, top: number, left: number, width: number, height: number }[] {
     const range = document.createRange()
     range.selectNodeContents(text)
     const data = text.data ?? ''
@@ -204,7 +196,7 @@ export class Measurer {
       .filter(Boolean) as any
   }
 
-  measureDom(dom: HTMLElement): { paragraphs: MeasuredParagraph[], fragments: MeasuredFragment[], characters: MeasuredCharacter[] } {
+  measureDOM(dom: HTMLElement): { paragraphs: MeasuredParagraph[], fragments: MeasuredFragment[], characters: MeasuredCharacter[] } {
     const paragraphs: MeasuredParagraph[] = []
     const fragments: MeasuredFragment[] = []
     const characters: MeasuredCharacter[] = []
@@ -229,7 +221,7 @@ export class Measurer {
         })
         let characterIndex = 0
         if (!fDom.children.length && fDom.firstChild instanceof window.Text) {
-          this.measureDomText(fDom.firstChild).forEach((char) => {
+          this.measureDOMText(fDom.firstChild).forEach((char) => {
             characters.push({
               ...char,
               newParagraphIndex: -1,
@@ -244,7 +236,7 @@ export class Measurer {
         else {
           fDom.querySelectorAll(':scope > *').forEach((cDom) => {
             if (cDom.firstChild instanceof window.Text) {
-              this.measureDomText(cDom.firstChild).forEach((char) => {
+              this.measureDOMText(cDom.firstChild).forEach((char) => {
                 characters.push({
                   ...char,
                   newParagraphIndex: -1,
@@ -267,9 +259,9 @@ export class Measurer {
     }
   }
 
-  measureParagraphDom(paragraphs: Paragraph[], dom: HTMLElement): MeasureDomResult {
+  measureParagraphDOM(paragraphs: Paragraph[], dom: HTMLElement): measureDOMResult {
     const rect = dom.getBoundingClientRect()
-    const measured = this.measureDom(dom)
+    const measured = this.measureDOM(dom)
     measured.paragraphs.forEach((p) => {
       const _p = paragraphs[p.paragraphIndex]
       _p.lineBox.left = p.left - rect.left
@@ -324,12 +316,18 @@ export class Measurer {
     }
   }
 
-  measure(paragraphs: Paragraph[], rootStyle: NormalizedStyle, dom?: HTMLElement): MeasureDomResult {
+  measure(paragraphs: Paragraph[], rootStyle: NormalizedStyle, dom?: HTMLElement): measureDOMResult {
     let destory: undefined | (() => void)
     if (!dom) {
-      ({ dom, destory } = this.createParagraphDom(paragraphs, rootStyle))
+      dom = this.createDOM(paragraphs, rootStyle)
+      Object.assign(dom.style, {
+        position: 'fixed',
+        visibility: 'hidden',
+      })
+      document.body.appendChild(dom)
+      destory = () => dom?.parentNode?.removeChild(dom)
     }
-    const result = this.measureParagraphDom(paragraphs, dom)
+    const result = this.measureParagraphDOM(paragraphs, dom)
     destory?.()
     return result
   }
