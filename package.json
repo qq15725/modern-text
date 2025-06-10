@@ -59,7 +59,7 @@
   "dependencies": {
     "diff": "^8.0.2",
     "modern-font": "^0.4.1",
-    "modern-idoc": "^0.6.11",
+    "modern-idoc": "^0.6.13",
     "modern-path2d": "^1.3.3"
   },
   "devDependencies": {

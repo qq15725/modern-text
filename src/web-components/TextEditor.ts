@@ -7,8 +7,8 @@ import { Text } from '../Text'
 
 export interface SelectableCharacter {
   color: string
-  offsetLeft: number
-  offsetTop: number
+  left: number
+  top: number
   width: number
   height: number
   content: string
@@ -114,8 +114,8 @@ export class TextEditor extends HTMLElement {
     const toSelectableCharacter = (c: Character): SelectableCharacter => {
       return {
         color: c.computedStyle.color,
-        offsetLeft: c.inlineBox.left,
-        offsetTop: c.inlineBox.top,
+        left: c.inlineBox.left,
+        top: c.inlineBox.top,
         width: c.inlineBox.width,
         height: c.inlineBox.height,
         content: c.content,
@@ -160,24 +160,24 @@ export class TextEditor extends HTMLElement {
   }
 
   get cursorPosition(): { left: number, top: number, width: number, height: number, color: string } {
-    let offsetLeft = 0
-    let offsetTop = 0
+    let left = 0
+    let top = 0
     const { min } = this.selectionMinMax
     const char = this.selectableCharacters[min]
     if (char?.isLastSelected) {
       if (this.text.isVertical) {
-        offsetTop += char?.height ?? 0
+        top += char?.height ?? 0
       }
       else {
-        offsetLeft += char?.width ?? 0
+        left += char?.width ?? 0
       }
     }
-    offsetLeft += char?.offsetLeft ?? 0
-    offsetTop += char?.offsetTop ?? 0
+    left += char?.left ?? 0
+    top += char?.top ?? 0
     return {
       color: char?.color,
-      left: offsetLeft,
-      top: offsetTop,
+      left,
+      top,
       height: char?.height ?? 0,
       width: char?.width ?? 0,
     }
@@ -421,8 +421,8 @@ export class TextEditor extends HTMLElement {
     const char = this.selectableCharacters.reduce(
       (prev, current, index) => {
         const diff = (
-          Math.abs(current.offsetLeft + current.width / 2 - x) * xWeight
-          + Math.abs(current.offsetTop + current.height / 2 - y) * yWeight
+          Math.abs(current.left + current.width / 2 - x) * xWeight
+          + Math.abs(current.top + current.height / 2 - y) * yWeight
         )
         if (diff < prev.diff) {
           return {
@@ -441,7 +441,7 @@ export class TextEditor extends HTMLElement {
     )
 
     if (char?.value) {
-      const middleX = char.value.offsetLeft + char.value.width / 2
+      const middleX = char.value.left + char.value.width / 2
       if (x > middleX && !char.value.isCrlf && !char.value.isLastSelected) {
         return char.index + 1
       }
@@ -489,19 +489,12 @@ export class TextEditor extends HTMLElement {
   }
 
   onMousedown(e: MouseEvent): void {
-    const box = this.$cursorInput.getBoundingClientRect()
-    const getOffset = (e: MouseEvent): { x: number, y: number } => {
-      return {
-        x: e.offsetX - box.x + this.left,
-        y: e.offsetY - box.y + this.top,
-      }
-    }
-    const index = this.findNearest(getOffset(e))
+    const index = this.findNearest({ x: e.offsetX, y: e.offsetY })
     this.selection = [index, index]
     this.updateDOMSelection()
     this.render()
     const onMousemove = (e: MouseEvent): void => {
-      this.selection[1] = this.findNearest(getOffset(e))
+      this.selection[1] = this.findNearest({ x: e.offsetX, y: e.offsetY })
       this.updateDOMSelection()
       this.render()
     }
@@ -534,16 +527,39 @@ export class TextEditor extends HTMLElement {
     // selection
     const ctx = this.$preview?.getContext('2d')
     if (ctx) {
-      ctx.fillStyle = getComputedStyle(this.$preview).getPropertyValue('--selection-color')
+      const boxesGroups: Record<number, Record<string, any>[]> = {}
       this.selectedCharacters.forEach((char) => {
         if (char.isLastSelected) {
           return
         }
+        const key = isVertical
+          ? char.left
+          : char.top
+        if (!boxesGroups[key]) {
+          boxesGroups[key] = []
+        }
+        boxesGroups[key].push({
+          x: char.left,
+          y: char.top,
+          w: char.width,
+          h: char.height,
+        })
+      })
+      ctx.fillStyle = getComputedStyle(this.$preview).getPropertyValue('--selection-color')
+      Object.values(boxesGroups).forEach((boxes) => {
+        const min = {
+          x: Math.min(...boxes.map(v => v.x)),
+          y: Math.min(...boxes.map(v => v.y)),
+        }
+        const max = {
+          x: Math.max(...boxes.map(v => v.x + v.w)),
+          y: Math.max(...boxes.map(v => v.y + v.h)),
+        }
         ctx.fillRect(
-          char.offsetLeft,
-          char.offsetTop,
-          char.width,
-          char.height,
+          min.x,
+          min.y,
+          max.x - min.x,
+          max.y - min.y,
         )
       })
     }

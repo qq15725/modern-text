@@ -200,8 +200,8 @@ export class Measurer {
     const paragraphs: MeasuredParagraph[] = []
     const fragments: MeasuredFragment[] = []
     const characters: MeasuredCharacter[] = []
-    dom.querySelectorAll('li').forEach((pDom, paragraphIndex) => {
-      const pBox = pDom.getBoundingClientRect()
+    dom.querySelectorAll('li').forEach((pDOM, paragraphIndex) => {
+      const pBox = pDOM.getBoundingClientRect()
       paragraphs.push({
         paragraphIndex,
         left: pBox.left,
@@ -209,8 +209,8 @@ export class Measurer {
         width: pBox.width,
         height: pBox.height,
       })
-      pDom.querySelectorAll(':scope > *').forEach((fDom, fragmentIndex) => {
-        const fBox = fDom.getBoundingClientRect()
+      pDOM.querySelectorAll(':scope > *').forEach((fDOM, fragmentIndex) => {
+        const fBox = fDOM.getBoundingClientRect()
         fragments.push({
           paragraphIndex,
           fragmentIndex,
@@ -220,8 +220,8 @@ export class Measurer {
           height: fBox.height,
         })
         let characterIndex = 0
-        if (!fDom.children.length && fDom.firstChild instanceof window.Text) {
-          this.measureDOMText(fDom.firstChild).forEach((char) => {
+        if (!fDOM.children.length && fDOM.firstChild instanceof window.Text) {
+          this.measureDOMText(fDOM.firstChild).forEach((char) => {
             characters.push({
               ...char,
               newParagraphIndex: -1,
@@ -234,9 +234,9 @@ export class Measurer {
           })
         }
         else {
-          fDom.querySelectorAll(':scope > *').forEach((cDom) => {
-            if (cDom.firstChild instanceof window.Text) {
-              this.measureDOMText(cDom.firstChild).forEach((char) => {
+          fDOM.querySelectorAll(':scope > *').forEach((cDOM) => {
+            if (cDOM.firstChild instanceof window.Text) {
+              this.measureDOMText(cDOM.firstChild).forEach((char) => {
                 characters.push({
                   ...char,
                   newParagraphIndex: -1,
