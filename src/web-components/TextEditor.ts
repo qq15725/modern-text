@@ -75,6 +75,7 @@ export class TextEditor extends HTMLElement {
   width = 0
   height = 0
 
+  pixelRatio = 2
   text = new Text()
   composition = false
   selection = [0, 0]
@@ -105,8 +106,10 @@ export class TextEditor extends HTMLElement {
     this.text?.paragraphs.forEach((p, paragraphIndex) => {
       p.fragments.forEach((f, fragmentIndex) => {
         f.characters.forEach((c) => {
-          paragraphs[paragraphIndex] ??= []
-          paragraphs[paragraphIndex][fragmentIndex] ??= []
+          if (!paragraphs[paragraphIndex])
+            paragraphs[paragraphIndex] = []
+          if (!paragraphs[paragraphIndex][fragmentIndex])
+            paragraphs[paragraphIndex][fragmentIndex] = []
           paragraphs[paragraphIndex][fragmentIndex].push(c)
         })
       })
@@ -114,8 +117,8 @@ export class TextEditor extends HTMLElement {
     const toSelectableCharacter = (c: Character): SelectableCharacter => {
       return {
         color: c.computedStyle.color,
-        left: c.inlineBox.left,
-        top: c.inlineBox.top,
+        left: c.inlineBox.left - this.text.boundingBox.left,
+        top: c.inlineBox.top - this.text.boundingBox.top,
         width: c.inlineBox.width,
         height: c.inlineBox.height,
         content: c.content,
@@ -162,8 +165,7 @@ export class TextEditor extends HTMLElement {
   get cursorPosition(): { left: number, top: number, width: number, height: number, color: string } {
     let left = 0
     let top = 0
-    const { min } = this.selectionMinMax
-    const char = this.selectableCharacters[min]
+    const char = this.selectableCharacters[this.selectionMinMax.min]
     if (char?.isLastSelected) {
       if (this.text.isVertical) {
         top += char?.height ?? 0
@@ -195,8 +197,6 @@ export class TextEditor extends HTMLElement {
     position: absolute;
     width: 0;
     height: 0;
-    outline-width: 2px;
-    outline-style: dashed;
     --color: 0, 0, 0;
   }
 
@@ -226,6 +226,9 @@ export class TextEditor extends HTMLElement {
     position: absolute;
     left: 0;
     top: 0;
+  }
+
+  .cursor.blink {
     animation: cursor-blink 1s steps(2, start) infinite;
   }
 
@@ -250,7 +253,7 @@ export class TextEditor extends HTMLElement {
 
   <textarea class="text-input"></textarea>
 
-  <div class="cursor"></div>
+  <div class="cursor blink"></div>
 
   <div
     class="cursor-input"
@@ -386,6 +389,8 @@ export class TextEditor extends HTMLElement {
     this.render()
   }
 
+  protected _timer?: any
+
   onKeydown(e: KeyboardEvent): void {
     switch (e.key) {
       case 'Escape':
@@ -394,6 +399,10 @@ export class TextEditor extends HTMLElement {
     }
     this.updateSelection()
     this.render()
+    setTimeout(() => {
+      this.updateSelection()
+      this.render()
+    }, 0)
     setTimeout(() => {
       this.updateSelection()
       this.render()
@@ -520,15 +529,18 @@ export class TextEditor extends HTMLElement {
     this.style.height = `${this.height}px`
 
     // preview
+    let ctx: CanvasRenderingContext2D | undefined
     this.text.render({
+      pixelRatio: this.pixelRatio,
       view: this.$preview,
+      onContext: _ctx => ctx = _ctx,
     })
 
     // selection
-    const ctx = this.$preview?.getContext('2d')
+    const selectedCharacters = this.selectedCharacters
     if (ctx) {
       const boxesGroups: Record<number, Record<string, any>[]> = {}
-      this.selectedCharacters.forEach((char) => {
+      selectedCharacters.forEach((char) => {
         if (char.isLastSelected) {
           return
         }
@@ -555,22 +567,33 @@ export class TextEditor extends HTMLElement {
           x: Math.max(...boxes.map(v => v.x + v.w)),
           y: Math.max(...boxes.map(v => v.y + v.h)),
         }
-        ctx.fillRect(
-          min.x,
-          min.y,
+        ctx!.fillRect(
+          min.x + this.text.boundingBox.left,
+          min.y + this.text.boundingBox.top,
           max.x - min.x,
           max.y - min.y,
         )
       })
     }
 
-    // cursor
-    const cursorPosition = this.cursorPosition
-    this.$cursor.style.backgroundColor = cursorPosition.color ?? 'rgba(var(--color)'
-    this.$cursor.style.left = `${cursorPosition.left}px`
-    this.$cursor.style.top = `${cursorPosition.top}px`
-    this.$cursor.style.height = isVertical ? '1px' : `${cursorPosition.height}px`
-    this.$cursor.style.width = isVertical ? `${cursorPosition.width}px` : '1px'
+    if (selectedCharacters.length === 0) {
+      this.$cursor.style.visibility = 'visible'
+      const cursorPosition = this.cursorPosition
+      this.$cursor.style.backgroundColor = cursorPosition.color ?? 'rgba(var(--color)'
+      this.$cursor.style.left = `${cursorPosition.left}px`
+      this.$cursor.style.top = `${cursorPosition.top}px`
+      this.$cursor.style.height = isVertical ? '1px' : `${cursorPosition.height}px`
+      this.$cursor.style.width = isVertical ? `${cursorPosition.width}px` : '1px'
+    }
+    else {
+      this.$cursor.style.visibility = 'hidden'
+    }
+
+    this.$cursor.classList.remove('blink')
+    if (this._timer) {
+      clearTimeout(this._timer)
+    }
+    this._timer = setTimeout(() => this.$cursor.classList.add('blink'), 500)
   }
 
   attributeChangedCallback(name: string, oldValue: any, newValue: any): void {

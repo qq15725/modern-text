@@ -13,6 +13,7 @@ import { background, highlight, listStyle, outline, render, textDecoration } fro
 export interface TextRenderOptions {
   view: HTMLCanvasElement
   pixelRatio?: number
+  onContext?: (context: CanvasRenderingContext2D) => void
 }
 
 export interface MeasureResult {
@@ -262,5 +263,7 @@ export class Text extends EventEmitter<TextEventMap> {
       })
 
     this.emit('render', { text: this, view, pixelRatio })
+
+    options.onContext?.(ctx)
   }
 }
