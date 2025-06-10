@@ -2,7 +2,7 @@ import type { TextOptions } from '../../src'
 import { fonts } from 'modern-font'
 import { renderText, Text, TextEditor } from '../../src'
 
-TextEditor.define()
+TextEditor.register()
 
 const sharedOptions: Partial<TextOptions> = {
   // debug: true,
