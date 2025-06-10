@@ -1,3 +1,19 @@
+## [1.4.3](https://github.com/qq15725/modern-text/compare/v1.4.2...v1.4.3) (2025-06-10)
+
+
+### Bug Fixes
+
+* textEditor render ([b8dd1e9](https://github.com/qq15725/modern-text/commit/b8dd1e9efffd09a2c998e906d90a7b6e0ac1c427))
+
+
+### Features
+
+* TextEditor ([1b92d1b](https://github.com/qq15725/modern-text/commit/1b92d1b96b9dadc44a8f785490c446248d26549b))
+* updep ([9ad71a7](https://github.com/qq15725/modern-text/commit/9ad71a7f73fde8ad0580ab771f1a6f43541208be))
+* updep ([0ddb1ab](https://github.com/qq15725/modern-text/commit/0ddb1abe35ad937add2ce09d3839e02d040290d4))
+
+
+
 ## [1.4.2](https://github.com/qq15725/modern-text/compare/v1.4.1...v1.4.2) (2025-05-23)
 
 
