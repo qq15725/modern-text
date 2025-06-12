@@ -15,10 +15,10 @@ export interface TextPlugin {
 }
 
 export interface TextOptions {
+  debug?: boolean
   style?: Partial<NormalizedStyle>
   content?: TextContent
   effects?: Partial<NormalizedStyle>[]
-  debug?: boolean
   measureDOM?: HTMLElement
   fonts?: Fonts
   plugins?: TextPlugin[]

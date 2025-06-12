@@ -266,4 +266,10 @@ export class Text extends EventEmitter<TextEventMap> {
 
     options.onContext?.(ctx)
   }
+
+  toString(): string {
+    return this.content
+      .flatMap(p => p.fragments.map(f => f.content))
+      .join('')
+  }
 }
