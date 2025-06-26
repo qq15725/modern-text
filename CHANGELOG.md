@@ -1,3 +1,12 @@
+# [1.5.0](https://github.com/qq15725/modern-text/compare/v1.4.4...v1.5.0) (2025-06-26)
+
+
+### Features
+
+* updep ([2ba12ab](https://github.com/qq15725/modern-text/commit/2ba12ab7dadc5616e5d6a354d06b509421246117))
+
+
+
 ## [1.4.4](https://github.com/qq15725/modern-text/compare/v1.4.3...v1.4.4) (2025-06-12)
 
 
