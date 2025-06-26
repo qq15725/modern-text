@@ -1,6 +1,6 @@
 import type { Path2DSet } from 'modern-path2d'
 import type { SVGLoader } from './createSVGLoader'
-import { svgToDOM, svgToPath2DSet } from 'modern-path2d'
+import { svgToDom, svgToPath2DSet } from 'modern-path2d'
 
 export interface SVGParser {
   parsed: Map<string, { dom: SVGElement, pathSet: Path2DSet }>
@@ -13,7 +13,7 @@ export function createSVGParser(loader: SVGLoader): SVGParser {
   function parse(svg: string): { dom: SVGElement, pathSet: Path2DSet } {
     let result = parsed.get(svg)
     if (!result) {
-      const dom = svgToDOM(
+      const dom = svgToDom(
         loader.needsLoad(svg)
           ? loader.loaded.get(svg) ?? svg
           : svg,
