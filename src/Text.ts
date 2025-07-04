@@ -1,12 +1,11 @@
 import type { Fonts } from 'modern-font'
-import type { NormalizedStyle, NormalizedTextContent } from 'modern-idoc'
+import type { NormalizedStyle, NormalizedTextContent, PropertyDeclaration, ReactiveObject } from 'modern-idoc'
 import type { Character } from './content'
 import type { TextOptions, TextPlugin } from './types'
-import { getDefaultStyle, normalizeTextContent } from 'modern-idoc'
+import { EventEmitter, getDefaultStyle, normalizeTextContent, property } from 'modern-idoc'
 import { BoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
-import { EventEmitter } from './EventEmitter'
 import { Measurer } from './Measurer'
 import { background, highlight, listStyle, outline, render, textDecoration } from './plugins'
 
@@ -28,17 +27,25 @@ export interface MeasureResult {
 export const textDefaultStyle: NormalizedStyle = getDefaultStyle()
 
 export interface TextEventMap {
-  update: { text: Text }
-  measure: { text: Text, result: MeasureResult }
-  render: { text: Text, view: HTMLCanvasElement, pixelRatio: number }
+  updateProperty: [
+    key: string,
+    newValue: unknown,
+    oldValue: unknown,
+    declaration: PropertyDeclaration,
+  ]
+  update: [{ text: Text }]
+  measure: [{ text: Text, result: MeasureResult }]
+  render: [{ text: Text, view: HTMLCanvasElement, pixelRatio: number }]
 }
 
-export class Text extends EventEmitter<TextEventMap> {
-  debug!: boolean
-  content!: NormalizedTextContent
-  style!: Partial<NormalizedStyle>
-  effects?: Partial<NormalizedStyle>[]
-  measureDOM?: HTMLElement
+export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
+  @property() declare debug: boolean
+  @property() declare content: NormalizedTextContent
+  @property() declare effects?: Partial<NormalizedStyle>[]
+  @property() declare style: Partial<NormalizedStyle>
+  @property() declare measureDOM?: HTMLElement
+  @property() declare fonts?: Fonts
+
   needsUpdate = true
   computedStyle: NormalizedStyle = { ...textDefaultStyle }
   paragraphs: Paragraph[] = []
@@ -49,7 +56,6 @@ export class Text extends EventEmitter<TextEventMap> {
   boundingBox = new BoundingBox()
   measurer = new Measurer()
   plugins = new Map<string, TextPlugin>()
-  fonts?: Fonts
 
   get fontSize(): number {
     return this.computedStyle.fontSize
@@ -72,9 +78,9 @@ export class Text extends EventEmitter<TextEventMap> {
   set(options: TextOptions = {}): void {
     this.debug = options.debug ?? false
     this.content = normalizeTextContent(options.content ?? '')
+    this.effects = options.effects
     this.style = options.style ?? {}
     this.measureDOM = options.measureDOM
-    this.effects = options.effects
     this.fonts = options.fonts
 
     this
@@ -90,6 +96,10 @@ export class Text extends EventEmitter<TextEventMap> {
     })
 
     this.updateParagraphs()
+  }
+
+  onUpdateProperty(key: string, newValue: unknown, oldValue: unknown, declaration: PropertyDeclaration): void {
+    this.emit('updateProperty', key, newValue, oldValue, declaration)
   }
 
   use(plugin: TextPlugin): this {

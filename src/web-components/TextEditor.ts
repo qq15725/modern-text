@@ -1,8 +1,13 @@
-import type { FragmentObject, NormalizedTextContent, ParagraphObject } from 'modern-idoc'
+import type {
+  FragmentObject,
+  NormalizedTextContent,
+  ParagraphObject,
+  ReactiveObject,
+} from 'modern-idoc'
 import type { Character } from '../content'
 import type { TextOptions } from '../types'
 import { diffChars } from 'diff'
-import { isCRLF, normalizeCRLF, normalizeTextContent, textContentToString } from 'modern-idoc'
+import { isCRLF, normalizeCRLF, normalizeTextContent, property, textContentToString } from 'modern-idoc'
 import { Text } from '../Text'
 
 export interface SelectableCharacter {
@@ -28,13 +33,14 @@ function normalizeStyle(style: Record<string, any>): Record<string, any> {
   return newStyle
 }
 
-function contentsToCharStyles(contents: NormalizedTextContent): Record<string, any>[] {
-  return contents.flatMap((p) => {
-    const res = p.fragments.flatMap((f) => {
-      const { content, ...style } = f
-      return Array.from(normalizeCRLF(content)).map(() => ({ ...style }))
+function textContentToCharStyles(textContent: NormalizedTextContent): Record<string, any>[] {
+  return textContent.flatMap((p) => {
+    const { fragments } = p
+    const res = fragments.flatMap((f) => {
+      const { content, ...fStyle } = f
+      return Array.from(normalizeCRLF(content)).map(() => ({ ...fStyle }))
     })
-    if (isCRLF(normalizeCRLF(p.fragments[p.fragments.length - 1]?.content ?? ''))) {
+    if (isCRLF(normalizeCRLF(fragments[fragments.length - 1]?.content ?? ''))) {
       return res
     }
     return [...res, {}]
@@ -57,26 +63,33 @@ function parseHTML(html: string): HTMLElement {
   return template.content.cloneNode(true) as HTMLElement
 }
 
-export class TextEditor extends HTMLElement {
+export class TextEditor extends HTMLElement implements ReactiveObject {
   static observedAttributes = [
-    'left',
-    'top',
     'width',
     'height',
-    'is-vertical',
   ]
+
+  @property() declare width: number
+  @property() declare height: number
 
   static register(): void {
     customElements.define('text-editor', this)
   }
 
-  left = 0
-  top = 0
-  width = 0
-  height = 0
+  protected _text = new Text()
+  get text(): Text { return this._text }
+  set text(value: Text | TextOptions) {
+    if (value instanceof Text) {
+      this._text = value
+    }
+    else {
+      this._text.set(value)
+    }
+    this.setTextInput(this.getTextValue())
+    this.render()
+  }
 
   pixelRatio = 2
-  text = new Text()
   composition = false
   selection = [0, 0]
   prevSelection = [0, 0]
@@ -85,7 +98,6 @@ export class TextEditor extends HTMLElement {
   $preview: HTMLCanvasElement
   $textInput: HTMLTextAreaElement
   $cursor: HTMLElement
-  $cursorInput: HTMLElement
 
   get selectionMinMax(): { min: number, max: number } {
     return {
@@ -117,10 +129,10 @@ export class TextEditor extends HTMLElement {
     const toSelectableCharacter = (c: Character): SelectableCharacter => {
       return {
         color: c.computedStyle.color,
-        left: c.inlineBox.left - this.text.boundingBox.left,
-        top: c.inlineBox.top - this.text.boundingBox.top,
-        width: c.inlineBox.width,
-        height: c.inlineBox.height,
+        left: c.lineBox.left - this.text.boundingBox.left,
+        top: c.lineBox.top - this.text.boundingBox.top,
+        width: c.lineBox.width,
+        height: c.lineBox.height,
         content: c.content,
       }
     }
@@ -197,21 +209,17 @@ export class TextEditor extends HTMLElement {
     position: absolute;
     width: 0;
     height: 0;
-    --color: 0, 0, 0;
   }
 
   .preview {
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
     --selection-color: rgba(var(--color, 0, 0, 0), 0.4);
   }
 
   .text-input {
     position: absolute;
-    z-index: -9999;
     opacity: 0;
     caret-color: transparent;
     left: 0;
@@ -237,52 +245,26 @@ export class TextEditor extends HTMLElement {
       display: none;
     }
   }
-
-  .cursor-input {
-    position: absolute;
-    cursor: text;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    outline: 0;
-  }
   </style>
 
   <canvas class="preview"></canvas>
 
-  <textarea class="text-input"></textarea>
+  <textarea class="text-input" autofocus></textarea>
 
   <div class="cursor blink"></div>
-
-  <div
-    class="cursor-input"
-    autofocus
-    contenteditable="true"
-  ></div>
 `),
     )
 
     this.$preview = shadowRoot.querySelector('.preview') as HTMLCanvasElement
     this.$textInput = shadowRoot.querySelector('.text-input') as HTMLTextAreaElement
     this.$cursor = shadowRoot.querySelector('.cursor') as HTMLElement
-    this.$cursorInput = shadowRoot.querySelector('.cursor-input') as HTMLElement
 
     this.$textInput.addEventListener('compositionstart', () => this.composition = true)
     this.$textInput.addEventListener('compositionend', () => this.composition = false)
     this.$textInput.addEventListener('keydown', this.onKeydown.bind(this))
     this.$textInput.addEventListener('input', this.onInput.bind(this) as any)
     this.$textInput.addEventListener('blur', this.onBlur.bind(this) as any)
-
-    this.$cursorInput.addEventListener('keydown', e => e.preventDefault())
-    this.$cursorInput.addEventListener('focus', this.onFocus.bind(this))
-    this.$cursorInput.addEventListener('mousedown', this.onMousedown.bind(this))
-  }
-
-  update(options: TextOptions): void {
-    this.text.set(options)
-    this.setTextInput(this.getTextValue())
-    this.render()
+    this.$textInput.addEventListener('mousedown', this.onMousedown.bind(this) as any)
   }
 
   getTextValue(): string {
@@ -308,7 +290,7 @@ export class TextEditor extends HTMLElement {
     })
     oldString = normalizeCRLF(oldString)
     // 2. diff style
-    const oldStyles = contentsToCharStyles(content)
+    const oldStyles = textContentToCharStyles(content)
     const styles: Record<string, any>[] = []
     let styleIndex = 0
     let oldStyleIndex = 0
@@ -336,8 +318,9 @@ export class TextEditor extends HTMLElement {
     // 3. create new content
     let charIndex = 0
     const newContents: NormalizedTextContent = []
-    normalizeTextContent(newString).forEach((p) => {
-      let newParagraph: ParagraphObject = { fragments: [] }
+    normalizeTextContent(newString).forEach((p, pI) => {
+      const { fragments: _, ...pStyle } = content[pI] ?? {}
+      let newParagraph: ParagraphObject = { ...pStyle, fragments: [] }
       let newFragment: FragmentObject | undefined
       p.fragments.forEach((f) => {
         Array.from(f.content).forEach((char) => {
@@ -358,7 +341,7 @@ export class TextEditor extends HTMLElement {
           charIndex++
         })
       })
-      if (!isCRLF(p.fragments[p.fragments.length - 1].content)) {
+      if (!isCRLF(p.fragments[p.fragments.length - 1]?.content ?? '')) {
         charIndex++
       }
       if (newFragment) {
@@ -366,7 +349,7 @@ export class TextEditor extends HTMLElement {
       }
       if (newParagraph.fragments.length) {
         newContents.push(newParagraph)
-        newParagraph = { fragments: [] }
+        newParagraph = { ...pStyle, fragments: [] }
       }
     })
     return newContents
@@ -392,10 +375,10 @@ export class TextEditor extends HTMLElement {
   protected _timer?: any
 
   onKeydown(e: KeyboardEvent): void {
+    e.stopPropagation()
     switch (e.key) {
       case 'Escape':
-        // TODO 保存
-        break
+        return this.$textInput.blur()
     }
     this.updateSelection()
     this.render()
@@ -409,14 +392,8 @@ export class TextEditor extends HTMLElement {
     }, 100)
   }
 
-  onFocus(e: Event): void {
-    e.preventDefault()
-    this.$cursorInput.blur()
-    this.$textInput?.focus()
-  }
-
   onBlur(): void {
-    // this.style.visibility = 'hidden'
+    this.emit('done', this.text)
   }
 
   findNearest(options: {
@@ -498,6 +475,9 @@ export class TextEditor extends HTMLElement {
   }
 
   onMousedown(e: MouseEvent): void {
+    e.preventDefault()
+    e.stopPropagation()
+    this.$textInput.focus()
     const index = this.findNearest({ x: e.offsetX, y: e.offsetY })
     this.selection = [index, index]
     this.updateDOMSelection()
@@ -516,17 +496,19 @@ export class TextEditor extends HTMLElement {
   }
 
   render(): void {
-    this.text.update()
-
-    this.width = this.text.boundingBox.width
-    this.height = this.text.boundingBox.height
-
     const isVertical = this.text.isVertical
 
-    this.style.left = `${this.left}px`
-    this.style.top = `${this.top}px`
-    this.style.width = `${this.width}px`
-    this.style.height = `${this.height}px`
+    // TODO
+    this.text.style = {
+      justifyContent: 'center',
+      alignItems: 'center',
+      textAlign: 'center',
+      color: '#FFFFFFFF',
+      ...this.text.style,
+    }
+    this.text.style.width = this.width
+    this.text.style.height = this.height
+    this.text.requestUpdate()
 
     // preview
     let ctx: CanvasRenderingContext2D | undefined
@@ -594,17 +576,26 @@ export class TextEditor extends HTMLElement {
       clearTimeout(this._timer)
     }
     this._timer = setTimeout(() => this.$cursor.classList.add('blink'), 500)
+
+    this.emit('rendered', this.text)
   }
 
-  attributeChangedCallback(name: string, oldValue: any, newValue: any): void {
-    switch (name) {
-      case 'left':
-      case 'top':
-      case 'width':
-      case 'height':
-        ;(this as any)[name] = newValue
-        this.render()
-        break
-    }
+  requestUpdate(): void {
+    this.render()
+  }
+
+  attributeChangedCallback(name: string, _oldValue: any, newValue: any): void {
+    ;(this as any)[name] = newValue
+  }
+
+  emit(type: string, detail?: any): boolean {
+    return this.dispatchEvent(
+      new CustomEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        detail,
+      }),
+    )
   }
 }
