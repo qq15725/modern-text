@@ -1,3 +1,12 @@
+# [1.6.0](https://github.com/qq15725/modern-text/compare/v1.5.0...v1.6.0) (2025-07-04)
+
+
+### Features
+
+* updateProperty event ([2f976c8](https://github.com/qq15725/modern-text/commit/2f976c8301a750eb5a66f3ff38800d90445978f3))
+
+
+
 # [1.5.0](https://github.com/qq15725/modern-text/compare/v1.4.4...v1.5.0) (2025-06-26)
 
 
