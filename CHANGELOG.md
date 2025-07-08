@@ -1,3 +1,12 @@
+## [1.6.2](https://github.com/qq15725/modern-text/compare/v1.6.1...v1.6.2) (2025-07-08)
+
+
+### Features
+
+* split web-components ([c36c257](https://github.com/qq15725/modern-text/commit/c36c257f0631405c466eb15584093e6b51bd3b32))
+
+
+
 ## [1.6.1](https://github.com/qq15725/modern-text/compare/v1.6.0...v1.6.1) (2025-07-05)
 
 
