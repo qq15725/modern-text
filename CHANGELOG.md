@@ -1,3 +1,12 @@
+## [1.6.3](https://github.com/qq15725/modern-text/compare/v1.6.2...v1.6.3) (2025-07-09)
+
+
+### Features
+
+* add pathSets ([dfdeadf](https://github.com/qq15725/modern-text/commit/dfdeadfece6fa2f20da4b4f65ca494f94735882f))
+
+
+
 ## [1.6.2](https://github.com/qq15725/modern-text/compare/v1.6.1...v1.6.2) (2025-07-08)
 
 
