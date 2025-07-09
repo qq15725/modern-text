@@ -18,8 +18,8 @@ importers:
         specifier: ^0.8.4
         version: 0.8.4
       modern-path2d:
-        specifier: ^1.4.2
-        version: 1.4.2
+        specifier: ^1.4.3
+        version: 1.4.3
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^4.16.2
@@ -1880,8 +1880,8 @@ packages:
   modern-idoc@0.8.4:
     resolution: {integrity: sha512-DhH19hfGxtVGR1swxMRgHyk321luVcxiAa2FJP/kG0s+hWjrVuRnNwUr69nYc69dsmrFG+VggD1xiQJCQ2dLOQ==}
 
-  modern-path2d@1.4.2:
-    resolution: {integrity: sha512-Yc+CmpD6pgnqlSZnXVEfyamF6PnjlhLHDQnKFtF6mtF0OhVID6JUZ41+wSt6kcNIhigMVVZByaf+ShV164ty/A==}
+  modern-path2d@1.4.3:
+    resolution: {integrity: sha512-wwJ5uOMw9101dmQT6c+MxfxKg+Ywjmc/BI251PdhOqlqnGW1q4URXofeyGE1mmvPZpP/Ea/sOtSTDtx2eCJ6lA==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -4685,7 +4685,7 @@ snapshots:
       colord: 2.9.3
       nanoid: 5.1.5
 
-  modern-path2d@1.4.2:
+  modern-path2d@1.4.3:
     dependencies:
       earcut: 3.0.1
 

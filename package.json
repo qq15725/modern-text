@@ -58,7 +58,7 @@
     "diff": "^8.0.2",
     "modern-font": "^0.4.1",
     "modern-idoc": "^0.8.4",
-    "modern-path2d": "^1.4.2"
+    "modern-path2d": "^1.4.3"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.16.2",
