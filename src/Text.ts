@@ -1,5 +1,6 @@
 import type { Fonts } from 'modern-font'
 import type { NormalizedStyle, NormalizedTextContent, PropertyDeclaration, ReactiveObject } from 'modern-idoc'
+import type { Path2DSet } from 'modern-path2d'
 import type { Character } from './content'
 import type { TextOptions, TextPlugin } from './types'
 import { EventEmitter, getDefaultStyle, normalizeTextContent, property } from 'modern-idoc'
@@ -56,6 +57,7 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
   boundingBox = new BoundingBox()
   measurer = new Measurer()
   plugins = new Map<string, TextPlugin>()
+  pathSets: Path2DSet[] = []
 
   get fontSize(): number {
     return this.computedStyle.fontSize
@@ -167,6 +169,13 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
       .sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
       .forEach((plugin) => {
         plugin.update?.(this)
+      })
+    Array.from(this.plugins.values())
+      .sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
+      .forEach((plugin) => {
+        if (plugin.pathSet?.paths.length) {
+          this.pathSets.push(plugin.pathSet)
+        }
       })
     this.glyphBox = this.getGlyphBox()
     this

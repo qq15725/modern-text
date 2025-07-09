@@ -1,6 +1,7 @@
 import type { TextOptions } from '../../src'
 import { fonts } from 'modern-font'
-import { renderText, Text, TextEditor } from '../../src'
+import { renderText, Text } from '../../src'
+import { TextEditor } from '../../src/web-components'
 
 TextEditor.register()
 

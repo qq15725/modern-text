@@ -1,7 +1,7 @@
 import type { NormalizedStyle } from 'modern-idoc'
 import type { Text } from '../Text'
 import type { TextPlugin } from '../types'
-import { BoundingBox, Matrix3, Vector2 } from 'modern-path2d'
+import { BoundingBox, Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
 import { uploadColor } from '../canvas'
 import { definePlugin } from '../definePlugin'
 
@@ -10,8 +10,25 @@ const tempM1 = new Matrix3()
 const tempM2 = new Matrix3()
 
 export function render(): TextPlugin {
+  const pathSet = new Path2DSet()
   return definePlugin({
     name: 'render',
+    pathSet,
+    update: (text) => {
+      pathSet.paths.length = 0
+
+      const { paragraphs } = text
+
+      // TODO effects
+
+      paragraphs.forEach((paragraph) => {
+        paragraph.fragments.forEach((fragment) => {
+          fragment.characters.forEach((character) => {
+            pathSet.paths.push(character.path)
+          })
+        })
+      })
+    },
     getBoundingBox: (text) => {
       const { characters, fontSize, effects } = text
       const boxes: BoundingBox[] = []

@@ -271,6 +271,7 @@ export class Character {
 
     path.style = {
       fill: style.color,
+      fillRule: 'nonzero',
       stroke: style.textStrokeWidth
         ? style.textStrokeColor
         : 'none',
