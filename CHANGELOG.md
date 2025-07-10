@@ -1,3 +1,12 @@
+## [1.7.1](https://github.com/qq15725/modern-text/compare/v1.7.0...v1.7.1) (2025-07-10)
+
+
+### Bug Fixes
+
+* fallbackFont ([901db15](https://github.com/qq15725/modern-text/commit/901db15ecceb94e4b85e658061b9d24b08534d9a))
+
+
+
 # [1.7.0](https://github.com/qq15725/modern-text/compare/v1.6.4...v1.7.0) (2025-07-10)
 
 
