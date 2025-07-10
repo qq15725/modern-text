@@ -129,7 +129,11 @@ export class Character {
     const font = fontFamily
       ? _fonts.get(fontFamily)
       : _fonts.fallbackFont
-    return font?.getSFNT()
+    let sfnt = font?.getSFNT()
+    if (sfnt?.textToGlyphIndexes(this.content).includes(0)) {
+      sfnt = _fonts.fallbackFont?.getSFNT()
+    }
+    return sfnt
   }
 
   updateGlyph(sfnt = this._getFontSFNT()): this {

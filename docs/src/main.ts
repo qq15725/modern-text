@@ -14,6 +14,7 @@ async function loadFallbackFont(): Promise<void> {
   await fonts.loadFallbackFont({ family: 'Fallback', src: '/fallback.woff' })
   await fonts.load({ family: 'AaHouDiHei', src: '/AaHouDiHei.woff' })
   await fonts.load({ family: 'Slidefu', src: '/Slidefu.woff' })
+  await fonts.load({ family: 'Arial', src: '/Arial.woff' })
 }
 
 window.onload = async () => {
