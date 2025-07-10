@@ -1,3 +1,12 @@
+# [1.7.0](https://github.com/qq15725/modern-text/compare/v1.6.4...v1.7.0) (2025-07-10)
+
+
+### Features
+
+* fill outline ([87b668d](https://github.com/qq15725/modern-text/commit/87b668daa869ac564fde0d4724180a424d5d9580))
+
+
+
 ## [1.6.4](https://github.com/qq15725/modern-text/compare/v1.6.3...v1.6.4) (2025-07-09)
 
 
