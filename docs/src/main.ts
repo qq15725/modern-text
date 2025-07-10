@@ -31,10 +31,10 @@ window.onload = async () => {
     const options = { ...sharedOptions, ...fixture }
     // editor
     view1.addEventListener('dblclick', () => {
-      const textEditor = document.querySelector('text-editor') as TextEditor
-      textEditor.left = view1.offsetLeft
-      textEditor.top = view1.offsetTop
-      textEditor.update(options)
+      // const textEditor = document.querySelector('text-editor') as TextEditor
+      // textEditor.left = view1.offsetLeft
+      // textEditor.top = view1.offsetTop
+      // textEditor.update(options)
       view1.style.visibility = 'hidden'
     })
 

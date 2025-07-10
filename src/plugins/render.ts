@@ -9,7 +9,7 @@ const tempV1 = new Vector2()
 const tempM1 = new Matrix3()
 const tempM2 = new Matrix3()
 
-export function render(): TextPlugin {
+export function renderPlugin(): TextPlugin {
   const pathSet = new Path2DSet()
   return definePlugin({
     name: 'render',
@@ -93,7 +93,7 @@ export function render(): TextPlugin {
   })
 }
 
-export function getTransform2D(text: Text, style: Partial<NormalizedStyle>): Matrix3 {
+export function getTransform2D(text: Text, style: NormalizedStyle): Matrix3 {
   const { fontSize, glyphBox } = text
   const translateX = (style.translateX ?? 0) * fontSize
   const translateY = (style.translateY ?? 0) * fontSize

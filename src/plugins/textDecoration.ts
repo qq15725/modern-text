@@ -7,7 +7,7 @@ import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
 import { getTransform2D } from './render'
 
-export function textDecoration(): TextPlugin {
+export function textDecorationPlugin(): TextPlugin {
   const pathSet = new Path2DSet()
   return definePlugin({
     name: 'textDecoration',

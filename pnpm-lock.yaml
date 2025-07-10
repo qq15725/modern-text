@@ -15,11 +15,11 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1
       modern-idoc:
-        specifier: ^0.8.4
-        version: 0.8.4
+        specifier: ^0.8.5
+        version: 0.8.5
       modern-path2d:
-        specifier: ^1.4.3
-        version: 1.4.3
+        specifier: ^1.4.5
+        version: 1.4.5
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^4.16.2
@@ -989,8 +989,8 @@ packages:
     resolution: {integrity: sha512-SetDSntXLk8Jh1NOAl1Gu5uLiCNSYenB5tm0YVeZKePRIgDW9lQImromTwLa3c/Gae298tsgOM+/CYT9XAl0NA==}
     engines: {node: '>=18'}
 
-  conventional-changelog-writer@8.1.0:
-    resolution: {integrity: sha512-dpC440QnORNCO81XYuRRFOLCsjKj4W7tMkUIn3lR6F/FAaJcWLi7iCj6IcEvSQY2zw6VUgwUKd5DEHKEWrpmEQ==}
+  conventional-changelog-writer@8.2.0:
+    resolution: {integrity: sha512-Y2aW4596l9AEvFJRwFGJGiQjt2sBYTjPD18DdvxX9Vpz0Z7HQ+g1Z+6iYDAm1vR3QOJrDBkRHixHK/+FhkR6Pw==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -1126,8 +1126,8 @@ packages:
   earcut@3.0.1:
     resolution: {integrity: sha512-0l1/0gOjESMeQyYaK5IDiPNvFeu93Z/cO0TjZh9eZ1vyCtZnA7KMZ8rQggpsJHIbGSdrqYq9OhuveadOVHCshw==}
 
-  electron-to-chromium@1.5.180:
-    resolution: {integrity: sha512-ED+GEyEh3kYMwt2faNmgMB0b8O5qtATGgR4RmRsIp4T6p7B8vdMbIedYndnvZfsaXvSzegtpfqRMDNCjjiSduA==}
+  electron-to-chromium@1.5.181:
+    resolution: {integrity: sha512-+ISMj8OIQ+0qEeDj14Rt8WwcTOiqHyAB+5bnK1K7xNNLjBJ4hRCQfUkw8RWtcLbfBzDwc15ZnKH0c7SNOfwiyA==}
 
   emoji-regex@10.4.0:
     resolution: {integrity: sha512-EC+0oUMY1Rqm4O6LLrgjtYDvcVYTy7chDnM4Q7030tP4Kwj3u/pR6gP9ygnp2CJMK5Gq+9Q2oqmrFJAz01DXjw==}
@@ -1877,11 +1877,11 @@ packages:
   modern-font@0.4.1:
     resolution: {integrity: sha512-yaq7zIRxNHHJRzEUnrRKFZJGsBSi1dYlXkLZ1n2nk1B/aQKm8JrjMtwGM7aUAicc/CQOmHh890KNqN7FtS7Pog==}
 
-  modern-idoc@0.8.4:
-    resolution: {integrity: sha512-DhH19hfGxtVGR1swxMRgHyk321luVcxiAa2FJP/kG0s+hWjrVuRnNwUr69nYc69dsmrFG+VggD1xiQJCQ2dLOQ==}
+  modern-idoc@0.8.5:
+    resolution: {integrity: sha512-U040kQ+TrPrrUJLJApm97xR3iBh8tNheknrnemar7HBBjdmWtgLM1KC8G2kNmQIYagnKesqsyhSTEwIVfKP4XQ==}
 
-  modern-path2d@1.4.3:
-    resolution: {integrity: sha512-wwJ5uOMw9101dmQT6c+MxfxKg+Ywjmc/BI251PdhOqlqnGW1q4URXofeyGE1mmvPZpP/Ea/sOtSTDtx2eCJ6lA==}
+  modern-path2d@1.4.5:
+    resolution: {integrity: sha512-XRdDizzL8flsGGClBX8+hB07lpBsd9BFaVso1ZDpG7HIsudL2g3TUrF1bcrmw3H+AIMPKukgZkwBjtBTzozwgA==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -3345,7 +3345,7 @@ snapshots:
   browserslist@4.25.1:
     dependencies:
       caniuse-lite: 1.0.30001727
-      electron-to-chromium: 1.5.180
+      electron-to-chromium: 1.5.181
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.25.1)
 
@@ -3495,7 +3495,7 @@ snapshots:
     dependencies:
       '@hutson/parse-repository-url': 5.0.0
       add-stream: 1.0.0
-      conventional-changelog-writer: 8.1.0
+      conventional-changelog-writer: 8.2.0
       conventional-commits-parser: 6.2.0
       git-raw-commits: 5.0.0(conventional-commits-filter@5.0.0)(conventional-commits-parser@6.2.0)
       git-semver-tags: 8.0.0(conventional-commits-filter@5.0.0)(conventional-commits-parser@6.2.0)
@@ -3520,7 +3520,7 @@ snapshots:
 
   conventional-changelog-preset-loader@5.0.0: {}
 
-  conventional-changelog-writer@8.1.0:
+  conventional-changelog-writer@8.2.0:
     dependencies:
       conventional-commits-filter: 5.0.0
       handlebars: 4.7.8
@@ -3685,7 +3685,7 @@ snapshots:
 
   earcut@3.0.1: {}
 
-  electron-to-chromium@1.5.180: {}
+  electron-to-chromium@1.5.181: {}
 
   emoji-regex@10.4.0: {}
 
@@ -4680,12 +4680,12 @@ snapshots:
     dependencies:
       fflate: 0.8.2
 
-  modern-idoc@0.8.4:
+  modern-idoc@0.8.5:
     dependencies:
       colord: 2.9.3
       nanoid: 5.1.5
 
-  modern-path2d@1.4.3:
+  modern-path2d@1.4.5:
     dependencies:
       earcut: 3.0.1
 

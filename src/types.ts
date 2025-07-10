@@ -1,5 +1,5 @@
 import type { Fonts } from 'modern-font'
-import type { NormalizedStyle, TextContent } from 'modern-idoc'
+import type { TextObject as _TextOptions } from 'modern-idoc'
 import type { BoundingBox, Path2DSet } from 'modern-path2d'
 import type { Text } from './Text'
 
@@ -14,11 +14,8 @@ export interface TextPlugin {
   load?: (text: Text) => Promise<void>
 }
 
-export interface TextOptions {
+export interface TextOptions extends _TextOptions {
   debug?: boolean
-  style?: Partial<NormalizedStyle>
-  content?: TextContent
-  effects?: Partial<NormalizedStyle>[]
   measureDOM?: HTMLElement
   fonts?: Fonts
   plugins?: TextPlugin[]

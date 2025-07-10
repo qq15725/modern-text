@@ -1,6 +1,6 @@
 import type { TextPlugin } from '../types'
 
-export function outline(): TextPlugin {
+export function outlinePlugin(): TextPlugin {
   return {
     name: 'outline',
     // TODO

@@ -1,14 +1,14 @@
 import type { Fonts } from 'modern-font'
-import type { NormalizedStyle, NormalizedTextContent, PropertyDeclaration, ReactiveObject } from 'modern-idoc'
+import type { FullStyle, NormalizedText, PropertyDeclaration, ReactiveObject } from 'modern-idoc'
 import type { Path2DSet } from 'modern-path2d'
 import type { Character } from './content'
 import type { TextOptions, TextPlugin } from './types'
-import { EventEmitter, getDefaultStyle, normalizeTextContent, property } from 'modern-idoc'
+import { EventEmitter, getDefaultStyle, normalizeText, property } from 'modern-idoc'
 import { BoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Paragraph } from './content'
 import { Measurer } from './Measurer'
-import { background, highlight, listStyle, outline, render, textDecoration } from './plugins'
+import { backgroundPlugin, highlightPlugin, listStylePlugin, outlinePlugin, renderPlugin, textDecorationPlugin } from './plugins'
 
 export interface TextRenderOptions {
   view: HTMLCanvasElement
@@ -25,7 +25,7 @@ export interface MeasureResult {
   boundingBox: BoundingBox
 }
 
-export const textDefaultStyle: NormalizedStyle = getDefaultStyle()
+export const textDefaultStyle: FullStyle = getDefaultStyle()
 
 export interface TextEventMap {
   updateProperty: [
@@ -41,14 +41,16 @@ export interface TextEventMap {
 
 export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
   @property() declare debug: boolean
-  @property() declare content: NormalizedTextContent
-  @property() declare effects?: Partial<NormalizedStyle>[]
-  @property() declare style: Partial<NormalizedStyle>
-  @property() declare measureDOM?: HTMLElement
+  @property() declare content: NormalizedText['content']
+  @property() declare style?: NormalizedText['style']
+  @property() declare effects?: NormalizedText['effects']
+  @property() declare fill?: NormalizedText['fill']
+  @property() declare outline?: NormalizedText['outline']
+  @property() declare measureDom?: HTMLElement
   @property() declare fonts?: Fonts
 
   needsUpdate = true
-  computedStyle: NormalizedStyle = { ...textDefaultStyle }
+  computedStyle: FullStyle = { ...textDefaultStyle }
   paragraphs: Paragraph[] = []
   lineBox = new BoundingBox()
   rawGlyphBox = new BoundingBox()
@@ -78,20 +80,32 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
   }
 
   set(options: TextOptions = {}): void {
+    const {
+      content,
+      effects,
+      style,
+      measureDom,
+      fonts,
+      fill,
+      outline,
+    } = normalizeText(options)
+
     this.debug = options.debug ?? false
-    this.content = normalizeTextContent(options.content ?? '')
-    this.effects = options.effects
-    this.style = options.style ?? {}
-    this.measureDOM = options.measureDOM
-    this.fonts = options.fonts
+    this.content = content
+    this.effects = effects
+    this.style = style
+    this.measureDom = measureDom
+    this.fonts = fonts
+    this.fill = fill
+    this.outline = outline
 
     this
-      .use(background())
-      .use(outline())
-      .use(listStyle())
-      .use(textDecoration())
-      .use(highlight())
-      .use(render())
+      .use(backgroundPlugin())
+      .use(outlinePlugin())
+      .use(listStylePlugin())
+      .use(textDecorationPlugin())
+      .use(highlightPlugin())
+      .use(renderPlugin())
 
     ;(options.plugins ?? []).forEach((plugin) => {
       this.use(plugin)
@@ -126,15 +140,19 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
 
   updateParagraphs(): this {
     this.computedStyle = { ...textDefaultStyle, ...this.style }
-    const { content, computedStyle: style } = this
+    const { content } = this
     const paragraphs: Paragraph[] = []
     content.forEach((p) => {
-      const { fragments, ...pStyle } = p
-      const paragraph = new Paragraph(pStyle, style)
+      const { fragments, fill: pFill, outline: pOutline, ...pStyle } = p
+      const paragraph = new Paragraph(pStyle, this)
+      paragraph.fill = pFill
+      paragraph.outline = pOutline
       fragments.forEach((f) => {
-        const { content, ...fStyle } = f
+        const { content, fill: fFill, outline: fOutline, ...fStyle } = f
         if (content !== undefined) {
-          paragraph.addFragment(content, fStyle)
+          const fragment = paragraph.addFragment(content, fStyle)
+          fragment.fill = fFill
+          fragment.outline = fOutline
         }
       })
       paragraphs.push(paragraph)
@@ -148,7 +166,7 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
     return this.measurer.createDOM(this.paragraphs, this.computedStyle)
   }
 
-  measure(dom = this.measureDOM): MeasureResult {
+  measure(dom = this.measureDom): MeasureResult {
     const old = {
       paragraphs: this.paragraphs,
       lineBox: this.lineBox,
@@ -238,7 +256,7 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
     return this
   }
 
-  update(dom = this.measureDOM): this {
+  update(dom = this.measureDom): this {
     const result = this.measure(dom)
     for (const key in result) {
       (this as any)[key] = (result as any)[key]

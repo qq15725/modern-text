@@ -34,7 +34,7 @@ export function getHighlightStyle(style: NormalizedStyle): NormalizedHighlight {
   }
 }
 
-export function highlight(): TextPlugin {
+export function highlightPlugin(): TextPlugin {
   const pathSet = new Path2DSet()
   const clipRects: (BoundingBox | undefined)[] = []
   const loader = createSVGLoader()

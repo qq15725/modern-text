@@ -2,7 +2,7 @@ import type { NormalizedStyle } from 'modern-idoc'
 import type { BoundingBox, Path2D, Path2DDrawStyle, Path2DStyle } from 'modern-path2d'
 
 export interface DrawShapePathsOptions extends
-  Partial<NormalizedStyle>,
+  NormalizedStyle,
   Omit<Partial<Path2DDrawStyle>, 'fill' | 'outline'> {
   ctx: CanvasRenderingContext2D
   path: Path2D

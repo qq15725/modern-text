@@ -10,7 +10,7 @@ function genDisc(r: number, color: string): string {
 </svg>`
 }
 
-export function listStyle(): TextPlugin {
+export function listStylePlugin(): TextPlugin {
   const pathSet = new Path2DSet()
   return definePlugin({
     name: 'listStyle',

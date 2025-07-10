@@ -4,7 +4,7 @@ import { Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
 import { drawPath } from '../canvas'
 import { createSVGLoader, createSVGParser, parseColormap } from '../utils'
 
-export function background(): TextPlugin {
+export function backgroundPlugin(): TextPlugin {
   const pathSet = new Path2DSet()
   const loader = createSVGLoader()
   const parser = createSVGParser(loader)
@@ -13,19 +13,19 @@ export function background(): TextPlugin {
     name: 'background',
     pathSet,
     load: async (text) => {
-      const { backgroundImage } = text.style
+      const { backgroundImage } = text.computedStyle
       if (backgroundImage && loader.needsLoad(backgroundImage)) {
         await loader.load(backgroundImage)
       }
     },
     update: (text) => {
       pathSet.paths.length = 0
-      const { style, lineBox, isVertical } = text
+      const { computedStyle, lineBox, isVertical } = text
       const {
         backgroundImage,
         backgroundSize,
         backgroundColormap,
-      } = style
+      } = computedStyle
 
       if (isNone(backgroundImage))
         return

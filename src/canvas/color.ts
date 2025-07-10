@@ -15,7 +15,7 @@ export function parseColor(
   return source
 }
 
-export function uploadColor(style: Partial<NormalizedStyle>, box: BoundingBox, ctx: CanvasRenderingContext2D): void {
+export function uploadColor(style: NormalizedStyle, box: BoundingBox, ctx: CanvasRenderingContext2D): void {
   if (style?.color) {
     style.color = parseColor(ctx, style.color, box) as any // TODO
   }

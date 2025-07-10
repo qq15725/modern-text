@@ -504,7 +504,7 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
       alignItems: 'center',
       textAlign: 'center',
       color: '#FFFFFFFF',
-      ...this.text.style,
+      ...(this.text.style ?? {}),
     }
     this.text.style.width = this.width
     this.text.style.height = this.height

@@ -1,5 +1,5 @@
 import type { Fonts, SFNT } from 'modern-font'
-import type { FontWeight, NormalizedStyle } from 'modern-idoc'
+import type { FontWeight, FullStyle, NormalizedFill, NormalizedOutline, NormalizedStyle } from 'modern-idoc'
 import type { Vector2, VectorLike } from 'modern-path2d'
 import type { Fragment } from './Fragment'
 import { fonts as globalFonts } from 'modern-font'
@@ -91,7 +91,15 @@ export class Character {
     return this.compatibleGlyphBox.center
   }
 
-  get computedStyle(): NormalizedStyle {
+  get computedFill(): NormalizedFill | undefined {
+    return this.parent.computedFill
+  }
+
+  get computedOutline(): NormalizedOutline | undefined {
+    return this.parent.computedOutline
+  }
+
+  get computedStyle(): FullStyle {
     return this.parent.computedStyle
   }
 
@@ -270,11 +278,13 @@ export class Character {
     }
 
     path.style = {
-      fill: style.color,
+      fill: this.computedFill ?? style.color,
       fillRule: 'nonzero',
-      stroke: style.textStrokeWidth
-        ? style.textStrokeColor
-        : 'none',
+      stroke: this.computedOutline ?? (
+        style.textStrokeWidth
+          ? style.textStrokeColor
+          : 'none'
+      ),
       strokeWidth: style.textStrokeWidth
         ? style.textStrokeWidth * style.fontSize * 0.03
         : 0,
@@ -310,7 +320,7 @@ export class Character {
     return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
   }
 
-  drawTo(ctx: CanvasRenderingContext2D, config: Partial<NormalizedStyle> = {}): void {
+  drawTo(ctx: CanvasRenderingContext2D, config: NormalizedStyle = {}): void {
     const style = this.computedStyle
     const options = {
       ctx,
