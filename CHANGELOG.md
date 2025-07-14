@@ -1,3 +1,7 @@
+## [1.7.2](https://github.com/qq15725/modern-text/compare/v1.7.1...v1.7.2) (2025-07-14)
+
+
+
 ## [1.7.1](https://github.com/qq15725/modern-text/compare/v1.7.0...v1.7.1) (2025-07-10)
 
 
