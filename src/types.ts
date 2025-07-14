@@ -16,7 +16,7 @@ export interface TextPlugin {
 
 export interface TextOptions extends _TextOptions {
   debug?: boolean
-  measureDOM?: HTMLElement
+  measureDom?: HTMLElement
   fonts?: Fonts
   plugins?: TextPlugin[]
 }
