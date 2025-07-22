@@ -1,3 +1,12 @@
+## [1.7.3](https://github.com/qq15725/modern-text/compare/v1.7.2...v1.7.3) (2025-07-22)
+
+
+### Bug Fixes
+
+* pathSets ([8da6200](https://github.com/qq15725/modern-text/commit/8da6200bde3a4e4bb0265e7d15b2da9f15f1de2e))
+
+
+
 ## [1.7.2](https://github.com/qq15725/modern-text/compare/v1.7.1...v1.7.2) (2025-07-14)
 
 
