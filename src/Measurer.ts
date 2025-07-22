@@ -66,7 +66,7 @@ export class Measurer {
     'paddingBottom',
   ])
 
-  protected _toDOMStyle(style: Record<string, any>): Record<string, any> {
+  protected _toDomStyle(style: Record<string, any>): Record<string, any> {
     const _style: Record<string, any> = {}
     for (const key in style) {
       const value = (style as any)[key]
@@ -93,7 +93,7 @@ export class Measurer {
    *   </ul>
    * </section>
    */
-  createDOM(paragraphs: Paragraph[], rootStyle: FullStyle): HTMLElement {
+  createDom(paragraphs: Paragraph[], rootStyle: FullStyle): HTMLElement {
     const dom = document.createElement('section')
     const style: FullStyle = { ...rootStyle }
     const isHorizontal = rootStyle.writingMode.includes('horizontal')
@@ -123,7 +123,7 @@ export class Measurer {
     }
     const isFlex = Boolean(style.justifyContent || style.alignItems)
     Object.assign(dom.style, {
-      ...this._toDOMStyle({
+      ...this._toDomStyle({
         ...style,
         boxSizing: style.boxSizing ?? 'border-box',
         display: style.display ?? (isFlex ? 'inline-flex' : undefined),
@@ -147,13 +147,13 @@ export class Measurer {
       const li = document.createElement('li')
       Object.assign(li.style, {
         verticalAlign: 'inherit',
-        ...this._toDOMStyle(paragraph.style),
+        ...this._toDomStyle(paragraph.style),
       })
       paragraph.fragments.forEach((fragment) => {
         const span = document.createElement('span')
         Object.assign(span.style, {
           verticalAlign: 'inherit',
-          ...this._toDOMStyle(fragment.style),
+          ...this._toDomStyle(fragment.style),
         })
         span.appendChild(document.createTextNode(fragment.content))
         li.appendChild(span)
@@ -319,7 +319,7 @@ export class Measurer {
   measure(paragraphs: Paragraph[], rootStyle: FullStyle, dom?: HTMLElement): measureDOMResult {
     let destory: undefined | (() => void)
     if (!dom) {
-      dom = this.createDOM(paragraphs, rootStyle)
+      dom = this.createDom(paragraphs, rootStyle)
       Object.assign(dom.style, {
         position: 'fixed',
         visibility: 'hidden',

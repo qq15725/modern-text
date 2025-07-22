@@ -161,9 +161,9 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
     return this
   }
 
-  createDOM(): HTMLElement {
+  createDom(): HTMLElement {
     this.updateParagraphs()
-    return this.measurer.createDOM(this.paragraphs, this.computedStyle)
+    return this.measurer.createDom(this.paragraphs, this.computedStyle)
   }
 
   measure(dom = this.measureDom): MeasureResult {
@@ -188,6 +188,7 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
       .forEach((plugin) => {
         plugin.update?.(this)
       })
+    this.pathSets.length = 0
     Array.from(this.plugins.values())
       .sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
       .forEach((plugin) => {
