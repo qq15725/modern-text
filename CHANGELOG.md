@@ -1,3 +1,12 @@
+## [1.7.6](https://github.com/qq15725/modern-text/compare/v1.7.5...v1.7.6) (2025-08-25)
+
+
+### Features
+
+* paragraph index ([0b32bd3](https://github.com/qq15725/modern-text/commit/0b32bd3a11eef98181acf8299d5567656ed61a51))
+
+
+
 ## [1.7.5](https://github.com/qq15725/modern-text/compare/v1.7.4...v1.7.5) (2025-08-25)
 
 
