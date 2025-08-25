@@ -142,9 +142,9 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
     this.computedStyle = { ...textDefaultStyle, ...this.style }
     const { content } = this
     const paragraphs: Paragraph[] = []
-    content.forEach((p) => {
+    content.forEach((p, pIndex) => {
       const { fragments, fill: pFill, outline: pOutline, ...pStyle } = p
-      const paragraph = new Paragraph(pStyle, this)
+      const paragraph = new Paragraph(pStyle, pIndex, this)
       paragraph.fill = pFill
       paragraph.outline = pOutline
       fragments.forEach((f, fIndex) => {

@@ -22,6 +22,7 @@ export class Paragraph {
 
   constructor(
     public style: NormalizedStyle,
+    public index: number,
     public parent: Text,
   ) {
     this.updateComputedStyle()
