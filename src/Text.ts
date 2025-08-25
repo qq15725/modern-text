@@ -6,7 +6,7 @@ import type { TextOptions, TextPlugin } from './types'
 import { EventEmitter, getDefaultStyle, normalizeText, property } from 'modern-idoc'
 import { BoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
-import { Paragraph } from './content'
+import { Fragment, Paragraph } from './content'
 import { Measurer } from './Measurer'
 import { backgroundPlugin, highlightPlugin, listStylePlugin, outlinePlugin, renderPlugin, textDecorationPlugin } from './plugins'
 
@@ -147,10 +147,11 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
       const paragraph = new Paragraph(pStyle, this)
       paragraph.fill = pFill
       paragraph.outline = pOutline
-      fragments.forEach((f) => {
+      fragments.forEach((f, fIndex) => {
         const { content, fill: fFill, outline: fOutline, ...fStyle } = f
         if (content !== undefined) {
-          const fragment = paragraph.addFragment(content, fStyle)
+          const fragment = new Fragment(content, fStyle, fIndex, paragraph)
+          paragraph.fragments.push(fragment)
           fragment.fill = fFill
           fragment.outline = fOutline
         }

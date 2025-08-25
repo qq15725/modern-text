@@ -1,16 +1,19 @@
 import type {
-  FragmentObject,
+  NormalizedFragment,
+  NormalizedParagraph,
   NormalizedTextContent,
-  ParagraphObject,
+  PropertyDeclaration,
   ReactiveObject,
 } from 'modern-idoc'
-import type { Character } from '../content'
-import type { TextOptions } from '../types'
+import type { Character } from '../content/Character'
 import { diffChars } from 'diff'
 import { isCRLF, normalizeCRLF, normalizeTextContent, property, textContentToString } from 'modern-idoc'
 import { Text } from '../Text'
 
-export interface SelectableCharacter {
+export interface IndexCharacter {
+  paragraphIndex: number
+  fragmentIndex: number
+  charIndex: number
   color: string
   left: number
   top: number
@@ -63,14 +66,18 @@ function parseHTML(html: string): HTMLElement {
   return template.content.cloneNode(true) as HTMLElement
 }
 
-export class TextEditor extends HTMLElement implements ReactiveObject {
-  static observedAttributes = [
-    'width',
-    'height',
-  ]
+const SUPPORTS_POINTER_EVENTS = 'PointerEvent' in globalThis
 
-  @property() declare width: number
-  @property() declare height: number
+export class TextEditor extends HTMLElement implements ReactiveObject {
+  @property({ fallback: () => [0, 0] }) declare selection: number[]
+  @property({ fallback: () => ({ min: 0, max: 0 }) }) declare selectionMinMax: { min: number, max: number }
+  @property({ fallback: () => ([]) }) declare chars: IndexCharacter[]
+  @property({ fallback: () => ([]) }) declare selectedChars: IndexCharacter[]
+  @property() declare cursorPosition?: { left: number, top: number, width: number, height: number, color: string }
+  @property({ fallback: false }) declare showCursor: boolean
+
+  prevSelection = [0, 0]
+  composition = false
 
   static register(): void {
     customElements.define('text-editor', this)
@@ -78,44 +85,48 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
 
   protected _text = new Text()
   get text(): Text { return this._text }
-  set text(value: Text | TextOptions) {
-    if (value instanceof Text) {
-      this._text = value
-    }
-    else {
-      this._text.set(value)
-    }
-    this.setTextInput(this.getTextValue())
-    this.render()
+  set text(value: Text) {
+    this._text = value
+    this._text.on('update', () => this._update())
+    this.setTextInput(this.getPlaintext())
+    this.text.update()
+    this._update()
   }
 
-  pixelRatio = 2
-  composition = false
-  selection = [0, 0]
-  prevSelection = [0, 0]
   protected _oldText = ''
 
-  $preview: HTMLCanvasElement
-  $textInput: HTMLTextAreaElement
+  $container: HTMLDivElement
+  $selection: HTMLDivElement
+  $textarea: HTMLTextAreaElement
   $cursor: HTMLElement
 
-  get selectionMinMax(): { min: number, max: number } {
-    return {
-      min: Math.min(...this.selection),
-      max: Math.max(...this.selection),
+  onUpdateProperty(key: string, _newValue: unknown, _oldValue: unknown, _declaration: PropertyDeclaration): void {
+    switch (key) {
+      case 'selection':
+        this.selectionMinMax = {
+          min: Math.min(...this.selection),
+          max: Math.max(...this.selection),
+        }
+        break
+      case 'selectionMinMax':
+      case 'chars':
+        this.updateSelectedChars()
+        this.updateCursorPosition()
+        break
+      case 'showCursor':
+      case 'cursorPosition':
+        this.renderCursor()
+        break
+      case 'selectedChars':
+        this.renderCursor()
+        this.renderSelectRange()
+        break
     }
   }
 
-  get selectedCharacters(): SelectableCharacter[] {
-    const { min, max } = this.selectionMinMax
-    return this.selectableCharacters.filter((_char, index) => {
-      return index >= min && index < max
-    })
-  }
-
-  get selectableCharacters(): SelectableCharacter[] {
+  updateChars(): void {
     const paragraphs: Character[][][] = []
-    this.text?.paragraphs.forEach((p, paragraphIndex) => {
+    this.text.paragraphs.forEach((p, paragraphIndex) => {
       p.fragments.forEach((f, fragmentIndex) => {
         f.characters.forEach((c) => {
           if (!paragraphs[paragraphIndex])
@@ -126,8 +137,11 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
         })
       })
     })
-    const toSelectableCharacter = (c: Character): SelectableCharacter => {
+    const toIndexChar = (c: Character): IndexCharacter => {
       return {
+        paragraphIndex: -1,
+        fragmentIndex: -1,
+        charIndex: -1,
         color: c.computedStyle.color,
         left: c.lineBox.left - this.text.boundingBox.left,
         top: c.lineBox.top - this.text.boundingBox.top,
@@ -136,26 +150,36 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
         content: c.content,
       }
     }
-    const map: SelectableCharacter[] = []
+    const chars: IndexCharacter[] = []
     let pos = 0
-    paragraphs.forEach((p) => {
+    paragraphs.forEach((p, paragraphIndex) => {
       if (p.length === 1 && p[0].length === 1 && isCRLF(p[0][0].content)) {
         const c = p[0][0]
-        map[pos] = {
-          ...toSelectableCharacter(c),
+        chars[pos] = {
+          ...toIndexChar(c),
+          paragraphIndex,
+          fragmentIndex: 0,
+          charIndex: 0,
           isCrlf: true,
         }
       }
       else {
-        p.forEach((f) => {
-          f.forEach((c) => {
-            map[pos] = {
-              ...toSelectableCharacter(c),
+        p.forEach((f, fragmentIndex) => {
+          f.forEach((c, charIndex) => {
+            const char = toIndexChar(c)
+            chars[pos] = {
+              ...char,
+              paragraphIndex,
+              fragmentIndex,
+              charIndex,
             }
             pos++
             if (!isCRLF(c.content)) {
-              map[pos] = {
-                ...toSelectableCharacter(c),
+              chars[pos] = {
+                ...char,
+                paragraphIndex,
+                fragmentIndex,
+                charIndex,
                 content: ' ',
                 isLastSelected: true,
               }
@@ -165,19 +189,29 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
       }
       pos++
     })
-    if (map[0]) {
-      map[0].isFirst = true
+    if (chars[0]) {
+      chars[0].isFirst = true
     }
-    if (map[map.length - 1]) {
-      map[map.length - 1].isLast = true
+    if (chars[chars.length - 1]) {
+      chars[chars.length - 1].isLast = true
     }
-    return map
+    this.chars = chars
   }
 
-  get cursorPosition(): { left: number, top: number, width: number, height: number, color: string } {
+  updateSelectedChars(): void {
+    this.selectedChars = this.chars.filter((_char, index) => {
+      return index >= this.selectionMinMax.min && index < this.selectionMinMax.max
+    })
+    this.emit('selected', [
+      this.chars[this.selectionMinMax.min],
+      this.chars[this.selectionMinMax.max],
+    ])
+  }
+
+  updateCursorPosition(): void {
     let left = 0
     let top = 0
-    const char = this.selectableCharacters[this.selectionMinMax.min]
+    const char = this.chars[this.selectionMinMax.min]
     if (char?.isLastSelected) {
       if (this.text.isVertical) {
         top += char?.height ?? 0
@@ -188,7 +222,7 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     }
     left += char?.left ?? 0
     top += char?.top ?? 0
-    return {
+    this.cursorPosition = {
       color: char?.color,
       left,
       top,
@@ -211,14 +245,11 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     height: 0;
   }
 
-  .preview {
+  .container {
     position: absolute;
-    left: 0;
-    top: 0;
-    --selection-color: rgba(var(--color, 0, 0, 0), 0.4);
   }
 
-  .text-input {
+  textarea {
     position: absolute;
     opacity: 0;
     caret-color: transparent;
@@ -228,12 +259,28 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     height: 100%;
     padding: 0;
     border: 0;
+    white-space: pre;
+  }
+
+  .selection {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+  }
+
+  .selection > * {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgba(var(--color, 0, 0, 0), 0.4);
   }
 
   .cursor {
     position: absolute;
     left: 0;
     top: 0;
+    pointer-events: none;
   }
 
   .cursor.blink {
@@ -247,35 +294,30 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
   }
   </style>
 
-  <canvas class="preview"></canvas>
-
-  <textarea class="text-input" autofocus></textarea>
-
-  <div class="cursor blink"></div>
+  <div class="container">
+    <textarea autofocus></textarea>
+    <div class="selection"></div>
+    <div class="cursor blink"></div>
+  </div>
 `),
     )
 
-    this.$preview = shadowRoot.querySelector('.preview') as HTMLCanvasElement
-    this.$textInput = shadowRoot.querySelector('.text-input') as HTMLTextAreaElement
+    this.$container = shadowRoot.querySelector('.container') as HTMLDivElement
+    this.$selection = shadowRoot.querySelector('.selection') as HTMLDivElement
+    this.$textarea = shadowRoot.querySelector('textarea') as HTMLTextAreaElement
     this.$cursor = shadowRoot.querySelector('.cursor') as HTMLElement
-
-    this.$textInput.addEventListener('compositionstart', () => this.composition = true)
-    this.$textInput.addEventListener('compositionend', () => this.composition = false)
-    this.$textInput.addEventListener('keydown', this.onKeydown.bind(this))
-    this.$textInput.addEventListener('input', this.onInput.bind(this) as any)
-    this.$textInput.addEventListener('blur', this.onBlur.bind(this) as any)
-    this.$textInput.addEventListener('mousedown', this.onMousedown.bind(this) as any)
+    this.bindEventListeners()
   }
 
-  getTextValue(): string {
+  getPlaintext(): string {
     return textContentToString(
-      this.getContentValue(
+      this.getNewContent(
         this.text.content,
       ),
     )
   }
 
-  getContentValue(
+  getNewContent(
     content: NormalizedTextContent,
     newString = textContentToString(content),
     oldString = newString,
@@ -320,8 +362,8 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     const newContents: NormalizedTextContent = []
     normalizeTextContent(newString).forEach((p, pI) => {
       const { fragments: _, ...pStyle } = content[pI] ?? {}
-      let newParagraph: ParagraphObject = { ...pStyle, fragments: [] }
-      let newFragment: FragmentObject | undefined
+      let newParagraph: NormalizedParagraph = { ...pStyle, fragments: [] }
+      let newFragment: NormalizedFragment | undefined
       p.fragments.forEach((f) => {
         Array.from(f.content).forEach((char) => {
           const style = styles[charIndex] ?? {}
@@ -356,20 +398,20 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
   }
 
   setTextInput(newText: string): void {
-    this.$textInput.value = newText
+    this.$textarea.value = newText
     this._oldText = newText
   }
 
   onInput(): void {
-    const newText = this.$textInput.value
-    this.text.content = this.getContentValue(
+    const newText = this.$textarea.value
+    this.text.content = this.getNewContent(
       this.text.content,
       newText,
       this._oldText,
     )
     this._oldText = newText
-    this.updateSelection()
-    this.render()
+    this.text.update()
+    this.emit('update')
   }
 
   protected _timer?: any
@@ -378,22 +420,19 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     e.stopPropagation()
     switch (e.key) {
       case 'Escape':
-        return this.$textInput.blur()
+        return this.$textarea.blur()
     }
-    this.updateSelection()
-    this.render()
-    setTimeout(() => {
-      this.updateSelection()
-      this.render()
-    }, 0)
-    setTimeout(() => {
-      this.updateSelection()
-      this.render()
-    }, 100)
+    this.updateSelectionByDom()
+    setTimeout(() => this.updateSelectionByDom(), 0)
+    setTimeout(() => this.updateSelectionByDom(), 100)
+  }
+
+  onFocus(): void {
+    this.showCursor = true
   }
 
   onBlur(): void {
-    this.emit('done', this.text)
+    this.showCursor = false
   }
 
   findNearest(options: {
@@ -404,7 +443,7 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
   }): number {
     const { x, y, xWeight = 1, yWeight = 1 } = options
 
-    const char = this.selectableCharacters.reduce(
+    const char = this.chars.reduce(
       (prev, current, index) => {
         const diff = (
           Math.abs(current.left + current.width / 2 - x) * xWeight
@@ -422,7 +461,7 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
       {
         diff: Number.MAX_SAFE_INTEGER,
         index: -1,
-        value: undefined as SelectableCharacter | undefined,
+        value: undefined as IndexCharacter | undefined,
       },
     )
 
@@ -437,31 +476,32 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     return -1
   }
 
-  updateSelection(): void {
+  updateSelectionByDom(): void {
     if (this.composition) {
       this.selection = this.prevSelection
     }
     else {
       let count = 0
       const _selection: number[] = []
-      this.selectableCharacters.forEach((char, index) => {
-        if (count <= this.$textInput.selectionStart) {
+      this.chars.forEach((char, index) => {
+        if (count <= this.$textarea.selectionStart) {
           _selection[0] = index
         }
-        else if (count <= this.$textInput.selectionEnd) {
+        else if (count <= this.$textarea.selectionEnd) {
           _selection[1] = index
         }
         count += char.content.length
       })
+      const oldSelection = this.selection
       this.selection = _selection
-      this.prevSelection = this.selection
+      this.prevSelection = oldSelection
     }
   }
 
-  updateDOMSelection(): void {
+  updateDomSelection(): void {
     let start = 0
     let end = 0
-    this.selectableCharacters.forEach((char, index) => {
+    this.chars.forEach((char, index) => {
       if (index < this.selectionMinMax.min) {
         start += char.content.length
         end = start
@@ -470,118 +510,101 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
         end += char.content.length
       }
     })
-    this.$textInput.selectionStart = start
-    this.$textInput.selectionEnd = end
+    this.$textarea.selectionStart = start
+    this.$textarea.selectionEnd = end
   }
 
-  onMousedown(e: MouseEvent): void {
-    e.preventDefault()
-    e.stopPropagation()
-    this.$textInput.focus()
-    const index = this.findNearest({ x: e.offsetX, y: e.offsetY })
-    this.selection = [index, index]
-    this.updateDOMSelection()
-    this.render()
-    const onMousemove = (e: MouseEvent): void => {
-      this.selection[1] = this.findNearest({ x: e.offsetX, y: e.offsetY })
-      this.updateDOMSelection()
-      this.render()
-    }
-    const onMouseup = (): void => {
-      document.removeEventListener('mousemove', onMousemove)
-      document.removeEventListener('mouseup', onMouseup)
-    }
-    document.addEventListener('mousemove', onMousemove)
-    document.addEventListener('mouseup', onMouseup)
+  protected _update(): void {
+    this.updateChars()
+    const host = this.shadowRoot!.host as HTMLElement
+    host.style.width = `${this.text.boundingBox.width}px`
+    host.style.height = `${this.text.boundingBox.height}px`
+    this.$container.style.left = `${this.text.glyphBox.left}px`
+    this.$container.style.top = `${this.text.glyphBox.top}px`
+    this.$container.style.width = `${this.text.glyphBox.width}px`
+    this.$container.style.height = `${this.text.glyphBox.height}px`
+    this.$textarea.style.fontSize = `${this.text.computedStyle.fontSize}px`
+    this.$textarea.style.writingMode = this.text.computedStyle.writingMode
+    this.renderSelectRange()
+    this.renderCursor()
   }
 
-  render(): void {
-    const isVertical = this.text.isVertical
-
-    // TODO
-    this.text.style = {
-      justifyContent: 'center',
-      alignItems: 'center',
-      textAlign: 'center',
-      color: '#FFFFFFFF',
-      ...(this.text.style ?? {}),
-    }
-    this.text.style.width = this.width
-    this.text.style.height = this.height
-    this.text.requestUpdate()
-
-    // preview
-    let ctx: CanvasRenderingContext2D | undefined
-    this.text.render({
-      pixelRatio: this.pixelRatio,
-      view: this.$preview,
-      onContext: _ctx => ctx = _ctx,
-    })
-
-    // selection
-    const selectedCharacters = this.selectedCharacters
-    if (ctx) {
-      const boxesGroups: Record<number, Record<string, any>[]> = {}
-      selectedCharacters.forEach((char) => {
-        if (char.isLastSelected) {
-          return
-        }
-        const key = isVertical
-          ? char.left
-          : char.top
-        if (!boxesGroups[key]) {
-          boxesGroups[key] = []
-        }
-        boxesGroups[key].push({
-          x: char.left,
-          y: char.top,
-          w: char.width,
-          h: char.height,
-        })
-      })
-      ctx.fillStyle = getComputedStyle(this.$preview).getPropertyValue('--selection-color')
-      Object.values(boxesGroups).forEach((boxes) => {
-        const min = {
-          x: Math.min(...boxes.map(v => v.x)),
-          y: Math.min(...boxes.map(v => v.y)),
-        }
-        const max = {
-          x: Math.max(...boxes.map(v => v.x + v.w)),
-          y: Math.max(...boxes.map(v => v.y + v.h)),
-        }
-        ctx!.fillRect(
-          min.x + this.text.boundingBox.left,
-          min.y + this.text.boundingBox.top,
-          max.x - min.x,
-          max.y - min.y,
-        )
-      })
-    }
-
-    if (selectedCharacters.length === 0) {
-      this.$cursor.style.visibility = 'visible'
-      const cursorPosition = this.cursorPosition
-      this.$cursor.style.backgroundColor = cursorPosition.color ?? 'rgba(var(--color)'
-      this.$cursor.style.left = `${cursorPosition.left}px`
-      this.$cursor.style.top = `${cursorPosition.top}px`
-      this.$cursor.style.height = isVertical ? '1px' : `${cursorPosition.height}px`
-      this.$cursor.style.width = isVertical ? `${cursorPosition.width}px` : '1px'
+  bindEventListeners(): void {
+    this.$textarea.addEventListener('compositionstart', () => this.composition = true)
+    this.$textarea.addEventListener('compositionend', () => this.composition = false)
+    this.$textarea.addEventListener('keydown', this.onKeydown.bind(this))
+    this.$textarea.addEventListener('input', this.onInput.bind(this) as any)
+    this.$textarea.addEventListener('focus', this.onFocus.bind(this) as any)
+    this.$textarea.addEventListener('blur', this.onBlur.bind(this) as any)
+    if (SUPPORTS_POINTER_EVENTS) {
+      this.$textarea.addEventListener('pointerdown', this.start.bind(this) as any)
     }
     else {
-      this.$cursor.style.visibility = 'hidden'
+      this.$textarea.addEventListener('mousedown', this.start.bind(this) as any)
     }
 
-    this.$cursor.classList.remove('blink')
-    if (this._timer) {
-      clearTimeout(this._timer)
-    }
-    this._timer = setTimeout(() => this.$cursor.classList.add('blink'), 500)
-
-    this.emit('rendered', this.text)
+    ;['keyup', 'mouseup', 'input', 'paste', 'cut'].forEach((key) => {
+      this.$textarea.addEventListener(key, () => {
+        this.updateSelectionByDom()
+      })
+    })
   }
 
-  requestUpdate(): void {
-    this.render()
+  start(e: MouseEvent): boolean {
+    const host = this.shadowRoot!.host as HTMLElement
+    const rect = host.getBoundingClientRect()
+    const originalWidth = host.offsetWidth
+    const originalHeight = host.offsetHeight
+    const scaleX = rect.width / originalWidth
+    const scaleY = rect.height / originalHeight
+    const offsetX = (e.clientX - rect.left) / scaleX
+    const offsetY = (e.clientY - rect.top) / scaleY
+
+    if (
+      !(
+        offsetX > this.text.glyphBox.left
+        && offsetX < this.text.glyphBox.left + this.text.glyphBox.width
+        && offsetY > this.text.glyphBox.top
+        && offsetY < this.text.glyphBox.top + this.text.glyphBox.height
+      )
+    ) {
+      return false
+    }
+
+    e.preventDefault()
+    e.stopPropagation()
+    const index = this.findNearest({ x: offsetX, y: offsetY })
+    this.selection = [index, index]
+    this.updateDomSelection()
+    const onMove = (e: MouseEvent): void => {
+      const offsetX = (e.clientX - rect.left) / scaleX
+      const offsetY = (e.clientY - rect.top) / scaleY
+      this.selection = [
+        this.selection[0],
+        this.findNearest({ x: offsetX, y: offsetY }),
+      ]
+      this.updateDomSelection()
+    }
+    const onUp = (): void => {
+      if (SUPPORTS_POINTER_EVENTS) {
+        document.removeEventListener('pointermove', onMove)
+        document.removeEventListener('pointerup', onUp)
+      }
+      else {
+        document.removeEventListener('mousemove', onMove)
+        document.removeEventListener('mouseup', onUp)
+      }
+    }
+    if (SUPPORTS_POINTER_EVENTS) {
+      document.addEventListener('pointermove', onMove)
+      document.addEventListener('pointerup', onUp)
+    }
+    else {
+      document.addEventListener('mousemove', onMove)
+      document.addEventListener('mouseup', onUp)
+    }
+    this.$textarea.focus()
+    return true
   }
 
   attributeChangedCallback(name: string, _oldValue: any, newValue: any): void {
@@ -597,5 +620,90 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
         detail,
       }),
     )
+  }
+
+  renderSelectRange(): void {
+    if (
+      this.selection[0] !== this.prevSelection[0]
+      || this.selection[1] !== this.prevSelection[1]
+    ) {
+      const isVertical = this.text.isVertical
+      const boxesGroupsMap: Record<number, Record<string, any>[]> = {}
+      this.selectedChars.forEach((char) => {
+        if (char.isLastSelected) {
+          return
+        }
+        const key = isVertical
+          ? char.left
+          : char.top
+        if (!boxesGroupsMap[key]) {
+          boxesGroupsMap[key] = []
+        }
+        boxesGroupsMap[key].push({
+          x: char.left - this.text.glyphBox.left,
+          y: char.top - this.text.glyphBox.top,
+          w: char.width,
+          h: char.height,
+        })
+      })
+      const boxesGroups = Object.values(boxesGroupsMap)
+      const sourceLen = this.$selection.children.length
+      const targetLen = boxesGroups.length
+      const len = Math.max(sourceLen, targetLen)
+
+      for (let i = 0; i < len; i++) {
+        let element = this.$selection.children.item(i) as HTMLElement | undefined
+        const boxes = boxesGroups[i]
+        if (!boxes) {
+          element?.remove()
+          continue
+        }
+        else if (!element) {
+          element = document.createElement('div')
+          this.$selection.append(element)
+        }
+        const min = {
+          x: Math.min(...boxes.map(v => v.x)),
+          y: Math.min(...boxes.map(v => v.y)),
+        }
+        const max = {
+          x: Math.max(...boxes.map(v => v.x + v.w)),
+          y: Math.max(...boxes.map(v => v.y + v.h)),
+        }
+        element.style.width = `${max.x - min.x}px`
+        element.style.height = `${max.y - min.y}px`
+        element.style.transform = `translate(${min.x}px, ${min.y}px)`
+      }
+    }
+  }
+
+  renderCursor(): void {
+    if (
+      this.showCursor
+      && this.cursorPosition
+      && (
+        this.selection[0] !== this.prevSelection[0]
+        || this.selection[1] !== this.prevSelection[1]
+      )
+    ) {
+      if (this.selectedChars.length === 0) {
+        this.$cursor.style.visibility = 'visible'
+        const cursorPosition = this.cursorPosition
+        this.$cursor.style.backgroundColor = cursorPosition.color ?? 'rgba(var(--color)'
+        this.$cursor.style.left = `${cursorPosition.left - this.text.glyphBox.left}px`
+        this.$cursor.style.top = `${cursorPosition.top - this.text.glyphBox.top}px`
+        this.$cursor.style.height = this.text.isVertical ? '1px' : `${cursorPosition.height}px`
+        this.$cursor.style.width = this.text.isVertical ? `${cursorPosition.width}px` : '1px'
+      }
+      else {
+        this.$cursor.style.visibility = 'hidden'
+      }
+
+      this.$cursor.classList.remove('blink')
+      if (this._timer) {
+        clearTimeout(this._timer)
+      }
+      this._timer = setTimeout(() => this.$cursor.classList.add('blink'), 500)
+    }
   }
 }

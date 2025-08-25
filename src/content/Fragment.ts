@@ -31,6 +31,7 @@ export class Fragment {
   constructor(
     public content: string,
     public style: NormalizedStyle = {},
+    public index: number,
     public parent: Paragraph,
   ) {
     this.updateComputedStyle().initCharacters()

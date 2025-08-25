@@ -45,7 +45,7 @@ const fontWeightMap: Record<FontWeight, number> = {
 }
 
 export class Character {
-  path = new Path2D()
+  path = new Path2D<Character>().setMeta(this)
   lineBox = new BoundingBox()
   inlineBox = new BoundingBox()
   glyphBox?: BoundingBox
@@ -202,7 +202,7 @@ export class Character {
     let x = left
     let y = top + baseline
     let glyphIndex: number | undefined
-    const path = new Path2D()
+    const path = new Path2D<Character>().setMeta(this)
 
     if (isVertical) {
       x += (advanceHeight - advanceWidth) / 2
