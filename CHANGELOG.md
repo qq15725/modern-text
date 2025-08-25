@@ -1,3 +1,12 @@
+## [1.7.5](https://github.com/qq15725/modern-text/compare/v1.7.4...v1.7.5) (2025-08-25)
+
+
+### Bug Fixes
+
+* char path2d meta ([86f302f](https://github.com/qq15725/modern-text/commit/86f302f7817db0085dd240e8e2f2558ea390331e))
+
+
+
 ## [1.7.4](https://github.com/qq15725/modern-text/compare/v1.7.3...v1.7.4) (2025-07-23)
 
 
