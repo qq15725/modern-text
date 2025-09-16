@@ -1,3 +1,12 @@
+# [1.8.0](https://github.com/qq15725/modern-text/compare/v1.7.6...v1.8.0) (2025-09-16)
+
+
+### Features
+
+* support setPropertyAccessor ([5a88991](https://github.com/qq15725/modern-text/commit/5a88991862debc588ca080f45afda79b0a0120d1))
+
+
+
 ## [1.7.6](https://github.com/qq15725/modern-text/compare/v1.7.5...v1.7.6) (2025-08-25)
 
 
