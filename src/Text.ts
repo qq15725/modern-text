@@ -1,14 +1,21 @@
 import type { Fonts } from 'modern-font'
-import type { FullStyle, NormalizedText, PropertyDeclaration, ReactiveObject } from 'modern-idoc'
+import type { FullStyle, NormalizedText, ReactivableEvents } from 'modern-idoc'
 import type { Path2DSet } from 'modern-path2d'
 import type { Character } from './content'
 import type { TextOptions, TextPlugin } from './types'
-import { EventEmitter, getDefaultStyle, normalizeText, property } from 'modern-idoc'
+import { getDefaultStyle, normalizeText, property, Reactivable } from 'modern-idoc'
 import { BoundingBox, Vector2 } from 'modern-path2d'
 import { drawPath, setupView, uploadColors } from './canvas'
 import { Fragment, Paragraph } from './content'
 import { Measurer } from './Measurer'
-import { backgroundPlugin, highlightPlugin, listStylePlugin, outlinePlugin, renderPlugin, textDecorationPlugin } from './plugins'
+import {
+  backgroundPlugin,
+  highlightPlugin,
+  listStylePlugin,
+  outlinePlugin,
+  renderPlugin,
+  textDecorationPlugin,
+} from './plugins'
 
 export interface TextRenderOptions {
   view: HTMLCanvasElement
@@ -27,19 +34,22 @@ export interface MeasureResult {
 
 export const textDefaultStyle: FullStyle = getDefaultStyle()
 
-export interface TextEventMap {
-  updateProperty: [
-    key: string,
-    newValue: unknown,
-    oldValue: unknown,
-    declaration: PropertyDeclaration,
-  ]
-  update: [{ text: Text }]
-  measure: [{ text: Text, result: MeasureResult }]
-  render: [{ text: Text, view: HTMLCanvasElement, pixelRatio: number }]
+export interface TextEvents extends ReactivableEvents {
+  update: (ctx: { text: Text }) => void
+  measure: (ctx: { text: Text, result: MeasureResult }) => void
+  render: (ctx: { text: Text, view: HTMLCanvasElement, pixelRatio: number }) => void
 }
 
-export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
+// eslint-disable-next-line ts/no-unsafe-declaration-merging
+export interface Text {
+  on: <K extends keyof TextEvents>(event: K, listener: TextEvents[K]) => this
+  once: <K extends keyof TextEvents>(event: K, listener: TextEvents[K]) => this
+  off: <K extends keyof TextEvents>(event: K, listener?: TextEvents[K]) => this
+  emit: <K extends keyof TextEvents>(event: K, ...args: Parameters<TextEvents[K]>) => this
+}
+
+// eslint-disable-next-line ts/no-unsafe-declaration-merging
+export class Text extends Reactivable {
   @property() declare debug: boolean
   @property() declare content: NormalizedText['content']
   @property() declare style?: NormalizedText['style']
@@ -112,10 +122,6 @@ export class Text extends EventEmitter<TextEventMap> implements ReactiveObject {
     })
 
     this.updateParagraphs()
-  }
-
-  onUpdateProperty(key: string, newValue: unknown, oldValue: unknown, declaration: PropertyDeclaration): void {
-    this.emit('updateProperty', key, newValue, oldValue, declaration)
   }
 
   use(plugin: TextPlugin): this {
