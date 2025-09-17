@@ -42,10 +42,10 @@ export interface TextEvents extends ReactivableEvents {
 
 // eslint-disable-next-line ts/no-unsafe-declaration-merging
 export interface Text {
-  on: <K extends keyof TextEvents>(event: K, listener: TextEvents[K]) => this
-  once: <K extends keyof TextEvents>(event: K, listener: TextEvents[K]) => this
-  off: <K extends keyof TextEvents>(event: K, listener?: TextEvents[K]) => this
-  emit: <K extends keyof TextEvents>(event: K, ...args: Parameters<TextEvents[K]>) => this
+  on: <K extends keyof TextEvents & string>(event: K, listener: TextEvents[K]) => this
+  once: <K extends keyof TextEvents & string>(event: K, listener: TextEvents[K]) => this
+  off: <K extends keyof TextEvents & string>(event: K, listener: TextEvents[K]) => this
+  emit: <K extends keyof TextEvents & string>(event: K, ...args: Parameters<TextEvents[K]>) => this
 }
 
 // eslint-disable-next-line ts/no-unsafe-declaration-merging
