@@ -50,14 +50,14 @@ export interface Text {
 
 // eslint-disable-next-line ts/no-unsafe-declaration-merging
 export class Text extends Reactivable {
-  @property() declare debug: boolean
+  @property({ internal: true }) declare debug: boolean
   @property() declare content: NormalizedText['content']
   @property() declare style?: NormalizedText['style']
   @property() declare effects?: NormalizedText['effects']
   @property() declare fill?: NormalizedText['fill']
   @property() declare outline?: NormalizedText['outline']
-  @property() declare measureDom?: HTMLElement
-  @property() declare fonts?: Fonts
+  @property({ internal: true }) declare measureDom?: HTMLElement
+  @property({ internal: true }) declare fonts?: Fonts
 
   needsUpdate = true
   computedStyle: FullStyle = { ...textDefaultStyle }
