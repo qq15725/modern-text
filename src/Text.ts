@@ -35,17 +35,17 @@ export interface MeasureResult {
 export const textDefaultStyle: FullStyle = getDefaultStyle()
 
 export interface TextEvents extends ReactivableEvents {
-  update: (ctx: { text: Text }) => void
-  measure: (ctx: { text: Text, result: MeasureResult }) => void
-  render: (ctx: { text: Text, view: HTMLCanvasElement, pixelRatio: number }) => void
+  update: [ctx: { text: Text }]
+  measure: [ctx: { text: Text, result: MeasureResult }]
+  render: [ctx: { text: Text, view: HTMLCanvasElement, pixelRatio: number }]
 }
 
 // eslint-disable-next-line ts/no-unsafe-declaration-merging
 export interface Text {
-  on: <K extends keyof TextEvents & string>(event: K, listener: TextEvents[K]) => this
-  once: <K extends keyof TextEvents & string>(event: K, listener: TextEvents[K]) => this
-  off: <K extends keyof TextEvents & string>(event: K, listener: TextEvents[K]) => this
-  emit: <K extends keyof TextEvents & string>(event: K, ...args: Parameters<TextEvents[K]>) => this
+  on: <K extends keyof TextEvents & string>(event: K, listener: (...args: TextEvents[K]) => void) => this
+  once: <K extends keyof TextEvents & string>(event: K, listener: (...args: TextEvents[K]) => void) => this
+  off: <K extends keyof TextEvents & string>(event: K, listener: (...args: TextEvents[K]) => void) => this
+  emit: <K extends keyof TextEvents & string>(event: K, ...args: TextEvents[K]) => this
 }
 
 // eslint-disable-next-line ts/no-unsafe-declaration-merging
