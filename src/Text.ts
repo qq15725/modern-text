@@ -265,12 +265,12 @@ export class Text extends Reactivable {
   }
 
   update(dom = this.measureDom): this {
+    this.needsUpdate = false
     const result = this.measure(dom)
     for (const key in result) {
       (this as any)[key] = (result as any)[key]
     }
     this.emit('update', { text: this })
-    this.needsUpdate = false
     return this
   }
 

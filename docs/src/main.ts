@@ -30,26 +30,26 @@ window.onload = async () => {
     const view1 = document.createElement('canvas')
     view1.dataset.file = key
     const options = { ...sharedOptions, ...fixture }
-    // editor
-    view1.addEventListener('dblclick', () => {
-      // const textEditor = document.querySelector('text-editor') as TextEditor
-      // textEditor.left = view1.offsetLeft
-      // textEditor.top = view1.offsetTop
-      // textEditor.update(options)
-      view1.style.visibility = 'hidden'
-    })
 
     // text
     const text = new Text(options)
-    text.on('render', (ev) => {
-      console.warn(ev)
+    text.on('update', (ev) => {
+      text.render({ view: view1 })
+      // webglRender(text, view1)
     })
-    text.on('measure', (ev) => {
-      console.warn(ev)
-    })
+    text.on('render', ev => console.warn(ev))
+    text.on('measure', ev => console.warn(ev))
     await text.load()
-    text.render({ view: view1 })
+    text.update()
     document.body.append(view1)
+
+    // editor
+    view1.addEventListener('dblclick', () => {
+      const textEditor = document.querySelector('text-editor') as TextEditor
+      textEditor.left = view1.offsetLeft
+      textEditor.top = view1.offsetTop
+      textEditor.set(text)
+    })
 
     // vertical
     const view2 = document.createElement('canvas')

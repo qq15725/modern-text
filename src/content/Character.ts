@@ -73,17 +73,17 @@ export class Character {
     return this.glyphBox ?? (
       this.isVertical
         ? new BoundingBox(
-          this.lineBox.left + this.lineBox.width / 2 - size / 2,
-          this.lineBox.top,
-          size,
-          this.lineBox.height,
-        )
+            this.lineBox.left + this.lineBox.width / 2 - size / 2,
+            this.lineBox.top,
+            size,
+            this.lineBox.height,
+          )
         : new BoundingBox(
-          this.lineBox.left,
-          this.lineBox.top + this.lineBox.height / 2 - size / 2,
-          this.lineBox.width,
-          size,
-        )
+            this.lineBox.left,
+            this.lineBox.top + this.lineBox.height / 2 - size / 2,
+            this.lineBox.width,
+            size,
+          )
     )
   }
 

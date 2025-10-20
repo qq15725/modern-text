@@ -2,10 +2,9 @@ import type {
   NormalizedFragment,
   NormalizedParagraph,
   NormalizedTextContent,
-  PropertyDeclaration,
-  ReactiveObject,
+  PropertyAccessor,
 } from 'modern-idoc'
-import type { Character } from '../content/Character'
+import type { Character } from '../content'
 import { diffChars } from 'diff'
 import { isCRLF, normalizeCRLF, normalizeTextContent, property, textContentToString } from 'modern-idoc'
 import { Text } from '../Text'
@@ -68,63 +67,177 @@ function parseHTML(html: string): HTMLElement {
 
 const SUPPORTS_POINTER_EVENTS = 'PointerEvent' in globalThis
 
-export class TextEditor extends HTMLElement implements ReactiveObject {
+export class TextEditor extends HTMLElement implements PropertyAccessor {
+  @property({ fallback: 0 }) declare left: number
+  @property({ fallback: 0 }) declare top: number
   @property({ fallback: () => [0, 0] }) declare selection: number[]
-  @property({ fallback: () => ({ min: 0, max: 0 }) }) declare selectionMinMax: { min: number, max: number }
-  @property({ fallback: () => ([]) }) declare chars: IndexCharacter[]
-  @property({ fallback: () => ([]) }) declare selectedChars: IndexCharacter[]
-  @property() declare cursorPosition?: { left: number, top: number, width: number, height: number, color: string }
-  @property({ fallback: false }) declare showCursor: boolean
 
-  prevSelection = [0, 0]
-  composition = false
+  @property({ internal: true, fallback: () => ({ min: 0, max: 0 }) })
+  declare protected _selectionMinMax: { min: number, max: number }
 
+  @property({ internal: true, fallback: () => ([] as IndexCharacter[]) })
+  declare protected _chars: IndexCharacter[]
+
+  @property({ internal: true, fallback: () => ([] as IndexCharacter[]) })
+  declare protected _selectedChars: IndexCharacter[]
+
+  @property({ internal: true })
+  declare protected _cursorPosition?: { left: number, top: number, width: number, height: number, color: string }
+
+  @property({ internal: true, fallback: false })
+  declare protected _showCursor: boolean
+
+  protected _prevSelection = [0, 0]
+  protected _composition = false
+
+  get composition(): boolean {
+    return this._composition
+  }
+
+  protected static _defined = false
   static register(): void {
-    customElements.define('text-editor', this)
+    if (!this._defined) {
+      this._defined = true
+      customElements.define('text-editor', this)
+    }
   }
 
   protected _text = new Text()
   get text(): Text { return this._text }
-  set text(value: Text) {
-    this._text = value
-    this._text.on('update', () => this._update())
-    this.setTextInput(this.getPlaintext())
-    this.text.update()
-    this._update()
+  set text(newText: Text) {
+    if (newText) {
+      this._text?.off('update', this._update)
+      newText.on('update', this._update)
+      this._text = newText
+      this._setTextInput(this.getPlaintext())
+      this.text.update()
+      this._update()
+    }
   }
 
   protected _oldText = ''
+  protected _container: HTMLDivElement
+  protected _selection: HTMLDivElement
+  protected _textarea: HTMLTextAreaElement
+  protected _cursor: HTMLElement
 
-  $container: HTMLDivElement
-  $selection: HTMLDivElement
-  $textarea: HTMLTextAreaElement
-  $cursor: HTMLElement
+  constructor() {
+    super()
 
-  onUpdateProperty(key: string, _newValue: unknown, _oldValue: unknown, _declaration: PropertyDeclaration): void {
+    const shadowRoot = this.attachShadow({ mode: 'open' })
+
+    shadowRoot.appendChild(
+      parseHTML(`
+  <style>
+  :host {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  .container {
+    position: absolute;
+  }
+
+  textarea {
+    position: absolute;
+    opacity: 0;
+    caret-color: transparent;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    white-space: pre;
+    resize: none;
+  }
+
+  .selection {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+  }
+
+  .selection > * {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgba(var(--color, 0, 0, 0), 0.4);
+  }
+
+  .cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+  }
+
+  .cursor.blink {
+    animation: cursor-blink 1s steps(2, start) infinite;
+  }
+
+  @keyframes cursor-blink {
+    100% {
+      visibility: hidden;
+    }
+  }
+  </style>
+
+  <div class="container">
+    <textarea></textarea>
+    <div class="selection"></div>
+    <div class="cursor blink"></div>
+  </div>
+`),
+    )
+
+    this._container = shadowRoot.querySelector('.container') as HTMLDivElement
+    this._selection = shadowRoot.querySelector('.selection') as HTMLDivElement
+    this._textarea = shadowRoot.querySelector('textarea') as HTMLTextAreaElement
+    this._cursor = shadowRoot.querySelector('.cursor') as HTMLElement
+    this._bindEventListeners()
+    this._update = this._update.bind(this)
+  }
+
+  connectedCallback(): void {
+    this._emit('init')
+  }
+
+  set(text: Text): void {
+    this.text = text
+  }
+
+  onUpdateProperty(key: string, _newValue: unknown, _oldValue: unknown): void {
     switch (key) {
       case 'selection':
-        this.selectionMinMax = {
+        this._selectionMinMax = {
           min: Math.min(...this.selection),
           max: Math.max(...this.selection),
         }
         break
-      case 'selectionMinMax':
+      case '_selectionMinMax':
       case 'chars':
-        this.updateSelectedChars()
-        this.updateCursorPosition()
+        this._updateSelectedChars()
+        this._updateCursorPosition()
         break
-      case 'showCursor':
-      case 'cursorPosition':
-        this.renderCursor()
+      case '_showCursor':
+      case '_cursorPosition':
+        this._renderCursor()
         break
-      case 'selectedChars':
-        this.renderCursor()
-        this.renderSelectRange()
+      case '_selectedChars':
+        this._renderCursor()
+        this._renderSelectRange()
+        break
+      case 'left':
+      case 'top':
+        this._update()
         break
     }
   }
 
-  updateChars(): void {
+  protected _updateChars(): void {
     const paragraphs: Character[][][] = []
     this.text.paragraphs.forEach((p, paragraphIndex) => {
       p.fragments.forEach((f, fragmentIndex) => {
@@ -195,23 +308,24 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     if (chars[chars.length - 1]) {
       chars[chars.length - 1].isLast = true
     }
-    this.chars = chars
+    this._chars = chars
   }
 
-  updateSelectedChars(): void {
-    this.selectedChars = this.chars.filter((_char, index) => {
-      return index >= this.selectionMinMax.min && index < this.selectionMinMax.max
+  protected _updateSelectedChars(): void {
+    this._selectedChars = this._chars.filter((_char, index) => {
+      return index >= this._selectionMinMax.min
+        && index < this._selectionMinMax.max
     })
-    this.emit('selected', [
-      this.chars[this.selectionMinMax.min],
-      this.chars[this.selectionMinMax.max],
+    this._emit('selected', [
+      this._chars[this._selectionMinMax.min],
+      this._chars[this._selectionMinMax.max],
     ])
   }
 
-  updateCursorPosition(): void {
+  protected _updateCursorPosition(): void {
     let left = 0
     let top = 0
-    const char = this.chars[this.selectionMinMax.min]
+    const char = this._chars[this._selectionMinMax.min]
     if (char?.isLastSelected) {
       if (this.text.isVertical) {
         top += char?.height ?? 0
@@ -222,7 +336,7 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     }
     left += char?.left ?? 0
     top += char?.top ?? 0
-    this.cursorPosition = {
+    this._cursorPosition = {
       color: char?.color,
       left,
       top,
@@ -231,93 +345,15 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     }
   }
 
-  constructor() {
-    super()
-
-    const shadowRoot = this.attachShadow({ mode: 'open' })
-
-    shadowRoot.appendChild(
-      parseHTML(`
-  <style>
-  :host {
-    position: absolute;
-    width: 0;
-    height: 0;
-  }
-
-  .container {
-    position: absolute;
-  }
-
-  textarea {
-    position: absolute;
-    opacity: 0;
-    caret-color: transparent;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    border: 0;
-    white-space: pre;
-  }
-
-  .selection {
-    position: absolute;
-    left: 0;
-    top: 0;
-    pointer-events: none;
-  }
-
-  .selection > * {
-    position: absolute;
-    left: 0;
-    top: 0;
-    background: rgba(var(--color, 0, 0, 0), 0.4);
-  }
-
-  .cursor {
-    position: absolute;
-    left: 0;
-    top: 0;
-    pointer-events: none;
-  }
-
-  .cursor.blink {
-    animation: cursor-blink 1s steps(2, start) infinite;
-  }
-
-  @keyframes cursor-blink {
-    100% {
-      display: none;
-    }
-  }
-  </style>
-
-  <div class="container">
-    <textarea autofocus></textarea>
-    <div class="selection"></div>
-    <div class="cursor blink"></div>
-  </div>
-`),
-    )
-
-    this.$container = shadowRoot.querySelector('.container') as HTMLDivElement
-    this.$selection = shadowRoot.querySelector('.selection') as HTMLDivElement
-    this.$textarea = shadowRoot.querySelector('textarea') as HTMLTextAreaElement
-    this.$cursor = shadowRoot.querySelector('.cursor') as HTMLElement
-    this.bindEventListeners()
-  }
-
   getPlaintext(): string {
     return textContentToString(
-      this.getNewContent(
+      this._getNewContent(
         this.text.content,
       ),
     )
   }
 
-  getNewContent(
+  protected _getNewContent(
     content: NormalizedTextContent,
     newString = textContentToString(content),
     oldString = newString,
@@ -397,45 +433,45 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     return newContents
   }
 
-  setTextInput(newText: string): void {
-    this.$textarea.value = newText
+  protected _setTextInput(newText: string): void {
+    this._textarea.value = newText
     this._oldText = newText
   }
 
-  onInput(): void {
-    const newText = this.$textarea.value
-    this.text.content = this.getNewContent(
+  protected _onInput(): void {
+    const newText = this._textarea.value
+    this.text.content = this._getNewContent(
       this.text.content,
       newText,
       this._oldText,
     )
     this._oldText = newText
     this.text.update()
-    this.emit('update')
+    this._emit('update')
   }
 
   protected _timer?: any
 
-  onKeydown(e: KeyboardEvent): void {
+  protected _onKeydown(e: KeyboardEvent): void {
     e.stopPropagation()
     switch (e.key) {
       case 'Escape':
-        return this.$textarea.blur()
+        return this._textarea.blur()
     }
-    this.updateSelectionByDom()
-    setTimeout(() => this.updateSelectionByDom(), 0)
-    setTimeout(() => this.updateSelectionByDom(), 100)
+    this._updateSelectionByDom()
+    setTimeout(() => this._updateSelectionByDom(), 0)
+    setTimeout(() => this._updateSelectionByDom(), 100)
   }
 
-  onFocus(): void {
-    this.showCursor = true
+  protected _onFocus(): void {
+    this._showCursor = true
   }
 
-  onBlur(): void {
-    this.showCursor = false
+  protected _onBlur(): void {
+    this._showCursor = false
   }
 
-  findNearest(options: {
+  protected _findNearest(options: {
     x: number
     y: number
     xWeight?: number
@@ -443,7 +479,7 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
   }): number {
     const { x, y, xWeight = 1, yWeight = 1 } = options
 
-    const char = this.chars.reduce(
+    const char = this._chars.reduce(
       (prev, current, index) => {
         const diff = (
           Math.abs(current.left + current.width / 2 - x) * xWeight
@@ -476,134 +512,153 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     return -1
   }
 
-  updateSelectionByDom(): void {
-    if (this.composition) {
-      this.selection = this.prevSelection
+  protected _updateSelectionByDom(): void {
+    if (this._composition) {
+      this.selection = this._prevSelection
     }
     else {
       let count = 0
       const _selection: number[] = []
-      this.chars.forEach((char, index) => {
-        if (count <= this.$textarea.selectionStart) {
+      this._chars.forEach((char, index) => {
+        if (count <= this._textarea.selectionStart) {
           _selection[0] = index
         }
-        else if (count <= this.$textarea.selectionEnd) {
+        else if (count <= this._textarea.selectionEnd) {
           _selection[1] = index
         }
         count += char.content.length
       })
       const oldSelection = this.selection
       this.selection = _selection
-      this.prevSelection = oldSelection
+      this._prevSelection = oldSelection
     }
   }
 
-  updateDomSelection(): void {
+  protected _updateDomSelection(): void {
     let start = 0
     let end = 0
-    this.chars.forEach((char, index) => {
-      if (index < this.selectionMinMax.min) {
+    this._chars.forEach((char, index) => {
+      if (index < this._selectionMinMax.min) {
         start += char.content.length
         end = start
       }
-      else if (index < this.selectionMinMax.max) {
+      else if (index < this._selectionMinMax.max) {
         end += char.content.length
       }
     })
-    this.$textarea.selectionStart = start
-    this.$textarea.selectionEnd = end
+    this._textarea.selectionStart = start
+    this._textarea.selectionEnd = end
   }
 
   protected _update(): void {
-    this.updateChars()
+    this._updateChars()
     const host = this.shadowRoot!.host as HTMLElement
+    host.style.left = `${this.left}px`
+    host.style.top = `${this.top}px`
     host.style.width = `${this.text.boundingBox.width}px`
     host.style.height = `${this.text.boundingBox.height}px`
-    this.$container.style.left = `${this.text.glyphBox.left}px`
-    this.$container.style.top = `${this.text.glyphBox.top}px`
-    this.$container.style.width = `${this.text.glyphBox.width}px`
-    this.$container.style.height = `${this.text.glyphBox.height}px`
-    this.$textarea.style.fontSize = `${this.text.computedStyle.fontSize}px`
-    this.$textarea.style.writingMode = this.text.computedStyle.writingMode
-    this.renderSelectRange()
-    this.renderCursor()
+    this._container.style.left = `${this.text.glyphBox.left}px`
+    this._container.style.top = `${this.text.glyphBox.top}px`
+    this._container.style.width = `${this.text.glyphBox.width}px`
+    this._container.style.height = `${this.text.glyphBox.height}px`
+    this._textarea.style.fontSize = `${this.text.computedStyle.fontSize}px`
+    this._textarea.style.writingMode = this.text.computedStyle.writingMode
+    this._renderSelectRange()
+    this._renderCursor()
   }
 
-  bindEventListeners(): void {
-    this.$textarea.addEventListener('compositionstart', () => this.composition = true)
-    this.$textarea.addEventListener('compositionend', () => this.composition = false)
-    this.$textarea.addEventListener('keydown', this.onKeydown.bind(this))
-    this.$textarea.addEventListener('input', this.onInput.bind(this) as any)
-    this.$textarea.addEventListener('focus', this.onFocus.bind(this) as any)
-    this.$textarea.addEventListener('blur', this.onBlur.bind(this) as any)
+  protected _bindEventListeners(): void {
+    this._textarea.addEventListener('compositionstart', () => this._composition = true)
+    this._textarea.addEventListener('compositionend', () => this._composition = false)
+    this._textarea.addEventListener('keydown', this._onKeydown.bind(this))
+    this._textarea.addEventListener('input', this._onInput.bind(this) as any)
+    this._textarea.addEventListener('focus', this._onFocus.bind(this) as any)
+    this._textarea.addEventListener('blur', this._onBlur.bind(this) as any)
     if (SUPPORTS_POINTER_EVENTS) {
-      this.$textarea.addEventListener('pointerdown', this.start.bind(this) as any)
+      this._textarea.addEventListener('pointerdown', this.pointerdown.bind(this) as any)
     }
     else {
-      this.$textarea.addEventListener('mousedown', this.start.bind(this) as any)
+      this._textarea.addEventListener('mousedown', this.pointerdown.bind(this) as any)
     }
 
     ;['keyup', 'mouseup', 'input', 'paste', 'cut'].forEach((key) => {
-      this.$textarea.addEventListener(key, () => {
-        this.updateSelectionByDom()
+      this._textarea.addEventListener(key, () => {
+        this._updateSelectionByDom()
       })
     })
   }
 
-  start(e: MouseEvent): boolean {
+  pointerdown(e?: MouseEvent): boolean {
+    if (e && e.button !== 0) {
+      e.preventDefault()
+      e.stopPropagation()
+      return false
+    }
+
     const host = this.shadowRoot!.host as HTMLElement
     const rect = host.getBoundingClientRect()
     const originalWidth = host.offsetWidth
     const originalHeight = host.offsetHeight
     const scaleX = rect.width / originalWidth
     const scaleY = rect.height / originalHeight
-    const offsetX = (e.clientX - rect.left) / scaleX
-    const offsetY = (e.clientY - rect.top) / scaleY
+    let offsetX = 0
+    let offsetY = 0
 
-    if (
-      !(
-        offsetX > this.text.glyphBox.left
-        && offsetX < this.text.glyphBox.left + this.text.glyphBox.width
-        && offsetY > this.text.glyphBox.top
-        && offsetY < this.text.glyphBox.top + this.text.glyphBox.height
-      )
-    ) {
-      return false
+    if (e) {
+      offsetX = (e.clientX - rect.left) / scaleX
+      offsetY = (e.clientY - rect.top) / scaleY
+
+      if (
+        !(
+          offsetX > this.text.glyphBox.left
+          && offsetX < this.text.glyphBox.left + this.text.glyphBox.width
+          && offsetY > this.text.glyphBox.top
+          && offsetY < this.text.glyphBox.top + this.text.glyphBox.height
+        )
+      ) {
+        return false
+      }
+
+      e.preventDefault()
+      e.stopPropagation()
     }
 
-    e.preventDefault()
-    e.stopPropagation()
-    const index = this.findNearest({ x: offsetX, y: offsetY })
+    const index = this._findNearest({ x: offsetX, y: offsetY })
     this.selection = [index, index]
-    this.updateDomSelection()
-    const onMove = (e: MouseEvent): void => {
-      const offsetX = (e.clientX - rect.left) / scaleX
-      const offsetY = (e.clientY - rect.top) / scaleY
-      this.selection = [
-        this.selection[0],
-        this.findNearest({ x: offsetX, y: offsetY }),
-      ]
-      this.updateDomSelection()
-    }
-    const onUp = (): void => {
+    this._updateDomSelection()
+
+    if (e && !['mouseup', 'pointerup'].includes(e.type)) {
+      const onMove = (e: MouseEvent): void => {
+        const offsetX = (e.clientX - rect.left) / scaleX
+        const offsetY = (e.clientY - rect.top) / scaleY
+        this.selection = [
+          this.selection[0],
+          this._findNearest({ x: offsetX, y: offsetY }),
+        ]
+        this._updateDomSelection()
+      }
+      const onUp = (): void => {
+        if (SUPPORTS_POINTER_EVENTS) {
+          document.removeEventListener('pointermove', onMove)
+          document.removeEventListener('pointerup', onUp)
+        }
+        else {
+          document.removeEventListener('mousemove', onMove)
+          document.removeEventListener('mouseup', onUp)
+        }
+      }
       if (SUPPORTS_POINTER_EVENTS) {
-        document.removeEventListener('pointermove', onMove)
-        document.removeEventListener('pointerup', onUp)
+        document.addEventListener('pointermove', onMove)
+        document.addEventListener('pointerup', onUp)
       }
       else {
-        document.removeEventListener('mousemove', onMove)
-        document.removeEventListener('mouseup', onUp)
+        document.addEventListener('mousemove', onMove)
+        document.addEventListener('mouseup', onUp)
       }
     }
-    if (SUPPORTS_POINTER_EVENTS) {
-      document.addEventListener('pointermove', onMove)
-      document.addEventListener('pointerup', onUp)
-    }
-    else {
-      document.addEventListener('mousemove', onMove)
-      document.addEventListener('mouseup', onUp)
-    }
-    this.$textarea.focus()
+
+    this._textarea.focus()
+
     return true
   }
 
@@ -611,7 +666,7 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     ;(this as any)[name] = newValue
   }
 
-  emit(type: string, detail?: any): boolean {
+  protected _emit(type: string, detail?: any): boolean {
     return this.dispatchEvent(
       new CustomEvent(type, {
         bubbles: true,
@@ -622,14 +677,14 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
     )
   }
 
-  renderSelectRange(): void {
+  protected _renderSelectRange(): void {
     if (
-      this.selection[0] !== this.prevSelection[0]
-      || this.selection[1] !== this.prevSelection[1]
+      this.selection[0] !== this._prevSelection[0]
+      || this.selection[1] !== this._prevSelection[1]
     ) {
       const isVertical = this.text.isVertical
       const boxesGroupsMap: Record<number, Record<string, any>[]> = {}
-      this.selectedChars.forEach((char) => {
+      this._selectedChars.forEach((char) => {
         if (char.isLastSelected) {
           return
         }
@@ -647,20 +702,21 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
         })
       })
       const boxesGroups = Object.values(boxesGroupsMap)
-      const sourceLen = this.$selection.children.length
+      const sourceLen = this._selection.children.length
       const targetLen = boxesGroups.length
       const len = Math.max(sourceLen, targetLen)
 
+      const deleted: (HTMLElement | undefined)[] = []
       for (let i = 0; i < len; i++) {
-        let element = this.$selection.children.item(i) as HTMLElement | undefined
+        let element = this._selection.children.item(i) as HTMLElement | undefined
         const boxes = boxesGroups[i]
         if (!boxes) {
-          element?.remove()
+          deleted.push(element)
           continue
         }
         else if (!element) {
           element = document.createElement('div')
-          this.$selection.append(element)
+          this._selection.append(element)
         }
         const min = {
           x: Math.min(...boxes.map(v => v.x)),
@@ -674,36 +730,32 @@ export class TextEditor extends HTMLElement implements ReactiveObject {
         element.style.height = `${max.y - min.y}px`
         element.style.transform = `translate(${min.x}px, ${min.y}px)`
       }
+
+      deleted.forEach(el => el?.remove())
     }
   }
 
-  renderCursor(): void {
+  protected _renderCursor(): void {
     if (
-      this.showCursor
-      && this.cursorPosition
-      && (
-        this.selection[0] !== this.prevSelection[0]
-        || this.selection[1] !== this.prevSelection[1]
-      )
+      this._showCursor
+      && this._cursorPosition
+      && this._selectedChars.length === 0
     ) {
-      if (this.selectedChars.length === 0) {
-        this.$cursor.style.visibility = 'visible'
-        const cursorPosition = this.cursorPosition
-        this.$cursor.style.backgroundColor = cursorPosition.color ?? 'rgba(var(--color)'
-        this.$cursor.style.left = `${cursorPosition.left - this.text.glyphBox.left}px`
-        this.$cursor.style.top = `${cursorPosition.top - this.text.glyphBox.top}px`
-        this.$cursor.style.height = this.text.isVertical ? '1px' : `${cursorPosition.height}px`
-        this.$cursor.style.width = this.text.isVertical ? `${cursorPosition.width}px` : '1px'
-      }
-      else {
-        this.$cursor.style.visibility = 'hidden'
-      }
-
-      this.$cursor.classList.remove('blink')
-      if (this._timer) {
-        clearTimeout(this._timer)
-      }
-      this._timer = setTimeout(() => this.$cursor.classList.add('blink'), 500)
+      const _cursorPosition = this._cursorPosition
+      this._cursor.style.display = 'block'
+      this._cursor.style.backgroundColor = _cursorPosition.color ?? 'rgba(var(--color))'
+      this._cursor.style.left = `${_cursorPosition.left - this.text.glyphBox.left}px`
+      this._cursor.style.top = `${_cursorPosition.top - this.text.glyphBox.top}px`
+      this._cursor.style.height = this.text.isVertical ? '1px' : `${_cursorPosition.height}px`
+      this._cursor.style.width = this.text.isVertical ? `${_cursorPosition.width}px` : '1px'
     }
+    else {
+      this._cursor.style.display = 'none'
+    }
+    this._cursor.classList.remove('blink')
+    if (this._timer) {
+      clearTimeout(this._timer)
+    }
+    this._timer = setTimeout(() => this._cursor.classList.add('blink'), 500)
   }
 }
