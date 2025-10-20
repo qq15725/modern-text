@@ -1,3 +1,12 @@
+## [1.9.1](https://github.com/qq15725/modern-text/compare/v1.9.0...v1.9.1) (2025-10-20)
+
+
+### Features
+
+* TextEditor ([456c865](https://github.com/qq15725/modern-text/commit/456c8654d292b14835151b2dfa1e3a09b6cd3286))
+
+
+
 # [1.9.0](https://github.com/qq15725/modern-text/compare/v1.8.3...v1.9.0) (2025-10-09)
 
 
