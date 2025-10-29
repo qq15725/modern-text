@@ -1,3 +1,12 @@
+## [1.10.1](https://github.com/qq15725/modern-text/compare/v1.10.0...v1.10.1) (2025-10-29)
+
+
+### Bug Fixes
+
+* LinearGradientHex ([f9da650](https://github.com/qq15725/modern-text/commit/f9da6503ecf3ee662a73439c0fd627a083fb50e8))
+
+
+
 # [1.10.0](https://github.com/qq15725/modern-text/compare/v1.9.2...v1.10.0) (2025-10-29)
 
 
