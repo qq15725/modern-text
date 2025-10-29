@@ -1,11 +1,11 @@
 import type { Fonts } from 'modern-font'
-import type { FullStyle, NormalizedText, ReactivableEvents } from 'modern-idoc'
+import type { FullStyle, NormalizedStyle, NormalizedText, ReactivableEvents } from 'modern-idoc'
 import type { Path2DSet } from 'modern-path2d'
 import type { Character } from './content'
-import type { TextOptions, TextPlugin } from './types'
+import type { Options, Plugin } from './types'
 import { getDefaultStyle, normalizeText, property, Reactivable } from 'modern-idoc'
 import { BoundingBox, Vector2 } from 'modern-path2d'
-import { drawPath, setupView, uploadColors } from './canvas'
+import { Canvas2DRenderer } from './Canvas2DRenderer'
 import { Fragment, Paragraph } from './content'
 import { Measurer } from './Measurer'
 import {
@@ -17,7 +17,7 @@ import {
   textDecorationPlugin,
 } from './plugins'
 
-export interface TextRenderOptions {
+export interface RenderOptions {
   view: HTMLCanvasElement
   pixelRatio?: number
   onContext?: (context: CanvasRenderingContext2D) => void
@@ -61,6 +61,7 @@ export class Text extends Reactivable {
 
   needsUpdate = true
   computedStyle: FullStyle = { ...textDefaultStyle }
+  computedEffects: NormalizedStyle[] = []
   paragraphs: Paragraph[] = []
   lineBox = new BoundingBox()
   rawGlyphBox = new BoundingBox()
@@ -68,7 +69,7 @@ export class Text extends Reactivable {
   pathBox = new BoundingBox()
   boundingBox = new BoundingBox()
   measurer = new Measurer()
-  plugins = new Map<string, TextPlugin>()
+  plugins = new Map<string, Plugin>()
   pathSets: Path2DSet[] = []
 
   get fontSize(): number {
@@ -83,13 +84,13 @@ export class Text extends Reactivable {
     return this.paragraphs.flatMap(p => p.fragments.flatMap(f => f.characters))
   }
 
-  constructor(options: TextOptions = {}) {
+  constructor(options: Options = {}) {
     super()
 
     this.set(options)
   }
 
-  set(options: TextOptions = {}): void {
+  set(options: Options = {}): void {
     const {
       content,
       effects,
@@ -121,10 +122,10 @@ export class Text extends Reactivable {
       this.use(plugin)
     })
 
-    this.updateParagraphs()
+    this._update()
   }
 
-  use(plugin: TextPlugin): this {
+  use(plugin: Plugin): this {
     this.plugins.set(plugin.name, plugin)
     return this
   }
@@ -144,8 +145,9 @@ export class Text extends Reactivable {
     await Promise.all(Array.from(this.plugins.values()).map(p => p.load?.(this)))
   }
 
-  updateParagraphs(): this {
+  protected _update(): this {
     this.computedStyle = { ...textDefaultStyle, ...this.style }
+    this.computedEffects = this.effects?.map(v => ({ ...v })) ?? []
     const { content } = this
     const paragraphs: Paragraph[] = []
     content.forEach((p, pIndex) => {
@@ -169,7 +171,7 @@ export class Text extends Reactivable {
   }
 
   createDom(): HTMLElement {
-    this.updateParagraphs()
+    this._update()
     return this.measurer.createDom(this.paragraphs, this.computedStyle)
   }
 
@@ -182,7 +184,7 @@ export class Text extends Reactivable {
       pathBox: this.pathBox,
       boundingBox: this.boundingBox,
     }
-    this.updateParagraphs()
+    this._update()
     const result = this.measurer.measure(this.paragraphs, this.computedStyle, dom) as MeasureResult
     this.paragraphs = result.paragraphs
     this.lineBox = result.boundingBox
@@ -274,7 +276,7 @@ export class Text extends Reactivable {
     return this
   }
 
-  render(options: TextRenderOptions): void {
+  render(options: RenderOptions): void {
     const { view, pixelRatio = 2 } = options
 
     const ctx = view.getContext('2d')
@@ -286,23 +288,19 @@ export class Text extends Reactivable {
       this.update()
     }
 
-    setupView(ctx, pixelRatio, this.boundingBox)
-    uploadColors(ctx, this)
+    const renderer = new Canvas2DRenderer(this, ctx)
+    renderer.pixelRatio = pixelRatio
+    renderer.setup()
 
     Array.from(this.plugins.values())
       .sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
       .forEach((plugin) => {
         if (plugin.render) {
-          plugin.render?.(ctx, this)
+          plugin.render?.(renderer)
         }
         else if (plugin.pathSet) {
-          const style = this.computedStyle
           plugin.pathSet.paths.forEach((path) => {
-            drawPath({
-              ctx,
-              path,
-              fontSize: style.fontSize,
-            })
+            renderer.drawPath(path)
           })
         }
       })

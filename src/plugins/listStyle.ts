@@ -1,4 +1,4 @@
-import type { TextPlugin } from '../types'
+import type { Plugin } from '../types'
 import { isNone } from 'modern-idoc'
 import { Matrix3, Path2DSet, svgToPath2DSet } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
@@ -10,7 +10,7 @@ function genDisc(r: number, color: string): string {
 </svg>`
 }
 
-export function listStylePlugin(): TextPlugin {
+export function listStylePlugin(): Plugin {
   const pathSet = new Path2DSet()
   return definePlugin({
     name: 'listStyle',

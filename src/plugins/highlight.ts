@@ -1,13 +1,12 @@
 import type { HighlightLine, NormalizedHighlight, NormalizedStyle } from 'modern-idoc'
 import type { Character } from '../content'
-import type { TextPlugin } from '../types'
+import type { Plugin } from '../types'
 import { isNone } from 'modern-idoc'
 import { BoundingBox, Matrix3, Path2DSet } from 'modern-path2d'
-import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
 import {
-  createSVGLoader,
-  createSVGParser,
+  createSvgLoader,
+  createSvgParser,
   isEqualValue,
   parseColormap,
   parseValueNumber,
@@ -34,11 +33,11 @@ export function getHighlightStyle(style: NormalizedStyle): NormalizedHighlight {
   }
 }
 
-export function highlightPlugin(): TextPlugin {
+export function highlightPlugin(): Plugin {
   const pathSet = new Path2DSet()
   const clipRects: (BoundingBox | undefined)[] = []
-  const loader = createSVGLoader()
-  const parser = createSVGParser(loader)
+  const loader = createSvgLoader()
+  const parser = createSvgParser(loader)
 
   return definePlugin({
     name: 'highlight',
@@ -329,19 +328,16 @@ export function highlightPlugin(): TextPlugin {
       })
       return BoundingBox.from(...boundingBoxs)
     },
-    render: (ctx, text) => {
+    render: (renderer) => {
+      const { text, context } = renderer
+
       pathSet.paths.forEach((path, index) => {
-        drawPath({
-          ctx,
-          path,
-          fontSize: text.computedStyle.fontSize,
-          clipRect: clipRects[index],
-        })
+        renderer.drawPath(path, { clipRect: clipRects[index] })
 
         if (text.debug) {
           const box = new Path2DSet([path]).getBoundingBox()
           if (box) {
-            ctx.strokeRect(box.x, box.y, box.width, box.height)
+            context.strokeRect(box.x, box.y, box.width, box.height)
           }
         }
       })

@@ -1,15 +1,14 @@
 import type { NormalizedStyle } from 'modern-idoc'
 import type { Text } from '../Text'
-import type { TextPlugin } from '../types'
+import type { Plugin } from '../types'
 import { BoundingBox, Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
-import { uploadColor } from '../canvas'
 import { definePlugin } from '../definePlugin'
 
 const tempV1 = new Vector2()
 const tempM1 = new Matrix3()
 const tempM2 = new Matrix3()
 
-export function renderPlugin(): TextPlugin {
+export function renderPlugin(): Plugin {
   const pathSet = new Path2DSet()
   return definePlugin({
     name: 'render',
@@ -30,10 +29,10 @@ export function renderPlugin(): TextPlugin {
       })
     },
     getBoundingBox: (text) => {
-      const { characters, fontSize, effects } = text
+      const { characters, fontSize, computedEffects } = text
       const boxes: BoundingBox[] = []
       characters.forEach((character) => {
-        effects?.forEach((style) => {
+        computedEffects.forEach((style) => {
           if (!character.glyphBox) {
             return
           }
@@ -59,26 +58,27 @@ export function renderPlugin(): TextPlugin {
       })
       return boxes.length ? BoundingBox.from(...boxes) : undefined
     },
-    render: (ctx, text) => {
-      const { paragraphs, glyphBox, effects } = text
+    render: (renderer) => {
+      const { text, context } = renderer
+      const { paragraphs, glyphBox, computedEffects } = text
 
-      if (effects) {
-        effects.forEach((style) => {
-          uploadColor(style, glyphBox, ctx)
-          ctx.save()
+      if (computedEffects.length) {
+        computedEffects.forEach((style) => {
+          renderer.uploadColor(style, glyphBox)
+          context.save()
           const [a, c, e, b, d, f] = getTransform2D(text, style).transpose().elements
-          ctx.transform(a, b, c, d, e, f)
+          context.transform(a, b, c, d, e, f)
           text.forEachCharacter((character) => {
-            character.drawTo(ctx, style)
+            renderer.drawCharacter(character, style)
           })
-          ctx.restore()
+          context.restore()
         })
       }
       else {
         paragraphs.forEach((paragraph) => {
           paragraph.fragments.forEach((fragment) => {
             fragment.characters.forEach((character) => {
-              character.drawTo(ctx)
+              renderer.drawCharacter(character)
             })
           })
         })
@@ -86,7 +86,12 @@ export function renderPlugin(): TextPlugin {
 
       if (text.debug) {
         paragraphs.forEach((paragraph) => {
-          ctx.strokeRect(paragraph.lineBox.x, paragraph.lineBox.y, paragraph.lineBox.width, paragraph.lineBox.height)
+          context.strokeRect(
+            paragraph.lineBox.x,
+            paragraph.lineBox.y,
+            paragraph.lineBox.width,
+            paragraph.lineBox.height,
+          )
         })
       }
     },

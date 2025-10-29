@@ -1,13 +1,12 @@
-import type { TextPlugin } from '../types'
+import type { Plugin } from '../types'
 import { isNone } from 'modern-idoc'
 import { Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
-import { drawPath } from '../canvas'
-import { createSVGLoader, createSVGParser, parseColormap } from '../utils'
+import { createSvgLoader, createSvgParser, parseColormap } from '../utils'
 
-export function backgroundPlugin(): TextPlugin {
+export function backgroundPlugin(): Plugin {
   const pathSet = new Path2DSet()
-  const loader = createSVGLoader()
-  const parser = createSVGParser(loader)
+  const loader = createSvgLoader()
+  const parser = createSvgParser(loader)
 
   return {
     name: 'background',
@@ -98,32 +97,34 @@ export function backgroundPlugin(): TextPlugin {
       pathSet.paths.push(...paths)
     },
     renderOrder: -2,
-    render: (ctx, text) => {
+    render: (renderer) => {
+      const { text, context } = renderer
       const { boundingBox, computedStyle: style } = text
+
       if (!isNone(style.backgroundColor)) {
-        ctx.fillStyle = style.backgroundColor!
-        ctx.fillRect(...boundingBox.array)
+        context.fillStyle = style.backgroundColor!
+        context.fillRect(...boundingBox.array)
       }
       pathSet.paths.forEach((path) => {
-        drawPath({ ctx, path, fontSize: style.fontSize })
+        renderer.drawPath(path)
         if (text.debug) {
           const box = new Path2DSet([path]).getBoundingBox()
           if (box) {
-            ctx.strokeRect(box.x, box.y, box.width, box.height)
+            context.strokeRect(box.x, box.y, box.width, box.height)
           }
         }
       })
       text.paragraphs.forEach((p) => {
         const { lineBox, style } = p
         if (!isNone(style.backgroundColor)) {
-          ctx.fillStyle = style.backgroundColor!
-          ctx.fillRect(...lineBox.array)
+          context.fillStyle = style.backgroundColor!
+          context.fillRect(...lineBox.array)
         }
         p.fragments.forEach((f) => {
           const { inlineBox, style } = f
           if (!isNone(style.backgroundColor)) {
-            ctx.fillStyle = style.backgroundColor!
-            ctx.fillRect(...inlineBox.array)
+            context.fillStyle = style.backgroundColor!
+            context.fillRect(...inlineBox.array)
           }
         })
       })

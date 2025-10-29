@@ -1,10 +1,9 @@
 import type { Fonts, SFNT } from 'modern-font'
-import type { FontWeight, FullStyle, NormalizedFill, NormalizedOutline, NormalizedStyle } from 'modern-idoc'
+import type { FontWeight, FullStyle, NormalizedFill, NormalizedOutline } from 'modern-idoc'
 import type { Vector2, VectorLike } from 'modern-path2d'
 import type { Fragment } from './Fragment'
 import { fonts as globalFonts } from 'modern-font'
-import { BoundingBox, Path2D, setCanvasContext } from 'modern-path2d'
-import { drawPath } from '../canvas'
+import { BoundingBox, Path2D } from 'modern-path2d'
 
 const set1 = new Set(['\xA9', '\xAE', '\xF7'])
 const set2 = new Set([
@@ -322,47 +321,5 @@ export class Character {
     }
     const { min, max } = minMax
     return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
-  }
-
-  drawTo(ctx: CanvasRenderingContext2D, config: NormalizedStyle = {}): void {
-    const style = this.computedStyle
-    const options = {
-      ctx,
-      path: this.path,
-      fontSize: style.fontSize,
-      color: style.color,
-      ...config,
-    }
-    if (this.glyphBox) {
-      drawPath(options)
-    }
-    else {
-      ctx.save()
-      ctx.beginPath()
-      const pathStyle = this.path.style
-      const _style = {
-        ...pathStyle,
-        fill: options.color ?? pathStyle.fill,
-        stroke: options.textStrokeColor ?? pathStyle.stroke,
-        strokeWidth: options.textStrokeWidth
-          ? options.textStrokeWidth * options.fontSize
-          : pathStyle.strokeWidth,
-        shadowOffsetX: (options.shadowOffsetX ?? 0) * options.fontSize,
-        shadowOffsetY: (options.shadowOffsetY ?? 0) * options.fontSize,
-        shadowBlur: (options.shadowBlur ?? 0) * options.fontSize,
-        shadowColor: options.shadowColor,
-      }
-      setCanvasContext(ctx, _style)
-      ctx.font = `${options.fontSize}px ${options.fontFamily}`
-      if (this.isVertical) {
-        ctx.textBaseline = 'middle'
-        ctx.fillText(this.content, this.inlineBox.left, this.inlineBox.top + this.inlineBox.height / 2)
-      }
-      else {
-        ctx.textBaseline = 'alphabetic'
-        ctx.fillText(this.content, this.inlineBox.left, this.inlineBox.top + this.baseline)
-      }
-      ctx.restore()
-    }
   }
 }

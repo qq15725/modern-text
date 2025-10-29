@@ -1,13 +1,12 @@
 import type { NormalizedStyle } from 'modern-idoc'
 import type { Character } from '../content'
-import type { TextPlugin } from '../types'
+import type { Plugin } from '../types'
 import { isNone } from 'modern-idoc'
 import { BoundingBox, Path2D, Path2DSet } from 'modern-path2d'
-import { drawPath } from '../canvas'
 import { definePlugin } from '../definePlugin'
 import { getTransform2D } from './render'
 
-export function textDecorationPlugin(): TextPlugin {
+export function textDecorationPlugin(): Plugin {
   const pathSet = new Path2DSet()
   return definePlugin({
     name: 'textDecoration',
@@ -141,31 +140,24 @@ export function textDecorationPlugin(): TextPlugin {
         pathSet.paths.push(path)
       })
     },
-    render: (ctx, text) => {
-      const { effects, computedStyle: style } = text
-      if (effects) {
-        effects.forEach((effectStyle) => {
-          ctx.save()
+    render: (renderer) => {
+      const { text, context } = renderer
+      const { computedEffects } = text
+
+      if (computedEffects.length) {
+        computedEffects.forEach((effectStyle) => {
+          context.save()
           const [a, c, e, b, d, f] = getTransform2D(text, effectStyle).transpose().elements
-          ctx.transform(a, b, c, d, e, f)
+          context.transform(a, b, c, d, e, f)
           pathSet.paths.forEach((path) => {
-            drawPath({
-              ctx,
-              path,
-              fontSize: style.fontSize,
-              ...effectStyle,
-            })
+            renderer.drawPath(path, effectStyle)
           })
-          ctx.restore()
+          context.restore()
         })
       }
       else {
         pathSet.paths.forEach((path) => {
-          drawPath({
-            ctx,
-            path,
-            fontSize: style.fontSize,
-          })
+          renderer.drawPath(path)
         })
       }
     },

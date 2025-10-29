@@ -1,5 +1,5 @@
-import type { TextPlugin } from './types'
+import type { Plugin } from './types'
 
-export function definePlugin(options: TextPlugin): TextPlugin {
+export function definePlugin(options: Plugin): Plugin {
   return options
 }

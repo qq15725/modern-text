@@ -1,10 +1,10 @@
-export interface SVGLoader {
+export interface SvgLoader {
   loaded: Map<string, string>
   needsLoad: (source: string) => boolean
   load: (svg: string) => Promise<void>
 }
 
-export function createSVGLoader(): SVGLoader {
+export function createSvgLoader(): SvgLoader {
   const loaded = new Map<string, string>()
 
   async function load(svg: string): Promise<void> {

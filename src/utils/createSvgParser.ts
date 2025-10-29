@@ -1,13 +1,13 @@
 import type { Path2DSet } from 'modern-path2d'
-import type { SVGLoader } from './createSVGLoader'
+import type { SvgLoader } from './createSvgLoader'
 import { svgToDom, svgToPath2DSet } from 'modern-path2d'
 
-export interface SVGParser {
+export interface SvgParser {
   parsed: Map<string, { dom: SVGElement, pathSet: Path2DSet }>
   parse: (svg: string) => { dom: SVGElement, pathSet: Path2DSet }
 }
 
-export function createSVGParser(loader: SVGLoader): SVGParser {
+export function createSvgParser(loader: SvgLoader): SvgParser {
   const parsed = new Map<string, { dom: SVGElement, pathSet: Path2DSet }>()
 
   function parse(svg: string): { dom: SVGElement, pathSet: Path2DSet } {

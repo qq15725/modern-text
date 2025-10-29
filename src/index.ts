@@ -1,4 +1,3 @@
-export * from './canvas'
 export * from './content'
 export * from './definePlugin'
 export * from './Measurer'

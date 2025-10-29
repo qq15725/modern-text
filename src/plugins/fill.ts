@@ -1,6 +1,6 @@
-import type { TextPlugin } from '../types'
+import type { Plugin } from '../types'
 
-export function fill(): TextPlugin {
+export function fill(): Plugin {
   return {
     name: 'fill',
     // TODO

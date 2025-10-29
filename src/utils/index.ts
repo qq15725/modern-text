@@ -1,3 +1,3 @@
-export * from './createSVGLoader'
-export * from './createSVGParser'
+export * from './createSvgLoader'
+export * from './createSvgParser'
 export * from './utils'
