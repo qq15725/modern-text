@@ -146,13 +146,17 @@ export class Canvas2DRenderer {
     }
 
     const pathStyle = path.style
+
+    const stroke = options.textStrokeColor ?? pathStyle.stroke
+    const strokeWidth = options.textStrokeWidth
+      ? options.textStrokeWidth * fontSize
+      : pathStyle.strokeWidth
+
     path.drawTo(ctx, {
       ...pathStyle,
       fill: options.color ?? pathStyle.fill,
-      stroke: options.textStrokeColor ?? pathStyle.stroke,
-      strokeWidth: options.textStrokeWidth
-        ? options.textStrokeWidth * fontSize
-        : pathStyle.strokeWidth,
+      stroke: strokeWidth === undefined || strokeWidth > 0 ? stroke : undefined,
+      strokeWidth,
       strokeLinecap: 'round',
       strokeLinejoin: 'round',
       shadowOffsetX: (options.shadowOffsetX ?? 0) * fontSize,

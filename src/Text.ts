@@ -207,8 +207,8 @@ export class Text extends Reactivable {
       })
     this.glyphBox = this.getGlyphBox()
     this
-      .updatePathBox()
-      .updateBoundingBox()
+      ._updatePathBox()
+      ._updateBoundingBox()
     for (const key in old) {
       ;(result as any)[key] = (this as any)[key]
       ;(this as any)[key] = (old as any)[key]
@@ -238,7 +238,7 @@ export class Text extends Reactivable {
     )
   }
 
-  updatePathBox(): this {
+  protected _updatePathBox(): this {
     this.pathBox = BoundingBox.from(
       this.glyphBox,
       ...Array.from(this.plugins.values())
@@ -252,7 +252,7 @@ export class Text extends Reactivable {
     return this
   }
 
-  updateBoundingBox(): this {
+  protected _updateBoundingBox(): this {
     this.boundingBox = BoundingBox.from(
       this.rawGlyphBox,
       this.lineBox,
