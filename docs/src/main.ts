@@ -1,11 +1,11 @@
-import type { TextOptions } from '../../src'
+import type { Options } from '../../src'
 import { fonts } from 'modern-font'
 import { renderText, Text } from '../../src'
 import { TextEditor } from '../../src/web-components'
 
 TextEditor.register()
 
-const sharedOptions: Partial<TextOptions> = {
+const sharedOptions: Partial<Options> = {
   // debug: true,
   fonts,
 }

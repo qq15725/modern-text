@@ -91,6 +91,10 @@ export class Canvas2DRenderer {
                   case '%':
                     offset = Number(colorStop.length.value) / 100
                     break
+                  case 'px':
+                  case 'em':
+                  // TODO
+                    break
                 }
               }
               switch (colorStop.type) {
@@ -99,6 +103,12 @@ export class Canvas2DRenderer {
                   break
                 case 'rgba':
                   canvasGradient.addColorStop(offset, `rgba(${colorStop.value.join(', ')})`)
+                  break
+                case 'hex':
+                  canvasGradient.addColorStop(offset, `#${colorStop.value}`)
+                  break
+                case 'literal':
+                  // TODO
                   break
               }
             })
