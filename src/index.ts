@@ -1,3 +1,4 @@
+export * from './Canvas2DRenderer'
 export * from './content'
 export * from './definePlugin'
 export * from './Measurer'
