@@ -1,3 +1,18 @@
+# [1.10.0](https://github.com/qq15725/modern-text/compare/v1.9.2...v1.10.0) (2025-10-29)
+
+
+### Bug Fixes
+
+* stroke ([623132d](https://github.com/qq15725/modern-text/commit/623132de5949fc0e696efd5f5e14311e8ce3848c))
+
+
+### Features
+
+* Canvas2DRenderer ([4412719](https://github.com/qq15725/modern-text/commit/441271963482bb6d22bb2c27c2f9c509b8dc770b))
+* export Canvas2DRenderer ([9b1e586](https://github.com/qq15725/modern-text/commit/9b1e58676c7f7970c70f2da64a5107256a5cd573))
+
+
+
 ## [1.9.2](https://github.com/qq15725/modern-text/compare/v1.9.1...v1.9.2) (2025-10-29)
 
 
