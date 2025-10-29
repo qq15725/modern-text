@@ -51,32 +51,23 @@
     "release": "bumpp package.json --commit \"release: v%s\" --push --all --tag",
     "start": "esno src/index.ts",
     "test": "vitest",
-    "typecheck": "tsc --noEmit",
-    "prepare": "simple-git-hooks"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "diff": "^8.0.2",
     "modern-font": "^0.4.4",
-    "modern-idoc": "^0.10.1",
+    "modern-idoc": "^0.10.5",
     "modern-path2d": "^1.4.10"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.0.0",
-    "@types/node": "^24.8.1",
+    "@antfu/eslint-config": "^6.1.0",
+    "@types/node": "^24.9.2",
     "bumpp": "^10.3.1",
     "conventional-changelog-cli": "^5.0.0",
     "eslint": "^9.38.0",
-    "lint-staged": "^16.2.4",
-    "simple-git-hooks": "^2.13.1",
     "typescript": "^5.9.3",
     "unbuild": "^3.6.1",
-    "vite": "^7.1.10",
-    "vitest": "^3.2.4"
-  },
-  "simple-git-hooks": {
-    "pre-commit": "pnpm lint-staged"
-  },
-  "lint-staged": {
-    "*": ""
+    "vite": "^7.1.12",
+    "vitest": "^4.0.4"
   }
 }
