@@ -1,5 +1,5 @@
 import type { NormalizedStyle } from 'modern-idoc'
-import type { BoundingBox, Path2D, Path2DDrawStyle } from 'modern-path2d'
+import type { BoundingBox, Path2D, Path2DDrawStyle, Path2DStyle } from 'modern-path2d'
 import type { Character } from './content'
 import type { Text } from './Text'
 import { isGradient, parseGradient } from 'modern-idoc'
@@ -139,43 +139,43 @@ export class Canvas2DRenderer {
     path: Path2D,
     options: DrawShapePathsOptions = {},
   ): void => {
+    const { clipRect } = options
     const ctx = this.context
-
-    const {
-      fontSize = this.text.computedStyle.fontSize,
-      clipRect,
-    } = options
-
     ctx.save()
     ctx.beginPath()
-
     if (clipRect) {
       ctx.rect(clipRect.left, clipRect.top, clipRect.width, clipRect.height)
       ctx.clip()
       ctx.beginPath()
     }
+    path.drawTo(ctx, this._mergePathStyle(path, options))
+    ctx.restore()
+  }
+
+  protected _mergePathStyle(path: Path2D, style: Partial<Path2DStyle>): Partial<Path2DStyle> {
+    const {
+      fontSize = this.text.computedStyle.fontSize,
+    } = style
 
     const pathStyle = path.style
-
-    const stroke = options.textStrokeColor ?? pathStyle.stroke
-    const strokeWidth = options.textStrokeWidth
-      ? options.textStrokeWidth * fontSize
+    const stroke = style.stroke ?? pathStyle.stroke
+    const strokeWidth = style.strokeWidth
+      ? style.strokeWidth * fontSize
       : pathStyle.strokeWidth
 
-    path.drawTo(ctx, {
+    return {
       ...pathStyle,
-      fill: options.color ?? pathStyle.fill,
+      ...style,
+      fill: style.fill ?? pathStyle.fill,
       stroke: strokeWidth === undefined || strokeWidth > 0 ? stroke : undefined,
+      strokeLinecap: style.strokeLinecap ?? pathStyle.strokeLinecap ?? 'round',
+      strokeLinejoin: style.strokeLinejoin ?? pathStyle.strokeLinejoin ?? 'round',
       strokeWidth,
-      strokeLinecap: 'round',
-      strokeLinejoin: 'round',
-      shadowOffsetX: (options.shadowOffsetX ?? 0) * fontSize,
-      shadowOffsetY: (options.shadowOffsetY ?? 0) * fontSize,
-      shadowBlur: (options.shadowBlur ?? 0) * fontSize,
-      shadowColor: options.shadowColor,
-    })
-
-    ctx.restore()
+      shadowOffsetX: (style.shadowOffsetX ?? 0) * fontSize,
+      shadowOffsetY: (style.shadowOffsetY ?? 0) * fontSize,
+      shadowBlur: (style.shadowBlur ?? 0) * fontSize,
+      shadowColor: style.shadowColor,
+    }
   }
 
   drawCharacter = (
@@ -192,6 +192,8 @@ export class Canvas2DRenderer {
       content,
       inlineBox,
       baseline,
+      computedFill,
+      computedOutline,
     } = character
 
     const style = {
@@ -199,25 +201,28 @@ export class Canvas2DRenderer {
       ...userStyle,
     }
 
+    const pathStyle: Partial<Path2DStyle> = {
+      strokeLinecap: computedOutline?.lineCap,
+      strokeLinejoin: computedOutline?.lineJoin,
+      ...style,
+      fill: userStyle.color
+        ?? computedFill?.color
+        ?? computedStyle.color,
+      strokeWidth: userStyle.textStrokeWidth
+        ?? computedOutline?.width
+        ?? computedStyle.textStrokeWidth,
+      stroke: userStyle.textStrokeColor
+        ?? computedOutline?.color
+        ?? computedStyle.textStrokeColor,
+    }
+
     if (glyphBox) {
-      this.drawPath(path, style)
+      this.drawPath(path, pathStyle as any)
     }
     else {
       ctx.save()
       ctx.beginPath()
-      const pathStyle = path.style
-      setCanvasContext(ctx, {
-        ...pathStyle,
-        fill: style.color ?? pathStyle.fill,
-        stroke: style.textStrokeColor ?? pathStyle.stroke,
-        strokeWidth: style.textStrokeWidth
-          ? style.textStrokeWidth * style.fontSize
-          : pathStyle.strokeWidth,
-        shadowOffsetX: (style.shadowOffsetX ?? 0) * style.fontSize,
-        shadowOffsetY: (style.shadowOffsetY ?? 0) * style.fontSize,
-        shadowBlur: (style.shadowBlur ?? 0) * style.fontSize,
-        shadowColor: style.shadowColor,
-      })
+      setCanvasContext(ctx, this._mergePathStyle(path, pathStyle))
       ctx.font = `${style.fontSize}px ${style.fontFamily}`
       if (isVertical) {
         ctx.textBaseline = 'middle'

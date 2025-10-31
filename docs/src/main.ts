@@ -1,6 +1,6 @@
 import type { Options } from '../../src'
 import { fonts } from 'modern-font'
-import { renderText, Text } from '../../src'
+import { Text } from '../../src'
 import { TextEditor } from '../../src/web-components'
 
 TextEditor.register()
@@ -20,7 +20,7 @@ async function loadFallbackFont(): Promise<void> {
 window.onload = async () => {
   await loadFallbackFont()
   for (const [key, importJson] of Object.entries(import.meta.glob('../../test/fixtures/*.json'))) {
-    // if (!key.endsWith('emoji.json')) {
+    // if (!key.endsWith('background2.json')) {
     //   continue
     // }
 
@@ -29,38 +29,46 @@ window.onload = async () => {
     // horizontal
     const view1 = document.createElement('canvas')
     view1.dataset.file = key
-    const options = { ...sharedOptions, ...fixture }
-
-    // text
-    const text = new Text(options)
-    text.on('update', (ev) => {
-      text.render({ view: view1 })
-      // webglRender(text, view1)
+    const text1 = new Text({
+      ...sharedOptions,
+      ...fixture,
     })
-    text.on('render', ev => console.warn(ev))
-    text.on('measure', ev => console.warn(ev))
-    await text.load()
-    text.update()
+    text1.on('update', (ev) => {
+      text1.render({ view: view1 })
+      // webglRender(text1, view1)
+    })
+    await text1.load()
+    text1.update()
     document.body.append(view1)
-
-    // editor
     view1.addEventListener('dblclick', () => {
       const textEditor = document.querySelector('text-editor') as TextEditor
       textEditor.left = view1.offsetLeft
       textEditor.top = view1.offsetTop
-      textEditor.set(text)
+      textEditor.set(text1)
     })
 
     // vertical
     const view2 = document.createElement('canvas')
     view2.dataset.file = key
-    await renderText({
+    const text2 = new Text({
       ...sharedOptions,
       ...fixture,
       style: { ...fixture.style, writingMode: 'vertical-lr' },
       view: view2,
       load: true,
     })
+    text2.on('update', (ev) => {
+      text2.render({ view: view2 })
+      // webglRender(text2, view1)
+    })
+    await text2.load()
+    text2.update()
     document.body.append(view2)
+    view2.addEventListener('dblclick', () => {
+      const textEditor = document.querySelector('text-editor') as TextEditor
+      textEditor.left = view2.offsetLeft
+      textEditor.top = view2.offsetTop
+      textEditor.set(text2)
+    })
   }
 }
