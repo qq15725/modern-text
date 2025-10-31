@@ -1,3 +1,17 @@
+## [1.10.2](https://github.com/qq15725/modern-text/compare/v1.10.1...v1.10.2) (2025-10-31)
+
+
+### Bug Fixes
+
+* fill ([92bc3d2](https://github.com/qq15725/modern-text/commit/92bc3d29f70a4e38dc456e7620f1d872ff9f9b2b))
+
+
+### Features
+
+* up deps ([4c66e38](https://github.com/qq15725/modern-text/commit/4c66e381c91a5f83a1028c91eb48c1864877e986))
+
+
+
 ## [1.10.1](https://github.com/qq15725/modern-text/compare/v1.10.0...v1.10.1) (2025-10-29)
 
 
