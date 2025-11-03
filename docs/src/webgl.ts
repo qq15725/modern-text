@@ -103,4 +103,6 @@ export function webglRender(text: Text, canvas: HTMLCanvasElement): void {
   gl.useProgram(programInfo.program)
   twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo)
   twgl.drawBufferInfo(gl, bufferInfo, gl.TRIANGLES)
+
+  console.warn(pathData)
 }
