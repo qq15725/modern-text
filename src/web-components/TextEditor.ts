@@ -575,10 +575,10 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
     this._textarea.addEventListener('focus', this._onFocus.bind(this) as any)
     this._textarea.addEventListener('blur', this._onBlur.bind(this) as any)
     if (SUPPORTS_POINTER_EVENTS) {
-      this._textarea.addEventListener('pointerdown', this.pointerdown.bind(this) as any)
+      this._textarea.addEventListener('pointerdown', this.pointerDown.bind(this) as any)
     }
     else {
-      this._textarea.addEventListener('mousedown', this.pointerdown.bind(this) as any)
+      this._textarea.addEventListener('mousedown', this.pointerDown.bind(this) as any)
     }
 
     ;['keyup', 'mouseup', 'input', 'paste', 'cut'].forEach((key) => {
@@ -588,7 +588,7 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
     })
   }
 
-  pointerdown(e?: MouseEvent): boolean {
+  pointerDown(e?: MouseEvent | PointerEvent): boolean {
     if (e && e.button !== 0) {
       e.preventDefault()
       e.stopPropagation()
@@ -627,7 +627,7 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
     this.selection = [index, index]
     this._updateDomSelection()
 
-    if (e && !['mouseup', 'pointerup'].includes(e.type)) {
+    if (e && ['mousedown', 'pointerdown'].includes(e.type)) {
       const onMove = (e: MouseEvent): void => {
         const offsetX = (e.clientX - rect.left) / scaleX
         const offsetY = (e.clientY - rect.top) / scaleY
@@ -660,6 +660,11 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
     this._textarea.focus()
 
     return true
+  }
+
+  selectAll(): void {
+    this._textarea.focus()
+    this._textarea.select()
   }
 
   attributeChangedCallback(name: string, _oldValue: any, newValue: any): void {
