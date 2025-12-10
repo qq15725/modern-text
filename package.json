@@ -56,18 +56,18 @@
   "dependencies": {
     "diff": "^8.0.2",
     "modern-font": "^0.4.4",
-    "modern-idoc": "^0.10.5",
-    "modern-path2d": "^1.4.11"
+    "modern-idoc": "^0.10.6",
+    "modern-path2d": "^1.4.15"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.2.0",
-    "@types/node": "^24.10.0",
-    "bumpp": "^10.3.1",
+    "@antfu/eslint-config": "^6.6.1",
+    "@types/node": "^24.10.2",
+    "bumpp": "^10.3.2",
     "conventional-changelog-cli": "^5.0.0",
-    "eslint": "^9.39.0",
+    "eslint": "^9.39.1",
     "typescript": "^5.9.3",
     "unbuild": "^3.6.1",
-    "vite": "^7.1.12",
-    "vitest": "^4.0.6"
+    "vite": "^7.2.7",
+    "vitest": "^4.0.15"
   }
 }

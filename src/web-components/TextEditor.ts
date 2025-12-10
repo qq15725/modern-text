@@ -107,6 +107,7 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
   set text(newText: Text) {
     if (newText) {
       this._text?.off('update', this._update)
+      this.reset()
       newText.on('update', this._update)
       this._text = newText
       this._setTextInput(this.getPlaintext())
@@ -665,6 +666,7 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
   selectAll(): void {
     this._textarea.focus()
     this._textarea.select()
+    this._updateSelectionByDom()
   }
 
   attributeChangedCallback(name: string, _oldValue: any, newValue: any): void {
@@ -683,61 +685,56 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
   }
 
   protected _renderSelectRange(): void {
-    if (
-      this.selection[0] !== this._prevSelection[0]
-      || this.selection[1] !== this._prevSelection[1]
-    ) {
-      const isVertical = this.text.isVertical
-      const boxesGroupsMap: Record<number, Record<string, any>[]> = {}
-      this._selectedChars.forEach((char) => {
-        if (char.isLastSelected) {
-          return
-        }
-        const key = isVertical
-          ? char.left
-          : char.top
-        if (!boxesGroupsMap[key]) {
-          boxesGroupsMap[key] = []
-        }
-        boxesGroupsMap[key].push({
-          x: char.left - this.text.glyphBox.left,
-          y: char.top - this.text.glyphBox.top,
-          w: char.width,
-          h: char.height,
-        })
-      })
-      const boxesGroups = Object.values(boxesGroupsMap)
-      const sourceLen = this._selection.children.length
-      const targetLen = boxesGroups.length
-      const len = Math.max(sourceLen, targetLen)
-
-      const deleted: (HTMLElement | undefined)[] = []
-      for (let i = 0; i < len; i++) {
-        let element = this._selection.children.item(i) as HTMLElement | undefined
-        const boxes = boxesGroups[i]
-        if (!boxes) {
-          deleted.push(element)
-          continue
-        }
-        else if (!element) {
-          element = document.createElement('div')
-          this._selection.append(element)
-        }
-        const min = {
-          x: Math.min(...boxes.map(v => v.x)),
-          y: Math.min(...boxes.map(v => v.y)),
-        }
-        const max = {
-          x: Math.max(...boxes.map(v => v.x + v.w)),
-          y: Math.max(...boxes.map(v => v.y + v.h)),
-        }
-        element.style.width = `${max.x - min.x}px`
-        element.style.height = `${max.y - min.y}px`
-        element.style.transform = `translate(${min.x}px, ${min.y}px)`
+    const isVertical = this.text.isVertical
+    const boxesGroupsMap: Record<number, Record<string, any>[]> = {}
+    this._selectedChars.forEach((char) => {
+      if (char.isLastSelected) {
+        return
       }
+      const key = isVertical
+        ? char.left
+        : char.top
+      if (!boxesGroupsMap[key]) {
+        boxesGroupsMap[key] = []
+      }
+      boxesGroupsMap[key].push({
+        x: char.left - this.text.glyphBox.left,
+        y: char.top - this.text.glyphBox.top,
+        w: char.width,
+        h: char.height,
+      })
+    })
+    const boxesGroups = Object.values(boxesGroupsMap)
+    const sourceLen = this._selection.children.length
+    const targetLen = boxesGroups.length
+    const len = Math.max(sourceLen, targetLen)
 
-      deleted.forEach(el => el?.remove())
+    const deleted: (HTMLElement | undefined)[] = []
+    for (let i = 0; i < len; i++) {
+      let element = this._selection.children.item(i) as HTMLElement | undefined
+      const boxes = boxesGroups[i]
+      if (!boxes) {
+        deleted.push(element)
+        continue
+      }
+      else if (!element) {
+        element = document.createElement('div')
+        this._selection.append(element)
+      }
+      const min = {
+        x: Math.min(...boxes.map(v => v.x)),
+        y: Math.min(...boxes.map(v => v.y)),
+      }
+      const max = {
+        x: Math.max(...boxes.map(v => v.x + v.w)),
+        y: Math.max(...boxes.map(v => v.y + v.h)),
+      }
+      element.style.width = `${max.x - min.x}px`
+      element.style.height = `${max.y - min.y}px`
+      element.style.transform = `translate(${min.x}px, ${min.y}px)`
     }
+
+    deleted.forEach(el => el?.remove())
   }
 
   protected _renderCursor(): void {
@@ -762,5 +759,9 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
       clearTimeout(this._timer)
     }
     this._timer = setTimeout(() => this._cursor.classList.add('blink'), 500)
+  }
+
+  reset(): void {
+    this.selection = []
   }
 }
