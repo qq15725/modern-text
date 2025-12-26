@@ -62,7 +62,7 @@ export function renderPlugin(): Plugin {
       const { text, context } = renderer
       const { paragraphs, glyphBox, computedEffects } = text
 
-      if (computedEffects.length) {
+      if (paragraphs.length && computedEffects.length) {
         computedEffects.forEach((style) => {
           renderer.uploadColor(style, glyphBox)
           context.save()

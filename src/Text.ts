@@ -230,6 +230,16 @@ export class Text extends Reactivable {
         max.max(a, b)
       }
     })
+
+    if (
+      min.x === Number.MIN_SAFE_INTEGER
+      || min.y === Number.MIN_SAFE_INTEGER
+      || max.x === Number.MAX_SAFE_INTEGER
+      || max.y === Number.MAX_SAFE_INTEGER
+    ) {
+      return new BoundingBox(0, 0, 0, 0)
+    }
+
     return new BoundingBox(
       min.x,
       min.y,
