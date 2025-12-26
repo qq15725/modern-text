@@ -1,3 +1,12 @@
+## [1.10.7](https://github.com/qq15725/modern-text/compare/v1.10.6...v1.10.7) (2025-12-26)
+
+
+### Bug Fixes
+
+* effects ([01c8a04](https://github.com/qq15725/modern-text/commit/01c8a04beae6c0c4cf395c38d92aa37473d45b55))
+
+
+
 ## [1.10.6](https://github.com/qq15725/modern-text/compare/v1.10.5...v1.10.6) (2025-12-25)
 
 
