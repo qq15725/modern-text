@@ -51,8 +51,7 @@ window.onload = async () => {
     document.body.append(view1)
     view1.addEventListener('dblclick', () => {
       const textEditor = document.querySelector('text-editor') as TextEditor
-      textEditor.left = view1.offsetLeft
-      textEditor.top = view1.offsetTop
+      textEditor.moveToDom(view1)
       textEditor.set(text1)
     })
 
@@ -79,8 +78,7 @@ window.onload = async () => {
     document.body.append(view2)
     view2.addEventListener('dblclick', () => {
       const textEditor = document.querySelector('text-editor') as TextEditor
-      textEditor.left = view2.offsetLeft
-      textEditor.top = view2.offsetTop
+      textEditor.moveToDom(view2)
       textEditor.set(text2)
     })
   }

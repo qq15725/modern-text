@@ -70,6 +70,7 @@ const SUPPORTS_POINTER_EVENTS = 'PointerEvent' in globalThis
 export class TextEditor extends HTMLElement implements PropertyAccessor {
   @property({ fallback: 0 }) declare left: number
   @property({ fallback: 0 }) declare top: number
+  @property({ fallback: 0 }) declare rotate: number
   @property({ fallback: () => [0, 0] }) declare selection: number[]
 
   @property({ internal: true, fallback: () => ({ min: 0, max: 0 }) })
@@ -132,8 +133,11 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
   <style>
   :host {
     position: absolute;
+    left: 0;
+    top: 0;
     width: 0;
     height: 0;
+    z-index: 1;
   }
 
   .container {
@@ -152,6 +156,7 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
     border: 0;
     white-space: pre;
     resize: none;
+    overflow: hidden;
   }
 
   .selection {
@@ -206,6 +211,23 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
     this._emit('init')
   }
 
+  moveToDom(target: HTMLElement): void {
+    const style = getComputedStyle(target)
+    const host = this.shadowRoot!.host as HTMLElement
+    host.style.width = `${target.clientWidth}px`
+    host.style.height = `${target.clientHeight}px`
+    host.style.transform = ''
+    const hostRect = host.getBoundingClientRect()
+    const hostCenter = { x: hostRect.x + hostRect.width / 2, y: hostRect.y + hostRect.height / 2 }
+    const targetRect = target.getBoundingClientRect()
+    const targetCenter = { x: targetRect.x + targetRect.width / 2, y: targetRect.y + targetRect.height / 2 }
+    this.left = targetCenter.x - hostCenter.x
+    this.top = targetCenter.y - hostCenter.y
+    const m = new DOMMatrixReadOnly(style.transform)
+    this.rotate = Math.atan2(m.b, m.a) * (180 / Math.PI)
+    this._update()
+  }
+
   set(text: Text): void {
     this.text = text
   }
@@ -233,6 +255,7 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
         break
       case 'left':
       case 'top':
+      case 'rotate':
         this._update()
         break
     }
@@ -478,7 +501,14 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
     xWeight?: number
     yWeight?: number
   }): number {
-    const { x, y, xWeight = 1, yWeight = 1 } = options
+    const isVertical = this.text.isVertical
+
+    const {
+      x,
+      y,
+      xWeight = 1,
+      yWeight = 1,
+    } = options
 
     const char = this._chars.reduce(
       (prev, current, index) => {
@@ -503,8 +533,15 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
     )
 
     if (char?.value) {
-      const middleX = char.value.left + char.value.width / 2
-      if (x > middleX && !char.value.isCrlf && !char.value.isLastSelected) {
+      if (
+        (
+          isVertical
+            ? (y > char.value.top + char.value.height / 2)
+            : (x > char.value.left + char.value.width / 2)
+        )
+        && !char.value.isCrlf
+        && !char.value.isLastSelected
+      ) {
         return char.index + 1
       }
       return char.index
@@ -554,8 +591,10 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
   protected _update(): void {
     this._updateChars()
     const host = this.shadowRoot!.host as HTMLElement
-    host.style.left = `${this.left}px`
-    host.style.top = `${this.top}px`
+    const radian = this.rotate * Math.PI / 180
+    const cos = Math.cos(radian)
+    const sin = Math.sin(radian)
+    host.style.transform = `matrix(${cos}, ${sin}, ${-sin}, ${cos}, ${this.left}, ${this.top})`
     host.style.width = `${this.text.boundingBox.width}px`
     host.style.height = `${this.text.boundingBox.height}px`
     this._container.style.left = `${this.text.glyphBox.left}px`
@@ -596,46 +635,61 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
       return false
     }
 
+    const isVertical = this.text.isVertical
     const host = this.shadowRoot!.host as HTMLElement
+    const radian = this.rotate * Math.PI / 180
+    const cos = Math.cos(radian)
+    const sin = Math.sin(radian)
+    const m = new DOMMatrixReadOnly([cos, sin, -sin, cos, 0, 0]).inverse()
     const rect = host.getBoundingClientRect()
-    const originalWidth = host.offsetWidth
-    const originalHeight = host.offsetHeight
-    const scaleX = rect.width / originalWidth
-    const scaleY = rect.height / originalHeight
-    let offsetX = 0
-    let offsetY = 0
+    const center = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
+
+    let x = 0
+    let y = 0
+
+    const getXy = (e: MouseEvent): { x: number, y: number } => {
+      const _p = m.transformPoint({
+        x: e.clientX - center.x,
+        y: e.clientY - center.y,
+      })
+
+      const p = {
+        x: _p.x + center.x,
+        y: _p.y + center.y,
+      }
+
+      if (isVertical) {
+        return {
+          x: (center.x + host.clientWidth / 2) - p.x,
+          y: p.y - (center.y - host.clientHeight / 2),
+        }
+      }
+      else {
+        return {
+          x: p.x - (center.x - host.clientWidth / 2),
+          y: p.y - (center.y - host.clientHeight / 2),
+        }
+      }
+    }
 
     if (e) {
-      offsetX = (e.clientX - rect.left) / scaleX
-      offsetY = (e.clientY - rect.top) / scaleY
-
-      if (
-        !(
-          offsetX > this.text.glyphBox.left
-          && offsetX < this.text.glyphBox.left + this.text.glyphBox.width
-          && offsetY > this.text.glyphBox.top
-          && offsetY < this.text.glyphBox.top + this.text.glyphBox.height
-        )
-      ) {
-        return false
-      }
+      ;({ x, y } = getXy(e))
 
       e.preventDefault()
       e.stopPropagation()
     }
 
-    const index = this._findNearest({ x: offsetX, y: offsetY })
+    const index = this._findNearest({ x, y })
     this.selection = [index, index]
     this._updateDomSelection()
 
     if (e && ['mousedown', 'pointerdown'].includes(e.type)) {
       const onMove = (e: MouseEvent): void => {
-        const offsetX = (e.clientX - rect.left) / scaleX
-        const offsetY = (e.clientY - rect.top) / scaleY
         this.selection = [
           this.selection[0],
-          this._findNearest({ x: offsetX, y: offsetY }),
+          this._findNearest(getXy(e)),
         ]
+
         this._updateDomSelection()
       }
       const onUp = (): void => {
