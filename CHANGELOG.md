@@ -1,3 +1,12 @@
+## [1.10.8](https://github.com/qq15725/modern-text/compare/v1.10.7...v1.10.8) (2025-12-31)
+
+
+### Bug Fixes
+
+* TextEditor ([588c062](https://github.com/qq15725/modern-text/commit/588c0623b144ca0ca4e457c0bb520831103c4785))
+
+
+
 ## [1.10.7](https://github.com/qq15725/modern-text/compare/v1.10.6...v1.10.7) (2025-12-26)
 
 
