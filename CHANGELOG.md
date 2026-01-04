@@ -1,3 +1,12 @@
+## [1.10.9](https://github.com/qq15725/modern-text/compare/v1.10.8...v1.10.9) (2026-01-04)
+
+
+### Bug Fixes
+
+* inlineBox ([3acd83b](https://github.com/qq15725/modern-text/commit/3acd83b4087e8b633b528ec0b5a201d9615fc30d))
+
+
+
 ## [1.10.8](https://github.com/qq15725/modern-text/compare/v1.10.7...v1.10.8) (2025-12-31)
 
 
