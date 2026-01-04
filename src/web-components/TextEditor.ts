@@ -241,7 +241,7 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
         }
         break
       case '_selectionMinMax':
-      case 'chars':
+      case '_chars':
         this._updateSelectedChars()
         this._updateCursorPosition()
         break

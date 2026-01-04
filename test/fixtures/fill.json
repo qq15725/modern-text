@@ -10,13 +10,28 @@
     {
       "fragments": [
         {
-          "content": "此处输"
+          "content": "此处输",
+          "fill": {
+            "linearGradient": {
+              "angle": 180,
+              "stops": [
+                {
+                  "color": "#c7f1ffff",
+                  "offset": 0
+                },
+                {
+                  "color": "#ffffffff",
+                  "offset": 1
+                }
+              ]
+            }
+          }
         },
         {
+          "content": "入您的标题",
           "fill": {
             "color": "#FFC000"
-          },
-          "content": "入您的标题"
+          }
         },
         {
           "content": "文本内容"

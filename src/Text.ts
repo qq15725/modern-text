@@ -179,6 +179,7 @@ export class Text extends Reactivable {
   measure(dom = this.measureDom): MeasureResult {
     const old = {
       paragraphs: this.paragraphs,
+      inlineBox: this.inlineBox,
       lineBox: this.lineBox,
       rawGlyphBox: this.rawGlyphBox,
       glyphBox: this.glyphBox,

@@ -21,7 +21,9 @@ export function createSvgLoader(): SvgLoader {
   }
 
   function needsLoad(source: string): boolean {
-    return source.startsWith('http://')
+    return source.startsWith('/')
+      || source.startsWith('./')
+      || source.startsWith('http://')
       || source.startsWith('https://')
       || source.startsWith('blob://')
   }

@@ -1,6 +1,6 @@
 import type { Plugin } from '../types'
 import { isNone } from 'modern-idoc'
-import { Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
+import { BoundingBox, Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
 import { createSvgLoader, createSvgParser, parseColormap } from '../utils'
 
 export function backgroundPlugin(): Plugin {
@@ -30,7 +30,7 @@ export function backgroundPlugin(): Plugin {
         return
 
       const { pathSet: imagePathSet } = parser.parse(backgroundImage)
-      const imageBox = imagePathSet.getBoundingBox(true)!
+      const imageBox = imagePathSet.getBoundingBox(true) ?? new BoundingBox()
 
       let x, y, width, height
       if (isVertical) {

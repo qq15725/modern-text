@@ -15,7 +15,7 @@ export function createSvgParser(loader: SvgLoader): SvgParser {
     if (!result) {
       const dom = svgToDom(
         loader.needsLoad(svg)
-          ? loader.loaded.get(svg) ?? svg
+          ? loader.loaded.get(svg) ?? '<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" viewBox="0 0 0 0" />'
           : svg,
       )
       const pathSet = svgToPath2DSet(dom)
