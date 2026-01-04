@@ -1,3 +1,12 @@
+## [1.10.12](https://github.com/qq15725/modern-text/compare/v1.10.11...v1.10.12) (2026-01-04)
+
+
+### Bug Fixes
+
+* SvgParser ([caa3156](https://github.com/qq15725/modern-text/commit/caa3156a51b63662302eb3de9bee8cbc8ec28638))
+
+
+
 ## [1.10.11](https://github.com/qq15725/modern-text/compare/v1.10.10...v1.10.11) (2026-01-04)
 
 
