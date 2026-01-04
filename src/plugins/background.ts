@@ -11,6 +11,10 @@ export function backgroundPlugin(): Plugin {
   return {
     name: 'background',
     pathSet,
+    context: {
+      loader,
+      parser,
+    },
     load: async (text) => {
       const { backgroundImage } = text.computedStyle
       if (backgroundImage && loader.needsLoad(backgroundImage)) {

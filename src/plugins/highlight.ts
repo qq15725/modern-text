@@ -42,6 +42,11 @@ export function highlightPlugin(): Plugin {
   return definePlugin({
     name: 'highlight',
     pathSet,
+    context: {
+      clipRects,
+      loader,
+      parser,
+    },
     load: async (text) => {
       const set = new Set<string>()
       text.forEachCharacter((character) => {

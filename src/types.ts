@@ -13,6 +13,7 @@ export interface Plugin {
   render?: (renderer: Canvas2DRenderer) => void
   renderOrder?: number
   load?: (text: Text) => Promise<void>
+  context?: Record<string, any>
 }
 
 export interface Options extends _TextOptions {
