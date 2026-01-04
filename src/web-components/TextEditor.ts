@@ -280,10 +280,10 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
         fragmentIndex: -1,
         charIndex: -1,
         color: c.computedStyle.color,
-        left: c.lineBox.left - this.text.boundingBox.left,
-        top: c.lineBox.top - this.text.boundingBox.top,
-        width: c.lineBox.width,
-        height: c.lineBox.height,
+        left: c.inlineBox.left - this.text.inlineBox.left,
+        top: c.inlineBox.top - this.text.inlineBox.top,
+        width: c.inlineBox.width,
+        height: c.inlineBox.height,
         content: c.content,
       }
     }
@@ -597,10 +597,10 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
     host.style.transform = `matrix(${cos}, ${sin}, ${-sin}, ${cos}, ${this.left}, ${this.top})`
     host.style.width = `${this.text.boundingBox.width}px`
     host.style.height = `${this.text.boundingBox.height}px`
-    this._container.style.left = `${this.text.glyphBox.left}px`
-    this._container.style.top = `${this.text.glyphBox.top}px`
-    this._container.style.width = `${this.text.glyphBox.width}px`
-    this._container.style.height = `${this.text.glyphBox.height}px`
+    this._container.style.left = `${this.text.inlineBox.left}px`
+    this._container.style.top = `${this.text.inlineBox.top}px`
+    this._container.style.width = `${this.text.inlineBox.width}px`
+    this._container.style.height = `${this.text.inlineBox.height}px`
     this._textarea.style.fontSize = `${this.text.computedStyle.fontSize}px`
     this._textarea.style.writingMode = this.text.computedStyle.writingMode
     this._renderSelectRange()
@@ -637,37 +637,41 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
 
     const isVertical = this.text.isVertical
     const host = this.shadowRoot!.host as HTMLElement
+    const clientRect = host.getBoundingClientRect()
+    const { clientWidth: width, clientHeight: height } = host
+    const scaleX = clientRect.width / width
+    const scaleY = clientRect.height / height
     const radian = this.rotate * Math.PI / 180
     const cos = Math.cos(radian)
     const sin = Math.sin(radian)
     const m = new DOMMatrixReadOnly([cos, sin, -sin, cos, 0, 0]).inverse()
-    const rect = host.getBoundingClientRect()
-    const center = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
+    const clientCenter = { x: clientRect.x + clientRect.width / 2, y: clientRect.y + clientRect.height / 2 }
+    const center = { x: clientCenter.x / scaleX, y: clientCenter.y / scaleY }
 
     let x = 0
     let y = 0
 
     const getXy = (e: MouseEvent): { x: number, y: number } => {
       const _p = m.transformPoint({
-        x: e.clientX - center.x,
-        y: e.clientY - center.y,
+        x: e.clientX - clientCenter.x,
+        y: e.clientY - clientCenter.y,
       })
 
       const p = {
-        x: _p.x + center.x,
-        y: _p.y + center.y,
+        x: (_p.x + clientCenter.x) / scaleX,
+        y: (_p.y + clientCenter.y) / scaleY,
       }
 
       if (isVertical) {
         return {
-          x: (center.x + host.clientWidth / 2) - p.x,
-          y: p.y - (center.y - host.clientHeight / 2),
+          x: (center.x + width / 2) - p.x,
+          y: p.y - (center.y - height / 2),
         }
       }
       else {
         return {
-          x: p.x - (center.x - host.clientWidth / 2),
-          y: p.y - (center.y - host.clientHeight / 2),
+          x: p.x - (center.x - width / 2),
+          y: p.y - (center.y - height / 2),
         }
       }
     }
@@ -752,8 +756,8 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
         boxesGroupsMap[key] = []
       }
       boxesGroupsMap[key].push({
-        x: char.left - this.text.glyphBox.left,
-        y: char.top - this.text.glyphBox.top,
+        x: char.left,
+        y: char.top,
         w: char.width,
         h: char.height,
       })
@@ -800,8 +804,8 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
       const _cursorPosition = this._cursorPosition
       this._cursor.style.display = 'block'
       this._cursor.style.backgroundColor = _cursorPosition.color ?? 'rgba(var(--color))'
-      this._cursor.style.left = `${_cursorPosition.left - this.text.glyphBox.left}px`
-      this._cursor.style.top = `${_cursorPosition.top - this.text.glyphBox.top}px`
+      this._cursor.style.left = `${_cursorPosition.left}px`
+      this._cursor.style.top = `${_cursorPosition.top}px`
       this._cursor.style.height = this.text.isVertical ? '1px' : `${_cursorPosition.height}px`
       this._cursor.style.width = this.text.isVertical ? `${_cursorPosition.width}px` : '1px'
     }

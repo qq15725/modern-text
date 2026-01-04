@@ -63,6 +63,7 @@ export class Text extends Reactivable {
   computedStyle: FullStyle = { ...textDefaultStyle }
   computedEffects: NormalizedStyle[] = []
   paragraphs: Paragraph[] = []
+  inlineBox = new BoundingBox()
   lineBox = new BoundingBox()
   rawGlyphBox = new BoundingBox()
   glyphBox = new BoundingBox()
@@ -207,6 +208,7 @@ export class Text extends Reactivable {
       })
     this.glyphBox = this.getGlyphBox()
     this
+      ._updateInlineBox()
       ._updatePathBox()
       ._updateBoundingBox()
     for (const key in old) {
@@ -246,6 +248,13 @@ export class Text extends Reactivable {
       max.x - min.x,
       max.y - min.y,
     )
+  }
+
+  protected _updateInlineBox(): this {
+    this.inlineBox = BoundingBox.from(
+      ...this.paragraphs.flatMap(p => p.fragments.map(f => f.inlineBox)),
+    )
+    return this
   }
 
   protected _updatePathBox(): this {

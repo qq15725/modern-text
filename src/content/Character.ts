@@ -143,7 +143,7 @@ export class Character {
     const unitsPerEm = head.unitsPerEm
     const ascender = hhea.ascent
     const descender = hhea.descent
-    const { content, computedStyle, isVertical } = this
+    const { content, computedStyle } = this
     const { fontSize } = computedStyle
     const rate = unitsPerEm / fontSize
     const advanceWidth = sfnt.getAdvanceWidth(content, fontSize)
@@ -151,8 +151,6 @@ export class Character {
     const baseline = ascender / rate
     this.advanceWidth = advanceWidth
     this.advanceHeight = advanceHeight
-    this.inlineBox.width = isVertical ? advanceHeight : advanceWidth
-    this.inlineBox.height = isVertical ? advanceWidth : advanceHeight
     this.underlinePosition = (ascender - post.underlinePosition) / rate
     this.underlineThickness = post.underlineThickness / rate
     this.strikeoutPosition = (ascender - os2.yStrikeoutPosition) / rate

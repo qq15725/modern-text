@@ -204,8 +204,8 @@ export class Measurer {
       const pBox = pDom.getBoundingClientRect()
       paragraphs.push({
         paragraphIndex,
-        left: pBox.left,
-        top: pBox.top,
+        left: pBox.x,
+        top: pBox.y,
         width: pBox.width,
         height: pBox.height,
       })
@@ -214,8 +214,8 @@ export class Measurer {
         fragments.push({
           paragraphIndex,
           fragmentIndex,
-          left: fBox.left,
-          top: fBox.top,
+          left: fBox.x,
+          top: fBox.y,
           width: fBox.width,
           height: fBox.height,
         })
@@ -263,18 +263,18 @@ export class Measurer {
     const rect = dom.getBoundingClientRect()
     const measured = this.measureDom(dom)
     measured.paragraphs.forEach((p) => {
-      const _p = paragraphs[p.paragraphIndex]
-      _p.lineBox.left = p.left - rect.left
-      _p.lineBox.top = p.top - rect.top
-      _p.lineBox.width = p.width
-      _p.lineBox.height = p.height
+      const box = paragraphs[p.paragraphIndex].lineBox
+      box.left = p.left - rect.left
+      box.top = p.top - rect.top
+      box.width = p.width
+      box.height = p.height
     })
     measured.fragments.forEach((f) => {
-      const _f = paragraphs[f.paragraphIndex].fragments[f.fragmentIndex]
-      _f.inlineBox.left = f.left - rect.left
-      _f.inlineBox.top = f.top - rect.top
-      _f.inlineBox.width = f.width
-      _f.inlineBox.height = f.height
+      const box = paragraphs[f.paragraphIndex].fragments[f.fragmentIndex].inlineBox
+      box.left = f.left - rect.left
+      box.top = f.top - rect.top
+      box.width = f.width
+      box.height = f.height
     })
     const results: MeasuredCharacter[] = []
     let i = 0
@@ -287,26 +287,26 @@ export class Measurer {
         top: character.top - rect.top,
       })
       const item = paragraphs[paragraphIndex].fragments[fragmentIndex].characters[characterIndex]
-      const { fontHeight, isVertical } = item
+      const { fontHeight, isVertical, inlineBox, lineBox } = item
       const result = results[i]
       // inlineBox
-      item.inlineBox.left = result.left
-      item.inlineBox.top = result.top
-      item.inlineBox.width = result.width
-      item.inlineBox.height = result.height
+      inlineBox.left = result.left
+      inlineBox.top = result.top
+      inlineBox.width = result.width
+      inlineBox.height = result.height
 
       // lineBox
       if (isVertical) {
-        item.lineBox.left = result.left + (result.width - fontHeight) / 2
-        item.lineBox.top = result.top
-        item.lineBox.width = fontHeight
-        item.lineBox.height = result.height
+        lineBox.left = result.left + (result.width - fontHeight) / 2
+        lineBox.top = result.top
+        lineBox.width = fontHeight
+        lineBox.height = result.height
       }
       else {
-        item.lineBox.left = result.left
-        item.lineBox.top = result.top + (result.height - fontHeight) / 2
-        item.lineBox.width = result.width
-        item.lineBox.height = fontHeight
+        lineBox.left = result.left
+        lineBox.top = result.top + (result.height - fontHeight) / 2
+        lineBox.width = result.width
+        lineBox.height = fontHeight
       }
 
       i++
