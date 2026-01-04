@@ -1,3 +1,13 @@
+## [1.10.11](https://github.com/qq15725/modern-text/compare/v1.10.10...v1.10.11) (2026-01-04)
+
+
+### Features
+
+* plugin context ([1c045b6](https://github.com/qq15725/modern-text/commit/1c045b6f0a6d37328d9921b694103d1cc6457dce))
+* up deps ([619dafe](https://github.com/qq15725/modern-text/commit/619dafed79248f4cdf22f6fe11a981a8ba09a687))
+
+
+
 ## [1.10.10](https://github.com/qq15725/modern-text/compare/v1.10.9...v1.10.10) (2026-01-04)
 
 
