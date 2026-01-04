@@ -1,3 +1,12 @@
+## [1.10.10](https://github.com/qq15725/modern-text/compare/v1.10.9...v1.10.10) (2026-01-04)
+
+
+### Bug Fixes
+
+* highlight ([186753d](https://github.com/qq15725/modern-text/commit/186753d21a114ee432a766888dff0f90001d8ff8))
+
+
+
 ## [1.10.9](https://github.com/qq15725/modern-text/compare/v1.10.8...v1.10.9) (2026-01-04)
 
 
