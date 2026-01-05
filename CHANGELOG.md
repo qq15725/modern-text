@@ -1,3 +1,12 @@
+## [1.10.13](https://github.com/qq15725/modern-text/compare/v1.10.12...v1.10.13) (2026-01-05)
+
+
+### Bug Fixes
+
+* text load ([2e3ea84](https://github.com/qq15725/modern-text/commit/2e3ea8482448206111b1b24c3757b6c6a18e9bac))
+
+
+
 ## [1.10.12](https://github.com/qq15725/modern-text/compare/v1.10.11...v1.10.12) (2026-01-04)
 
 
