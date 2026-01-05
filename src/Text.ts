@@ -143,15 +143,15 @@ export class Text extends Reactivable {
   }
 
   async load(): Promise<void> {
+    this._update()
     await Promise.all(Array.from(this.plugins.values()).map(p => p.load?.(this)))
   }
 
   protected _update(): this {
     this.computedStyle = { ...textDefaultStyle, ...this.style }
     this.computedEffects = this.effects?.map(v => ({ ...v })) ?? []
-    const { content } = this
     const paragraphs: Paragraph[] = []
-    content.forEach((p, pIndex) => {
+    this.content.forEach((p, pIndex) => {
       const { fragments, fill: pFill, outline: pOutline, ...pStyle } = p
       const paragraph = new Paragraph(pStyle, pIndex, this)
       paragraph.fill = pFill

@@ -9,7 +9,7 @@ export function createSvgLoader(): SvgLoader {
 
   async function load(svg: string): Promise<void> {
     if (!loaded.has(svg)) {
-      loaded.set(svg, svg)
+      loaded.set(svg, '')
       try {
         loaded.set(svg, await fetch(svg).then(rep => rep.text()))
       }
