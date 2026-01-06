@@ -103,12 +103,13 @@ export function backgroundPlugin(): Plugin {
     renderOrder: -2,
     render: (renderer) => {
       const { text, context } = renderer
-      const { boundingBox, computedStyle: style } = text
+      const { lineBox, computedStyle: style } = text
 
       if (!isNone(style.backgroundColor)) {
         context.fillStyle = style.backgroundColor!
-        context.fillRect(...boundingBox.array)
+        context.fillRect(...lineBox.array)
       }
+
       pathSet.paths.forEach((path) => {
         renderer.drawPath(path)
         if (text.debug) {
@@ -118,12 +119,15 @@ export function backgroundPlugin(): Plugin {
           }
         }
       })
+
       text.paragraphs.forEach((p) => {
         const { lineBox, style } = p
+
         if (!isNone(style.backgroundColor)) {
           context.fillStyle = style.backgroundColor!
           context.fillRect(...lineBox.array)
         }
+
         p.fragments.forEach((f) => {
           const { inlineBox, style } = f
           if (!isNone(style.backgroundColor)) {

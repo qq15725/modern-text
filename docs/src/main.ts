@@ -61,7 +61,7 @@ window.onload = async () => {
     const text2 = new Text({
       ...sharedOptions,
       ...fixture,
-      style: { ...fixture.style, writingMode: 'vertical-lr' },
+      style: { ...fixture.style, writingMode: 'vertical-rl' },
       view: view2,
       load: true,
     })

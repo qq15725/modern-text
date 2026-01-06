@@ -1,8 +1,14 @@
-import type { NormalizedStyle } from 'modern-idoc'
+import type {
+  LinearGradientWithType,
+  NormalizedFill,
+  NormalizedOutline,
+  NormalizedStyle,
+  RadialGradientWithType,
+} from 'modern-idoc'
 import type { BoundingBox, Path2D, Path2DDrawStyle, Path2DStyle } from 'modern-path2d'
 import type { Character } from './content'
 import type { Text } from './Text'
-import { isGradient, parseGradient } from 'modern-idoc'
+import { isGradient, normalizeGradient } from 'modern-idoc'
 import { setCanvasContext } from 'modern-path2d'
 
 export interface DrawShapePathsOptions extends
@@ -41,12 +47,26 @@ export class Canvas2DRenderer {
   }
 
   protected _setupColors = (): void => {
-    const { paragraphs, computedStyle, glyphBox } = this.text
-    this.uploadColor(computedStyle, glyphBox)
-    paragraphs.forEach((paragraph) => {
-      this.uploadColor(paragraph.computedStyle, paragraph.lineBox)
+    this.uploadColor(
+      this.text.glyphBox,
+      this.text.computedStyle,
+      this.text.fill,
+      this.text.outline,
+    )
+    this.text.paragraphs.forEach((paragraph) => {
+      this.uploadColor(
+        paragraph.lineBox,
+        paragraph.computedStyle,
+        paragraph.fill,
+        paragraph.outline,
+      )
       paragraph.fragments.forEach((fragment) => {
-        this.uploadColor(fragment.computedStyle, fragment.inlineBox)
+        this.uploadColor(
+          fragment.inlineBox,
+          fragment.computedStyle,
+          fragment.fill,
+          fragment.outline,
+        )
       })
     })
   }
@@ -58,69 +78,44 @@ export class Canvas2DRenderer {
   }
 
   protected _parseColor = (
-    source: string | CanvasGradient | CanvasPattern,
+    source:
+      | string
+      | CanvasGradient
+      | CanvasPattern
+      | LinearGradientWithType
+      | RadialGradientWithType,
     box: BoundingBox,
   ): string | CanvasGradient | CanvasPattern => {
     if (typeof source === 'string' && isGradient(source)) {
-      const gradient = parseGradient(source)[0]
-      if (gradient) {
-        switch (gradient.type) {
-          case 'linear-gradient': {
-            let deg = 0
-            if (gradient.orientation) {
-              switch (gradient.orientation.type) {
-                case 'angular':
-                  deg = Number(gradient.orientation.value)
-                  break
-              }
-            }
-            const { left, top, width, height } = box
-            const rad = (deg * Math.PI) / 180
-            const offsetX = width * Math.sin(rad)
-            const offsetY = height * Math.cos(rad)
-            const canvasGradient = this.context.createLinearGradient(
-              left + width / 2 - offsetX,
-              top + height / 2 + offsetY,
-              left + width / 2 + offsetX,
-              top + height / 2 - offsetY,
-            )
-            gradient.colorStops.forEach((colorStop) => {
-              let offset = 0
-              if (colorStop.length) {
-                switch (colorStop.length.type) {
-                  case '%':
-                    offset = Number(colorStop.length.value) / 100
-                    break
-                  case 'px':
-                  case 'em':
-                  // TODO
-                    break
-                }
-              }
-              switch (colorStop.type) {
-                case 'rgb':
-                  canvasGradient.addColorStop(offset, `rgb(${colorStop.value.join(', ')})`)
-                  break
-                case 'rgba':
-                  canvasGradient.addColorStop(offset, `rgba(${colorStop.value.join(', ')})`)
-                  break
-                case 'hex':
-                  canvasGradient.addColorStop(offset, `#${colorStop.value}`)
-                  break
-                case 'literal':
-                  // TODO
-                  break
-              }
-            })
-            return canvasGradient
-          }
-          case 'radial-gradient':
-            // TODO
-            break
+      source = normalizeGradient(source)[0]
+    }
+
+    if (typeof source === 'object' && 'type' in source) {
+      switch (source.type) {
+        case 'linear-gradient': {
+          const { left, top, width: w, height: h } = box
+          const { angle = 0, stops } = source
+          const cx = left + w / 2
+          const cy = top + h / 2
+          const rad = (angle + 90) * Math.PI / 180
+          const dx = Math.sin(rad)
+          const dy = -Math.cos(rad)
+          const l = Math.abs(w * Math.sin(rad)) + Math.abs(h * Math.cos(rad))
+          const x0 = cx - dx * (l / 2)
+          const y0 = cy - dy * (l / 2)
+          const x1 = cx + dx * (l / 2)
+          const y1 = cy + dy * (l / 2)
+          const g = this.context.createLinearGradient(x0, y0, x1, y1)
+          for (const s of stops) g.addColorStop(s.offset, s.color)
+          return g
         }
+        case 'radial-gradient':
+          // TODO
+          break
       }
     }
-    return source
+
+    return source as string | CanvasGradient | CanvasPattern
   }
 
   protected _uploadedStyles = [
@@ -129,27 +124,33 @@ export class Canvas2DRenderer {
     'textStrokeColor',
   ]
 
-  uploadColor = (style: NormalizedStyle, box: BoundingBox): void => {
+  uploadColor = (
+    box: BoundingBox,
+    style: NormalizedStyle,
+    fill?: NormalizedFill,
+    outline?: NormalizedOutline,
+  ): void => {
     this._uploadedStyles.forEach((key) => {
       ;(style as any)[key] = this._parseColor((style as any)[key], box) as any
     })
-  }
 
-  drawPath = (
-    path: Path2D,
-    options: DrawShapePathsOptions = {},
-  ): void => {
-    const { clipRect } = options
-    const ctx = this.context
-    ctx.save()
-    ctx.beginPath()
-    if (clipRect) {
-      ctx.rect(clipRect.left, clipRect.top, clipRect.width, clipRect.height)
-      ctx.clip()
-      ctx.beginPath()
+    if (fill) {
+      if (fill.linearGradient) {
+        fill.color = this._parseColor({
+          type: 'linear-gradient',
+          ...fill.linearGradient,
+        }, box) as any
+      }
     }
-    path.drawTo(ctx, this._mergePathStyle(path, options))
-    ctx.restore()
+
+    if (outline) {
+      if (outline.linearGradient) {
+        outline.color = this._parseColor({
+          type: 'radial-gradient',
+          ...outline.linearGradient,
+        }, box) as any
+      }
+    }
   }
 
   protected _mergePathStyle(path: Path2D, style: Partial<Path2DStyle>): Partial<Path2DStyle> {
@@ -176,6 +177,23 @@ export class Canvas2DRenderer {
       shadowBlur: (style.shadowBlur ?? 0) * fontSize,
       shadowColor: style.shadowColor,
     }
+  }
+
+  drawPath = (
+    path: Path2D,
+    options: DrawShapePathsOptions = {},
+  ): void => {
+    const { clipRect } = options
+    const ctx = this.context
+    ctx.save()
+    ctx.beginPath()
+    if (clipRect) {
+      ctx.rect(clipRect.left, clipRect.top, clipRect.width, clipRect.height)
+      ctx.clip()
+      ctx.beginPath()
+    }
+    path.drawTo(ctx, this._mergePathStyle(path, options))
+    ctx.restore()
   }
 
   drawCharacter = (

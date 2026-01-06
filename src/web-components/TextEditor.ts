@@ -280,8 +280,8 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
         fragmentIndex: -1,
         charIndex: -1,
         color: c.computedStyle.color,
-        left: c.inlineBox.left - this.text.inlineBox.left,
-        top: c.inlineBox.top - this.text.inlineBox.top,
+        left: c.inlineBox.left,
+        top: c.inlineBox.top,
         width: c.inlineBox.width,
         height: c.inlineBox.height,
         content: c.content,
@@ -590,17 +590,18 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
 
   protected _update(): void {
     this._updateChars()
+    const { boundingBox, lineBox, inlineBox } = this.text
     const host = this.shadowRoot!.host as HTMLElement
     const radian = this.rotate * Math.PI / 180
     const cos = Math.cos(radian)
     const sin = Math.sin(radian)
     host.style.transform = `matrix(${cos}, ${sin}, ${-sin}, ${cos}, ${this.left}, ${this.top})`
-    host.style.width = `${this.text.boundingBox.width}px`
-    host.style.height = `${this.text.boundingBox.height}px`
-    this._container.style.left = `${this.text.inlineBox.left}px`
-    this._container.style.top = `${this.text.inlineBox.top}px`
-    this._container.style.width = `${this.text.inlineBox.width}px`
-    this._container.style.height = `${this.text.inlineBox.height}px`
+    host.style.width = `${boundingBox.width}px`
+    host.style.height = `${boundingBox.height}px`
+    this._container.style.left = `${-boundingBox.left}px`
+    this._container.style.top = `${-boundingBox.top}px`
+    this._container.style.width = `${lineBox.width}px`
+    this._container.style.height = `${lineBox.height}px`
     this._textarea.style.fontSize = `${this.text.computedStyle.fontSize}px`
     this._textarea.style.writingMode = this.text.computedStyle.writingMode
     this._renderSelectRange()

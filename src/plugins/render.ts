@@ -64,7 +64,7 @@ export function renderPlugin(): Plugin {
 
       if (paragraphs.length && computedEffects.length) {
         computedEffects.forEach((style) => {
-          renderer.uploadColor(style, glyphBox)
+          renderer.uploadColor(glyphBox, style)
           context.save()
           const [a, c, e, b, d, f] = getTransform2D(text, style).transpose().elements
           context.transform(a, b, c, d, e, f)
