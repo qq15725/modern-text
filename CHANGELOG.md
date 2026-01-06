@@ -1,3 +1,12 @@
+## [1.10.14](https://github.com/qq15725/modern-text/compare/v1.10.13...v1.10.14) (2026-01-06)
+
+
+### Bug Fixes
+
+* fill outline ([dc8d904](https://github.com/qq15725/modern-text/commit/dc8d9046991e00907ac5c763b743acb4e216ce1b))
+
+
+
 ## [1.10.13](https://github.com/qq15725/modern-text/compare/v1.10.12...v1.10.13) (2026-01-05)
 
 
