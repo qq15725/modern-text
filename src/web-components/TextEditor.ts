@@ -590,7 +590,7 @@ export class TextEditor extends HTMLElement implements PropertyAccessor {
 
   protected _update(): void {
     this._updateChars()
-    const { boundingBox, lineBox, inlineBox } = this.text
+    const { boundingBox, lineBox } = this.text
     const host = this.shadowRoot!.host as HTMLElement
     const radian = this.rotate * Math.PI / 180
     const cos = Math.cos(radian)
