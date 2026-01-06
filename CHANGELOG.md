@@ -1,3 +1,12 @@
+## [1.10.15](https://github.com/qq15725/modern-text/compare/v1.10.14...v1.10.15) (2026-01-06)
+
+
+### Bug Fixes
+
+* linearGradient ([458efe8](https://github.com/qq15725/modern-text/commit/458efe8e2a8f4b3764b054b1c96fa4a47c57606f))
+
+
+
 ## [1.10.14](https://github.com/qq15725/modern-text/compare/v1.10.13...v1.10.14) (2026-01-06)
 
 
