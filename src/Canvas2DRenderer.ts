@@ -50,22 +50,22 @@ export class Canvas2DRenderer {
     this.uploadColor(
       this.text.glyphBox,
       this.text.computedStyle,
-      this.text.fill,
-      this.text.outline,
+      this.text.computedFill,
+      this.text.computedOutline,
     )
     this.text.paragraphs.forEach((paragraph) => {
       this.uploadColor(
         paragraph.lineBox,
         paragraph.computedStyle,
-        paragraph.fill,
-        paragraph.outline,
+        paragraph.computedFill,
+        paragraph.computedOutline,
       )
       paragraph.fragments.forEach((fragment) => {
         this.uploadColor(
           fragment.inlineBox,
           fragment.computedStyle,
-          fragment.fill,
-          fragment.outline,
+          fragment.computedFill,
+          fragment.computedOutline,
         )
       })
     })
@@ -136,7 +136,7 @@ export class Canvas2DRenderer {
 
     if (fill) {
       if (fill.linearGradient) {
-        fill.color = this._parseColor({
+        ;(fill as any)._linearGradient = this._parseColor({
           type: 'linear-gradient',
           ...fill.linearGradient,
         }, box) as any
@@ -145,7 +145,7 @@ export class Canvas2DRenderer {
 
     if (outline) {
       if (outline.linearGradient) {
-        outline.color = this._parseColor({
+        ;(outline as any)._linearGradient = this._parseColor({
           type: 'radial-gradient',
           ...outline.linearGradient,
         }, box) as any
@@ -224,12 +224,14 @@ export class Canvas2DRenderer {
       strokeLinejoin: computedOutline?.lineJoin,
       ...style,
       fill: userStyle.color
+        ?? (computedFill as any)?._linearGradient
         ?? computedFill?.color
         ?? computedStyle.color,
       strokeWidth: userStyle.textStrokeWidth
         ?? computedOutline?.width
         ?? computedStyle.textStrokeWidth,
       stroke: userStyle.textStrokeColor
+        ?? (computedOutline as any)?._linearGradient
         ?? computedOutline?.color
         ?? computedStyle.textStrokeColor,
     }

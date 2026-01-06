@@ -1,5 +1,12 @@
 import type { Fonts } from 'modern-font'
-import type { FullStyle, NormalizedStyle, NormalizedText, ReactivableEvents } from 'modern-idoc'
+import type {
+  FullStyle,
+  NormalizedFill,
+  NormalizedOutline,
+  NormalizedStyle,
+  NormalizedText,
+  ReactivableEvents,
+} from 'modern-idoc'
 import type { Path2DSet } from 'modern-path2d'
 import type { Character } from './content'
 import type { Options, Plugin } from './types'
@@ -61,6 +68,8 @@ export class Text extends Reactivable {
 
   needsUpdate = true
   computedStyle: FullStyle = { ...textDefaultStyle }
+  computedFill: NormalizedFill | undefined
+  computedOutline: NormalizedOutline | undefined
   computedEffects: NormalizedStyle[] = []
   paragraphs: Paragraph[] = []
   inlineBox = new BoundingBox()
@@ -149,6 +158,8 @@ export class Text extends Reactivable {
 
   protected _update(): this {
     this.computedStyle = { ...textDefaultStyle, ...this.style }
+    this.computedFill = this.fill ? { ...this.fill } : undefined
+    this.computedOutline = this.outline ? { ...this.outline } : undefined
     this.computedEffects = this.effects?.map(v => ({ ...v })) ?? []
     const paragraphs: Paragraph[] = []
     this.content.forEach((p, pIndex) => {
@@ -159,10 +170,16 @@ export class Text extends Reactivable {
       fragments.forEach((f, fIndex) => {
         const { content, fill: fFill, outline: fOutline, ...fStyle } = f
         if (content !== undefined) {
-          const fragment = new Fragment(content, fStyle, fIndex, paragraph)
-          paragraph.fragments.push(fragment)
-          fragment.fill = fFill
-          fragment.outline = fOutline
+          paragraph.fragments.push(
+            new Fragment(
+              content,
+              fStyle,
+              fFill,
+              fOutline,
+              fIndex,
+              paragraph,
+            ),
+          )
         }
       })
       paragraphs.push(paragraph)

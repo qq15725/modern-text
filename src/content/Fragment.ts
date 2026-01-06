@@ -6,18 +6,11 @@ import { filterEmpty } from '../utils'
 
 export class Fragment {
   inlineBox = new BoundingBox()
-  fill?: NormalizedFill
-  outline?: NormalizedOutline
+
   declare characters: Character[]
   declare computedStyle: FullStyle
-
-  get computedFill(): NormalizedFill | undefined {
-    return this.fill ?? this.parent.computedFill
-  }
-
-  get computedOutline(): NormalizedOutline | undefined {
-    return this.outline ?? this.parent.computedOutline
-  }
+  declare computedFill: NormalizedFill | undefined
+  declare computedOutline: NormalizedOutline | undefined
 
   get computedContent(): string {
     const style = this.computedStyle
@@ -29,19 +22,28 @@ export class Fragment {
   }
 
   constructor(
-    public content: string,
-    public style: NormalizedStyle = {},
-    public index: number,
-    public parent: Paragraph,
+    readonly content: string,
+    readonly style: NormalizedStyle = {},
+    readonly fill: NormalizedFill | undefined,
+    readonly outline: NormalizedOutline | undefined,
+    readonly index: number,
+    readonly parent: Paragraph,
   ) {
-    this.updateComputedStyle().initCharacters()
+    this.update().initCharacters()
   }
 
-  updateComputedStyle(): this {
+  update(): this {
     this.computedStyle = {
       ...this.parent.computedStyle,
       ...(filterEmpty(this.style) as NormalizedStyle),
     } as FullStyle
+
+    const fill = this.fill ?? this.parent.computedFill
+    this.computedFill = fill ? { ...filterEmpty(fill) } : undefined
+
+    const outline = this.outline ?? this.parent.computedOutline
+    this.computedOutline = outline ? { ...filterEmpty(outline) } : undefined
+
     return this
   }
 

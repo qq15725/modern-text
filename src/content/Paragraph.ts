@@ -11,28 +11,29 @@ export class Paragraph {
   outline?: NormalizedOutline
 
   declare computedStyle: FullStyle
-
-  get computedFill(): NormalizedFill | undefined {
-    return this.fill ?? this.parent.fill
-  }
-
-  get computedOutline(): NormalizedOutline | undefined {
-    return this.outline ?? this.parent.outline
-  }
+  declare computedFill: NormalizedFill | undefined
+  declare computedOutline: NormalizedOutline | undefined
 
   constructor(
-    public style: NormalizedStyle,
-    public index: number,
-    public parent: Text,
+    readonly style: NormalizedStyle,
+    readonly index: number,
+    readonly parent: Text,
   ) {
-    this.updateComputedStyle()
+    this.update()
   }
 
-  updateComputedStyle(): this {
+  update(): this {
     this.computedStyle = {
       ...filterEmpty(this.parent.computedStyle),
       ...filterEmpty(this.style),
     } as FullStyle
+
+    const fill = this.fill ?? this.parent.computedFill
+    this.computedFill = fill ? { ...filterEmpty(fill) } : undefined
+
+    const outline = this.outline ?? this.parent.computedOutline
+    this.computedOutline = outline ? { ...filterEmpty(outline) } : undefined
+
     return this
   }
 }
