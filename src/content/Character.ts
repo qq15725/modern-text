@@ -162,8 +162,8 @@ export class Character {
     this.typoLineGap = os2.sTypoLineGap / rate
     this.winAscent = os2.usWinAscent / rate
     this.winDescent = os2.usWinDescent / rate
-    this.xHeight = os2.sxHeight / rate
-    this.capHeight = os2.sCapHeight / rate
+    this.xHeight = os2.version > 1 ? os2.sxHeight / rate : 0
+    this.capHeight = os2.version > 1 ? os2.sCapHeight / rate : 0
     this.baseline = baseline
     this.centerDiviation = advanceHeight / 2 - baseline
     this.fontStyle = fsSelectionMap[os2.fsSelection] ?? macStyleMap[head.macStyle]
