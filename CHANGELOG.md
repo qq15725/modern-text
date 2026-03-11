@@ -1,3 +1,9 @@
+## [1.10.16](https://github.com/qq15725/modern-text/compare/v1.10.15...v1.10.16) (2026-03-11)
+
+
+### Bug Fixes
+
+* capHeight / xHeight ([ca8c08c](https://github.com/qq15725/modern-text/commit/ca8c08cd1321fc771c5427abbb4972a08ad31842))
 ## [1.10.15](https://github.com/qq15725/modern-text/compare/v1.10.14...v1.10.15) (2026-01-06)
 
 
