@@ -1,0 +1,39 @@
+{
+  "style": {
+    "fontSize": 118,
+    "lineHeight": 1.5
+  },
+  "content": [
+    {
+      "fragments": [
+        {
+          "content": "XINGHEDAOJIA"
+        }
+      ]
+    }
+  ],
+  "effects": [
+    {
+      "transformOrigin": "center top",
+      "translateX": 0.00001388888888888889,
+      "translateY": 0,
+      "skewX": 6,
+      "skewY": 0,
+      "shadowOffsetX": 0,
+      "shadowOffsetY": -0.00001388888888888889,
+      "shadowBlur": 0,
+      "shadowColor": "#00000080",
+      "color": "#333333ff"
+    },
+    {
+      "transformOrigin": "center top",
+      "translateX": 0,
+      "translateY": 0,
+      "skewX": -7,
+      "skewY": 0,
+      "textStrokeWidth": 0.027777777777777776,
+      "textStrokeColor": "#4a4a4aff",
+      "color": "#ffffffff"
+    }
+  ]
+}

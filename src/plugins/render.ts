@@ -98,22 +98,59 @@ export function renderPlugin(): Plugin {
   })
 }
 
+function parseTransformOrigin(origin: string, left: number, top: number, width: number, height: number): { x: number, y: number } {
+  const keywordX: Record<string, number> = { left: 0, center: 0.5, right: 1 }
+  const keywordY: Record<string, number> = { top: 0, center: 0.5, bottom: 1 }
+
+  const parts = origin.trim().split(/\s+/)
+  const rawX = parts[0] ?? 'center'
+  const rawY = parts[1] ?? 'center'
+
+  let ox: number
+  if (rawX in keywordX) {
+    ox = left + keywordX[rawX] * width
+  }
+  else if (rawX.endsWith('%')) {
+    ox = left + (Number.parseFloat(rawX) / 100) * width
+  }
+  else {
+    ox = left + Number.parseFloat(rawX)
+  }
+
+  let oy: number
+  if (rawY in keywordY) {
+    oy = top + keywordY[rawY] * height
+  }
+  else if (rawY.endsWith('%')) {
+    oy = top + (Number.parseFloat(rawY) / 100) * height
+  }
+  else {
+    oy = top + Number.parseFloat(rawY)
+  }
+
+  return { x: ox, y: oy }
+}
+
 export function getTransform2D(text: Text, style: NormalizedStyle): Matrix3 {
-  const { fontSize, glyphBox } = text
+  const { fontSize, lineBox } = text
   const translateX = (style.translateX ?? 0) * fontSize
   const translateY = (style.translateY ?? 0) * fontSize
   const PI_2 = Math.PI * 2
-  const skewX = ((style.skewX ?? 0) / 360) * PI_2
-  const skewY = ((style.skewY ?? 0) / 360) * PI_2
-  const { left, top, width, height } = glyphBox
-  const centerX = left + width / 2
-  const centerY = top + height / 2
+  const skewX = Math.tan(((style.skewX ?? 0) / 360) * PI_2)
+  const skewY = Math.tan(((style.skewY ?? 0) / 360) * PI_2)
+  const { left, top, width, height } = lineBox
+  const origin = parseTransformOrigin(
+    style.transformOrigin ?? 'center',
+    left, top, width, height,
+  )
+  const centerX = origin.x
+  const centerY = origin.y
   tempM1.identity()
   tempM2.makeTranslation(translateX, translateY)
   tempM1.multiply(tempM2)
   tempM2.makeTranslation(centerX, centerY)
   tempM1.multiply(tempM2)
-  tempM2.set(1, Math.tan(skewX), 0, Math.tan(skewY), 1, 0, 0, 0, 1)
+  tempM2.set(1, skewX, 0, skewY, 1, 0, 0, 0, 1)
   tempM1.multiply(tempM2)
   tempM2.makeTranslation(-centerX, -centerY)
   tempM1.multiply(tempM2)
