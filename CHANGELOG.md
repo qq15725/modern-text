@@ -1,3 +1,14 @@
+## [1.10.17](https://github.com/qq15725/modern-text/compare/v1.10.16...v1.10.17) (2026-04-10)
+
+
+### Bug Fixes
+
+* transformOrigin in effects ([03e546d](https://github.com/qq15725/modern-text/commit/03e546d37f81c7f6aadd236385d8a4ee7a332eb8))
+
+
+### Features
+
+* up deps ([9b2a00f](https://github.com/qq15725/modern-text/commit/9b2a00f0cf6cba2500ef5ec6d92031d62818c47d))
 ## [1.10.16](https://github.com/qq15725/modern-text/compare/v1.10.15...v1.10.16) (2026-03-11)
 
 
