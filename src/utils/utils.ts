@@ -43,36 +43,10 @@ export function isEqualValue(val1: any, val2: any): boolean {
   const typeof1 = typeof val1
   const typeof2 = typeof val2
   if (typeof1 === typeof2) {
-    if (typeof1 === 'object') {
+    if (typeof1 && typeof1 === 'object') {
       return isEqualObject(val1, val2)
     }
     return val1 === val2
   }
   return false
-}
-
-export function hexToRgb(hex: string): string | null {
-  const cleanHex = hex.startsWith('#') ? hex.slice(1) : hex
-  const isValidHex = /^(?:[0-9A-F]{3}|[0-9A-F]{6})$/i.test(cleanHex)
-  if (!isValidHex)
-    return null
-  const fullHex = cleanHex.length === 3
-    ? cleanHex.split('').map(char => char + char).join('')
-    : cleanHex
-  const r = Number.parseInt(fullHex.slice(0, 2), 16)
-  const g = Number.parseInt(fullHex.slice(2, 4), 16)
-  const b = Number.parseInt(fullHex.slice(4, 6), 16)
-  return `rgb(${r}, ${g}, ${b})`
-}
-
-export function filterEmpty(val: Record<string, any> | undefined): Record<string, any> | undefined {
-  if (!val)
-    return val
-  const res: Record<string, any> = {}
-  for (const key in val) {
-    if (val[key] !== '' && val[key] !== undefined) {
-      res[key] = val[key]
-    }
-  }
-  return res
 }

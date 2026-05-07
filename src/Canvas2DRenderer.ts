@@ -1,20 +1,19 @@
 import type {
   LinearGradientWithType,
+  NormalizedEffect,
   NormalizedFill,
   NormalizedOutline,
   NormalizedStyle,
   RadialGradientWithType,
 } from 'modern-idoc'
-import type { BoundingBox, Path2D, Path2DDrawStyle, Path2DStyle } from 'modern-path2d'
+import type { BoundingBox, Path2D, Path2DStyle } from 'modern-path2d'
 import type { Character } from './content'
 import type { Text } from './Text'
-import { isGradient, normalizeGradient } from 'modern-idoc'
+import { clearUndef, isGradient, normalizeGradient } from 'modern-idoc'
 import { setCanvasContext } from 'modern-path2d'
+import { getEffectTransform2D } from './utils'
 
-export interface DrawShapePathsOptions extends
-  NormalizedStyle,
-  Omit<Partial<Path2DDrawStyle>, 'fill' | 'outline'> {
-  fontSize?: number
+export interface DrawShapePathsOptions extends Partial<Path2DStyle> {
   clipRect?: BoundingBox
 }
 
@@ -47,26 +46,23 @@ export class Canvas2DRenderer {
   }
 
   protected _setupColors = (): void => {
-    this.uploadColor(
-      this.text.glyphBox,
-      this.text.computedStyle,
-      this.text.computedFill,
-      this.text.computedOutline,
-    )
+    this.uploadColor(this.text.glyphBox, {
+      style: this.text.computedStyle,
+      fill: this.text.computedFill,
+      outline: this.text.computedOutline,
+    })
     this.text.paragraphs.forEach((paragraph) => {
-      this.uploadColor(
-        paragraph.lineBox,
-        paragraph.computedStyle,
-        paragraph.computedFill,
-        paragraph.computedOutline,
-      )
+      this.uploadColor(paragraph.lineBox, {
+        style: paragraph.computedStyle,
+        fill: paragraph.computedFill,
+        outline: paragraph.computedOutline,
+      })
       paragraph.fragments.forEach((fragment) => {
-        this.uploadColor(
-          fragment.inlineBox,
-          fragment.computedStyle,
-          fragment.computedFill,
-          fragment.computedOutline,
-        )
+        this.uploadColor(fragment.inlineBox, {
+          style: fragment.computedStyle,
+          fill: fragment.computedFill,
+          outline: fragment.computedOutline,
+        })
       })
     })
   }
@@ -126,15 +122,21 @@ export class Canvas2DRenderer {
 
   uploadColor = (
     box: BoundingBox,
-    style: NormalizedStyle,
-    fill?: NormalizedFill,
-    outline?: NormalizedOutline,
+    ctx: {
+      style?: NormalizedStyle
+      fill?: NormalizedFill
+      outline?: NormalizedOutline
+    },
   ): void => {
-    this._uploadedStyles.forEach((key) => {
-      ;(style as any)[key] = this._parseColor((style as any)[key], box) as any
-    })
+    const { style, fill, outline } = ctx
 
-    if (fill) {
+    if (style) {
+      this._uploadedStyles.forEach((key) => {
+        ;(style as any)[key] = this._parseColor((style as any)[key], box) as any
+      })
+    }
+
+    if (fill?.enabled) {
       if (fill.linearGradient) {
         ;(fill as any)._linearGradient = this._parseColor({
           type: 'linear-gradient',
@@ -143,10 +145,10 @@ export class Canvas2DRenderer {
       }
     }
 
-    if (outline) {
+    if (outline?.enabled) {
       if (outline.linearGradient) {
         ;(outline as any)._linearGradient = this._parseColor({
-          type: 'radial-gradient',
+          type: 'linear-gradient',
           ...outline.linearGradient,
         }, box) as any
       }
@@ -154,28 +156,19 @@ export class Canvas2DRenderer {
   }
 
   protected _mergePathStyle(path: Path2D, style: Partial<Path2DStyle>): Partial<Path2DStyle> {
-    const {
-      fontSize = this.text.computedStyle.fontSize,
-    } = style
-
     const pathStyle = path.style
     const stroke = style.stroke ?? pathStyle.stroke
     const strokeWidth = style.strokeWidth
-      ? style.strokeWidth * fontSize
+      ? style.strokeWidth
       : pathStyle.strokeWidth
 
     return {
-      ...pathStyle,
-      ...style,
-      fill: style.fill ?? pathStyle.fill,
+      ...clearUndef(pathStyle),
+      ...clearUndef(style),
       stroke: strokeWidth === undefined || strokeWidth > 0 ? stroke : undefined,
       strokeLinecap: style.strokeLinecap ?? pathStyle.strokeLinecap ?? 'round',
       strokeLinejoin: style.strokeLinejoin ?? pathStyle.strokeLinejoin ?? 'round',
       strokeWidth,
-      shadowOffsetX: (style.shadowOffsetX ?? 0) * fontSize,
-      shadowOffsetY: (style.shadowOffsetY ?? 0) * fontSize,
-      shadowBlur: (style.shadowBlur ?? 0) * fontSize,
-      shadowColor: style.shadowColor,
     }
   }
 
@@ -183,7 +176,7 @@ export class Canvas2DRenderer {
     path: Path2D,
     options: DrawShapePathsOptions = {},
   ): void => {
-    const { clipRect } = options
+    const { clipRect, ...pathStyle } = options
     const ctx = this.context
     ctx.save()
     ctx.beginPath()
@@ -192,18 +185,56 @@ export class Canvas2DRenderer {
       ctx.clip()
       ctx.beginPath()
     }
-    path.drawTo(ctx, this._mergePathStyle(path, options))
+    path.drawTo(ctx, this._mergePathStyle(path, pathStyle))
     ctx.restore()
+  }
+
+  effectToPathStyle(effect: NormalizedEffect): Partial<Path2DStyle> {
+    const fontSize = this.text.computedStyle.fontSize
+
+    let style: Partial<Path2DStyle> = {}
+
+    if (effect.fill?.enabled) {
+      style = {
+        ...style,
+        fill: effect.fill.color,
+      }
+    }
+
+    if (effect.outline?.enabled) {
+      style = {
+        ...style,
+        stroke: effect.outline.color,
+        strokeWidth: (effect.outline.width ?? 0) * fontSize,
+      }
+    }
+
+    if (effect.shadow?.enabled) {
+      style = {
+        ...style,
+        shadowOffsetX: (effect.shadow.offsetX ?? 0) * fontSize,
+        shadowOffsetY: (effect.shadow.offsetY ?? 0) * fontSize,
+        shadowBlur: (effect.shadow.blur ?? 0) * fontSize,
+        shadowColor: effect.shadow.color,
+      }
+    }
+
+    return style
+  }
+
+  transformEffect(effect: NormalizedEffect): void {
+    const { a, b, c, d, tx, ty } = getEffectTransform2D(this.text, effect)
+    this.context.transform(a, b, c, d, tx, ty)
   }
 
   drawCharacter = (
     character: Character,
-    userStyle: NormalizedStyle = {},
+    effect: NormalizedEffect = {},
   ): void => {
     const ctx = this.context
 
     const {
-      computedStyle,
+      computedStyle: style,
       path,
       glyphBox,
       isVertical,
@@ -214,36 +245,42 @@ export class Canvas2DRenderer {
       computedOutline,
     } = character
 
-    const style = {
-      ...computedStyle,
-      ...userStyle,
-    }
+    const fill = computedFill?.enabled
+      ? computedFill
+      : undefined
+
+    const outline = computedOutline?.enabled
+      ? computedOutline
+      : undefined
+
+    const effectPathStyle = this.effectToPathStyle(effect)
 
     const pathStyle: Partial<Path2DStyle> = {
-      strokeLinecap: computedOutline?.lineCap,
-      strokeLinejoin: computedOutline?.lineJoin,
+      strokeLinecap: outline?.lineCap,
+      strokeLinejoin: outline?.lineJoin,
       ...style,
-      fill: userStyle.color
-        ?? (computedFill as any)?._linearGradient
-        ?? computedFill?.color
-        ?? computedStyle.color,
-      strokeWidth: userStyle.textStrokeWidth
-        ?? computedOutline?.width
-        ?? computedStyle.textStrokeWidth,
-      stroke: userStyle.textStrokeColor
-        ?? (computedOutline as any)?._linearGradient
-        ?? computedOutline?.color
-        ?? computedStyle.textStrokeColor,
+      ...effectPathStyle,
+      fill: effectPathStyle.fill
+        ?? (fill as any)?._linearGradient
+        ?? fill?.color
+        ?? style.color,
+      strokeWidth: effectPathStyle.strokeWidth
+        ?? outline?.width
+        ?? style.textStrokeWidth,
+      stroke: effectPathStyle.stroke
+        ?? (outline as any)?._linearGradient
+        ?? outline?.color
+        ?? style.textStrokeColor,
     }
 
     if (glyphBox) {
-      this.drawPath(path, pathStyle as any)
+      this.drawPath(path, pathStyle)
     }
     else {
       ctx.save()
       ctx.beginPath()
       setCanvasContext(ctx, this._mergePathStyle(path, pathStyle))
-      ctx.font = `${style.fontSize}px ${style.fontFamily}`
+      ctx.font = `${style.fontSize}px ${style.fontFamily || this.text.defaultFamily}`
       if (isVertical) {
         ctx.textBaseline = 'middle'
         ctx.fillText(content, inlineBox.left, inlineBox.top + inlineBox.height / 2)

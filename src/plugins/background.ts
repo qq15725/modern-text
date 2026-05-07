@@ -1,6 +1,6 @@
 import type { Plugin } from '../types'
 import { isNone } from 'modern-idoc'
-import { BoundingBox, Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
+import { BoundingBox, Path2DSet, Transform2D, Vector2 } from 'modern-path2d'
 import { createSvgLoader, createSvgParser, parseColormap } from '../utils'
 
 export function backgroundPlugin(): Plugin {
@@ -59,7 +59,7 @@ export function backgroundPlugin(): Plugin {
       let scaleX: number
       let scaleY: number
       if (backgroundSize === 'rigid') {
-        scaleX = Math.max((text.fontSize * 5) / imageBox.width)
+        scaleX = (text.fontSize * 5) / imageBox.width
         scaleY = scaleX
         const dist = new Vector2()
         dist.x = imageBox.width - width / scaleX
@@ -82,20 +82,18 @@ export function backgroundPlugin(): Plugin {
         scaleY = height / imageBox.height
       }
 
-      const transform = new Matrix3()
+      const transform = new Transform2D()
       transform.translate(-imageBox.x, -imageBox.y)
       transform.scale(scaleX, scaleY)
       if (isVertical) {
         transform.translate(-width / 2, -height / 2)
-        transform.rotate(-Math.PI / 2)
+        transform.rotate(Math.PI / 2)
         transform.translate(height / 2, width / 2)
       }
       transform.translate(x, y)
 
       paths.forEach((path) => {
-        path.applyTransform((p) => {
-          p.applyMatrix3(transform)
-        })
+        path.applyTransform(transform)
       })
 
       pathSet.paths.push(...paths)

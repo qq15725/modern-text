@@ -1,8 +1,8 @@
 import type { FullStyle, NormalizedFill, NormalizedOutline, NormalizedStyle } from 'modern-idoc'
 import type { Text } from '../Text'
 import type { Fragment } from './Fragment'
+import { clearUndef } from 'modern-idoc'
 import { BoundingBox } from 'modern-path2d'
-import { filterEmpty } from '../utils'
 
 export class Paragraph {
   lineBox = new BoundingBox()
@@ -24,15 +24,15 @@ export class Paragraph {
 
   update(): this {
     this.computedStyle = {
-      ...filterEmpty(this.parent.computedStyle),
-      ...filterEmpty(this.style),
+      ...clearUndef(this.parent.computedStyle),
+      ...clearUndef(this.style),
     } as FullStyle
 
     const fill = this.fill ?? this.parent.computedFill
-    this.computedFill = fill ? { ...filterEmpty(fill) } : undefined
+    this.computedFill = fill ? clearUndef(fill) as NormalizedFill : undefined
 
     const outline = this.outline ?? this.parent.computedOutline
-    this.computedOutline = outline ? { ...filterEmpty(outline) } : undefined
+    this.computedOutline = outline ? clearUndef(outline) as NormalizedOutline : undefined
 
     return this
   }

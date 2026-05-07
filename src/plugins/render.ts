@@ -1,12 +1,7 @@
-import type { NormalizedStyle } from 'modern-idoc'
-import type { Text } from '../Text'
 import type { Plugin } from '../types'
-import { BoundingBox, Matrix3, Path2DSet, Vector2 } from 'modern-path2d'
+import { BoundingBox, Path2DSet } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
-
-const tempV1 = new Vector2()
-const tempM1 = new Matrix3()
-const tempM2 = new Matrix3()
+import { getEffectTransform2D } from '../utils'
 
 export function renderPlugin(): Plugin {
   const pathSet = new Path2DSet()
@@ -29,30 +24,39 @@ export function renderPlugin(): Plugin {
       })
     },
     getBoundingBox: (text) => {
-      const { characters, fontSize, computedEffects } = text
+      const { characters, computedEffects } = text
       const boxes: BoundingBox[] = []
-      characters.forEach((character) => {
-        computedEffects.forEach((style) => {
+      computedEffects.forEach((effect) => {
+        const t2d = getEffectTransform2D(text, effect)
+        characters.forEach((character) => {
           if (!character.glyphBox) {
             return
           }
           const aabb = character.glyphBox.clone()
-          const m = getTransform2D(text, style)
-          tempV1.set(aabb.left, aabb.top)
-          tempV1.applyMatrix3(m)
-          aabb.left = tempV1.x
-          aabb.top = tempV1.y
-          tempV1.set(aabb.right, aabb.bottom)
-          tempV1.applyMatrix3(m)
-          aabb.width = tempV1.x - aabb.left
-          aabb.height = tempV1.y - aabb.top
-          const shadowOffsetX = (style.shadowOffsetX ?? 0) * fontSize
-          const shadowOffsetY = (style.shadowOffsetY ?? 0) * fontSize
-          const textStrokeWidth = Math.max(0.1, style.textStrokeWidth ?? 0) * fontSize
-          aabb.left += shadowOffsetX - textStrokeWidth
-          aabb.top += shadowOffsetY - textStrokeWidth
-          aabb.width += textStrokeWidth * 2
-          aabb.height += textStrokeWidth * 2
+          const p1 = t2d.apply({ x: aabb.left, y: aabb.top })
+          const p2 = t2d.apply({ x: aabb.right, y: aabb.top })
+          const p3 = t2d.apply({ x: aabb.right, y: aabb.bottom })
+          const p4 = t2d.apply({ x: aabb.left, y: aabb.bottom })
+          const minX = Math.min(p1.x, p2.x, p3.x, p4.x)
+          const minY = Math.min(p1.y, p2.y, p3.y, p4.y)
+          const maxX = Math.max(p1.x, p2.x, p3.x, p4.x)
+          const maxY = Math.max(p1.y, p2.y, p3.y, p4.y)
+          aabb.left = minX
+          aabb.top = minY
+          aabb.width = maxX - minX
+          aabb.height = maxY - minY
+          if (effect.shadow?.enabled) {
+            const { offsetX = 0, offsetY = 0 } = effect.shadow
+            aabb.left -= offsetX
+            aabb.top -= offsetY
+          }
+          if (effect.outline?.enabled) {
+            const outlineWidth = Math.max(0.1, effect.outline.width ?? 0)
+            aabb.left -= outlineWidth
+            aabb.top -= outlineWidth
+            aabb.width += outlineWidth * 2
+            aabb.height += outlineWidth * 2
+          }
           boxes.push(aabb)
         })
       })
@@ -60,16 +64,23 @@ export function renderPlugin(): Plugin {
     },
     render: (renderer) => {
       const { text, context } = renderer
-      const { paragraphs, glyphBox, computedEffects } = text
+      const {
+        paragraphs,
+        glyphBox,
+        computedEffects: effects,
+      } = text
 
-      if (paragraphs.length && computedEffects.length) {
-        computedEffects.forEach((style) => {
-          renderer.uploadColor(glyphBox, style)
+      if (!paragraphs.length) {
+        return
+      }
+
+      if (effects.length) {
+        effects.forEach((effect) => {
+          renderer.uploadColor(glyphBox, effect)
           context.save()
-          const [a, c, e, b, d, f] = getTransform2D(text, style).transpose().elements
-          context.transform(a, b, c, d, e, f)
+          renderer.transformEffect(effect)
           text.forEachCharacter((character) => {
-            renderer.drawCharacter(character, style)
+            renderer.drawCharacter(character, effect)
           })
           context.restore()
         })
@@ -96,63 +107,4 @@ export function renderPlugin(): Plugin {
       }
     },
   })
-}
-
-function parseTransformOrigin(origin: string, left: number, top: number, width: number, height: number): { x: number, y: number } {
-  const keywordX: Record<string, number> = { left: 0, center: 0.5, right: 1 }
-  const keywordY: Record<string, number> = { top: 0, center: 0.5, bottom: 1 }
-
-  const parts = origin.trim().split(/\s+/)
-  const rawX = parts[0] ?? 'center'
-  const rawY = parts[1] ?? 'center'
-
-  let ox: number
-  if (rawX in keywordX) {
-    ox = left + keywordX[rawX] * width
-  }
-  else if (rawX.endsWith('%')) {
-    ox = left + (Number.parseFloat(rawX) / 100) * width
-  }
-  else {
-    ox = left + Number.parseFloat(rawX)
-  }
-
-  let oy: number
-  if (rawY in keywordY) {
-    oy = top + keywordY[rawY] * height
-  }
-  else if (rawY.endsWith('%')) {
-    oy = top + (Number.parseFloat(rawY) / 100) * height
-  }
-  else {
-    oy = top + Number.parseFloat(rawY)
-  }
-
-  return { x: ox, y: oy }
-}
-
-export function getTransform2D(text: Text, style: NormalizedStyle): Matrix3 {
-  const { fontSize, lineBox } = text
-  const translateX = (style.translateX ?? 0) * fontSize
-  const translateY = (style.translateY ?? 0) * fontSize
-  const PI_2 = Math.PI * 2
-  const skewX = Math.tan(((style.skewX ?? 0) / 360) * PI_2)
-  const skewY = Math.tan(((style.skewY ?? 0) / 360) * PI_2)
-  const { left, top, width, height } = lineBox
-  const origin = parseTransformOrigin(
-    style.transformOrigin ?? 'center',
-    left, top, width, height,
-  )
-  const centerX = origin.x
-  const centerY = origin.y
-  tempM1.identity()
-  tempM2.makeTranslation(translateX, translateY)
-  tempM1.multiply(tempM2)
-  tempM2.makeTranslation(centerX, centerY)
-  tempM1.multiply(tempM2)
-  tempM2.set(1, skewX, 0, skewY, 1, 0, 0, 0, 1)
-  tempM1.multiply(tempM2)
-  tempM2.makeTranslation(-centerX, -centerY)
-  tempM1.multiply(tempM2)
-  return tempM1.clone()
 }

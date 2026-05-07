@@ -1,8 +1,9 @@
 import type { Fonts, SFNT } from 'modern-font'
 import type { FontWeight, FullStyle, NormalizedFill, NormalizedOutline } from 'modern-idoc'
-import type { Vector2, VectorLike } from 'modern-path2d'
+import type { Vector2, Vector2Like } from 'modern-path2d'
 import type { Fragment } from './Fragment'
 import { fonts as globalFonts } from 'modern-font'
+import { clearUndef } from 'modern-idoc'
 import { BoundingBox, Path2D } from 'modern-path2d'
 
 const set1 = new Set(['\xA9', '\xAE', '\xF7'])
@@ -211,7 +212,11 @@ export class Character {
       // glyphIndex = font.substitutes[font.charToGlyphIndex(content)]
     }
 
-    if (isVertical && !set1.has(content) && (content.codePointAt(0)! <= 256 || set2.has(content))) {
+    if (
+      isVertical
+      && !set1.has(content)
+      && (content.codePointAt(0)! <= 256 || set2.has(content))
+    ) {
       path.addCommands(
         sfnt.getPathCommands(
           content,
@@ -225,17 +230,12 @@ export class Character {
         x: x + advanceWidth / 2,
       }
       if (needsItalic) {
-        this._italic(
-          path,
-          isVertical
-            ? {
-                x: point.x,
-                y: top - (advanceHeight - advanceWidth) / 2 + baseline,
-              }
-            : undefined,
-        )
+        this._italic(path, {
+          x: point.x,
+          y: top - (advanceHeight - advanceWidth) / 2 + baseline,
+        })
       }
-      path.rotate(90, point)
+      path.rotate(Math.PI / 2, point)
     }
     else {
       if (glyphIndex !== undefined) {
@@ -278,25 +278,24 @@ export class Character {
       path.bold(fontWeightMap[fontWeight] * style.fontSize * 0.05)
     }
 
-    path.style = {
-      fill: this.computedFill ?? style.color,
+    path.style = clearUndef({
+      fill: style.color,
       fillRule: 'nonzero',
-      stroke: this.computedOutline ?? (
-        style.textStrokeWidth
-          ? style.textStrokeColor
-          : 'none'
-      ),
+      stroke: style.textStrokeWidth
+        ? style.textStrokeColor
+        : undefined,
       strokeWidth: style.textStrokeWidth
         ? style.textStrokeWidth * style.fontSize * 0.03
-        : 0,
-    }
+        : undefined,
+    })
+
     this.path = path
     this.glyphBox = this.getGlyphBoundingBox()
 
     return this
   }
 
-  protected _italic(path: Path2D, startPoint?: VectorLike): void {
+  protected _italic(path: Path2D, startPoint?: Vector2Like): void {
     path.skew(-0.24, 0, startPoint || {
       y: this.inlineBox.top + this.baseline,
       x: this.inlineBox.left + this.inlineBox.width / 2,

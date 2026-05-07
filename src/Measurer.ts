@@ -319,7 +319,7 @@ export class Measurer {
   }
 
   measure(paragraphs: Paragraph[], rootStyle: FullStyle, dom?: HTMLElement): MeasureDomResult {
-    let destory: undefined | (() => void)
+    let destroy: undefined | (() => void)
     if (!dom) {
       dom = this.createDom(paragraphs, rootStyle)
       Object.assign(dom.style, {
@@ -327,10 +327,10 @@ export class Measurer {
         visibility: 'hidden',
       })
       document.body.appendChild(dom)
-      destory = () => dom?.parentNode?.removeChild(dom)
+      destroy = () => dom?.parentNode?.removeChild(dom)
     }
     const result = this.measureParagraphDom(paragraphs, dom)
-    destory?.()
+    destroy?.()
     return result
   }
 }

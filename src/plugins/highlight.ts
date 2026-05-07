@@ -2,7 +2,7 @@ import type { HighlightLine, NormalizedHighlight, NormalizedStyle } from 'modern
 import type { Character } from '../content'
 import type { Plugin } from '../types'
 import { isNone } from 'modern-idoc'
-import { BoundingBox, Matrix3, Path2DSet } from 'modern-path2d'
+import { BoundingBox, Path2DSet, Transform2D } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
 import {
   createSvgLoader,
@@ -175,7 +175,7 @@ export function highlightPlugin(): Plugin {
             parser
               .parse(referImage)
               .pathSet
-              .getBoundingBox(true)!,
+              .getBoundingBox(true) ?? new BoundingBox(),
           )
         }
         else {
@@ -253,7 +253,7 @@ export function highlightPlugin(): Plugin {
           }
         }
 
-        const transform = new Matrix3()
+        const transform = new Transform2D()
         transform.translate(-imageBox.x, -imageBox.y)
         transform.scale(targetBox.width / imageBox.width, targetBox.height / imageBox.height)
         if (isVertical) {
@@ -262,7 +262,7 @@ export function highlightPlugin(): Plugin {
           if (!hasReferImage) {
             transform.translate(-tx, -ty)
           }
-          transform.rotate(-Math.PI / 2)
+          transform.rotate(Math.PI / 2)
           if (!hasReferImage) {
             transform.translate(ty, tx)
           }

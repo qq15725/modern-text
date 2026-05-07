@@ -4,7 +4,6 @@ import type { Plugin } from '../types'
 import { isNone } from 'modern-idoc'
 import { BoundingBox, Path2D, Path2DSet } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
-import { getTransform2D } from './render'
 
 export function textDecorationPlugin(): Plugin {
   const pathSet = new Path2DSet()
@@ -142,15 +141,16 @@ export function textDecorationPlugin(): Plugin {
     },
     render: (renderer) => {
       const { text, context } = renderer
-      const { computedEffects } = text
+      const {
+        computedEffects: effects,
+      } = text
 
-      if (computedEffects.length) {
-        computedEffects.forEach((effectStyle) => {
+      if (effects.length) {
+        effects.forEach((effect) => {
           context.save()
-          const [a, c, e, b, d, f] = getTransform2D(text, effectStyle).transpose().elements
-          context.transform(a, b, c, d, e, f)
+          renderer.transformEffect(effect)
           pathSet.paths.forEach((path) => {
-            renderer.drawPath(path, effectStyle)
+            renderer.drawPath(path, renderer.effectToPathStyle(effect))
           })
           context.restore()
         })

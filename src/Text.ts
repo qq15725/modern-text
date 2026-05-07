@@ -1,9 +1,9 @@
 import type { Fonts } from 'modern-font'
 import type {
   FullStyle,
+  NormalizedEffect,
   NormalizedFill,
   NormalizedOutline,
-  NormalizedStyle,
   NormalizedText,
   ReactivableEvents,
 } from 'modern-idoc'
@@ -70,7 +70,7 @@ export class Text extends Reactivable {
   computedStyle: FullStyle = { ...textDefaultStyle }
   computedFill: NormalizedFill | undefined
   computedOutline: NormalizedOutline | undefined
-  computedEffects: NormalizedStyle[] = []
+  computedEffects: NormalizedEffect[] = []
   paragraphs: Paragraph[] = []
   inlineBox = new BoundingBox()
   lineBox = new BoundingBox()
@@ -84,6 +84,10 @@ export class Text extends Reactivable {
 
   get fontSize(): number {
     return this.computedStyle.fontSize
+  }
+
+  get defaultFamily(): string {
+    return this.fonts?.fallbackFont?.familySet.values().next().value ?? 'sans-serif'
   }
 
   get isVertical(): boolean {
@@ -160,7 +164,7 @@ export class Text extends Reactivable {
     this.computedStyle = { ...textDefaultStyle, ...this.style }
     this.computedFill = this.fill ? { ...this.fill } : undefined
     this.computedOutline = this.outline ? { ...this.outline } : undefined
-    this.computedEffects = this.effects?.map(v => ({ ...v })) ?? []
+    this.computedEffects = this.effects?.map(v => v) ?? []
     const paragraphs: Paragraph[] = []
     this.content.forEach((p, pIndex) => {
       const { fragments, fill: pFill, outline: pOutline, ...pStyle } = p
@@ -246,8 +250,8 @@ export class Text extends Reactivable {
         const { left, top, width, height } = glyphBox
         const a = new Vector2(left, top)
         const b = new Vector2(left + width, top + height)
-        min.min(a, b)
-        max.max(a, b)
+        min.clampMin(a, b)
+        max.clampMax(a, b)
       }
     })
 

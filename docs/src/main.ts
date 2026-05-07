@@ -20,7 +20,6 @@ async function loadFallbackFont(): Promise<void> {
   await fonts.load({ family: 'Arial', src: '/Arial.woff' })
   await fonts.load({ family: 'LogoSCUnboundedSans-Regular', src: '/LogoSCUnboundedSans-Regular.woff' })
 }
-// 活动回顾
 
 window.onload = async () => {
   await loadFallbackFont()
@@ -56,30 +55,30 @@ window.onload = async () => {
     })
 
     // vertical
-    const view2 = document.createElement('canvas')
-    view2.dataset.file = key
-    const text2 = new Text({
-      ...sharedOptions,
-      ...fixture,
-      style: { ...fixture.style, writingMode: 'vertical-rl' },
-      view: view2,
-      load: true,
-    })
-    text2.on('update', () => {
-      if (useWebgl) {
-        webglRender(text2, view2)
-      }
-      else {
-        text2.render({ view: view2 })
-      }
-    })
-    await text2.load()
-    text2.update()
-    document.body.append(view2)
-    view2.addEventListener('dblclick', () => {
-      const textEditor = document.querySelector('text-editor') as TextEditor
-      textEditor.moveToDom(view2)
-      textEditor.set(text2)
-    })
+    // const view2 = document.createElement('canvas')
+    // view2.dataset.file = key
+    // const text2 = new Text({
+    //   ...sharedOptions,
+    //   ...fixture,
+    //   style: { ...fixture.style, writingMode: 'vertical-rl' },
+    //   view: view2,
+    //   load: true,
+    // })
+    // text2.on('update', () => {
+    //   if (useWebgl) {
+    //     webglRender(text2, view2)
+    //   }
+    //   else {
+    //     text2.render({ view: view2 })
+    //   }
+    // })
+    // await text2.load()
+    // text2.update()
+    // document.body.append(view2)
+    // view2.addEventListener('dblclick', () => {
+    //   const textEditor = document.querySelector('text-editor') as TextEditor
+    //   textEditor.moveToDom(view2)
+    //   textEditor.set(text2)
+    // })
   }
 }

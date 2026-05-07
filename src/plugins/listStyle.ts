@@ -1,6 +1,6 @@
 import type { Plugin } from '../types'
 import { isNone } from 'modern-idoc'
-import { Matrix3, Path2DSet, svgToPath2DSet } from 'modern-path2d'
+import { BoundingBox, Path2DSet, svgToPath2DSet, Transform2D } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
 import { parseColormap, parseValueNumber } from '../utils'
 
@@ -55,7 +55,7 @@ export function listStylePlugin(): Plugin {
         }
 
         const imagePathSet = svgToPath2DSet(image)
-        const imageBox = imagePathSet.getBoundingBox()!
+        const imageBox = imagePathSet.getBoundingBox() ?? new BoundingBox()
 
         const char = paragraph.fragments[0]?.characters[0]
 
@@ -68,11 +68,11 @@ export function listStylePlugin(): Plugin {
         const scale = size === 'cover'
           ? 1
           : parseValueNumber(size, { total: fontSize, fontSize }) / fontSize
-        const m = new Matrix3()
+        const m = new Transform2D()
         if (isVertical) {
           const _scale = (fontSize / imageBox.height) * scale
           m.translate(-imageBox.left, -imageBox.top)
-            .rotate(Math.PI / 2)
+            .rotate(-Math.PI / 2)
             .scale(_scale, _scale)
             .translate(
               inlineBox.left + (inlineBox.width - (imageBox.height * _scale)) / 2,
