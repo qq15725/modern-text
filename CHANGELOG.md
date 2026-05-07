@@ -1,3 +1,9 @@
+# [1.11.0](https://github.com/qq15725/modern-text/compare/v1.10.17...v1.11.0) (2026-05-07)
+
+
+### Features
+
+* text.effects ([408ce95](https://github.com/qq15725/modern-text/commit/408ce95206de6ed3ef3f0fa81eca49dff697f4c2))
 ## [1.10.17](https://github.com/qq15725/modern-text/compare/v1.10.16...v1.10.17) (2026-04-10)
 
 
