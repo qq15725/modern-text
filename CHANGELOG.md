@@ -1,3 +1,9 @@
+## [1.11.1](https://github.com/qq15725/modern-text/compare/v1.11.0...v1.11.1) (2026-05-15)
+
+
+### Performance Improvements
+
+* reuse measure DOM and renderer, fix negative shadow rendering ([0b63cb1](https://github.com/qq15725/modern-text/commit/0b63cb18fbd476ac01fce0f8206ee834aa1e8533))
 # [1.11.0](https://github.com/qq15725/modern-text/compare/v1.10.17...v1.11.0) (2026-05-07)
 
 
