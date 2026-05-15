@@ -3,6 +3,7 @@ import type {
   NormalizedEffect,
   NormalizedFill,
   NormalizedOutline,
+  NormalizedShadow,
   NormalizedStyle,
   RadialGradientWithType,
 } from 'modern-idoc'
@@ -225,6 +226,58 @@ export class Canvas2DRenderer {
   transformEffect(effect: NormalizedEffect): void {
     const { a, b, c, d, tx, ty } = getEffectTransform2D(this.text, effect)
     this.context.transform(a, b, c, d, tx, ty)
+  }
+
+  protected _shadowCanvas?: HTMLCanvasElement
+  protected _shadowCtx?: CanvasRenderingContext2D | null
+
+  drawWithShadow = (shadow: NormalizedShadow, drawFn: () => void): void => {
+    const mainCtx = this.context
+    const view = mainCtx.canvas
+
+    if (!this._shadowCanvas) {
+      this._shadowCanvas = document.createElement('canvas')
+      this._shadowCtx = this._shadowCanvas.getContext('2d')
+    }
+    const off = this._shadowCanvas
+    const offCtx = this._shadowCtx
+    if (!offCtx) {
+      drawFn()
+      return
+    }
+
+    // Grow-only — avoid reallocating the backing store on every frame.
+    if (off.width < view.width) {
+      off.width = view.width
+    }
+    if (off.height < view.height) {
+      off.height = view.height
+    }
+
+    offCtx.setTransform(1, 0, 0, 1, 0, 0)
+    offCtx.clearRect(0, 0, view.width, view.height)
+    const m = mainCtx.getTransform()
+    offCtx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f)
+
+    const prev = this.context
+    this.context = offCtx
+    try {
+      drawFn()
+    }
+    finally {
+      this.context = prev
+    }
+
+    const fontSize = this.text.computedStyle.fontSize
+    const pr = this.pixelRatio
+    mainCtx.save()
+    mainCtx.setTransform(1, 0, 0, 1, 0, 0)
+    mainCtx.shadowOffsetX = (shadow.offsetX ?? 0) * fontSize * pr
+    mainCtx.shadowOffsetY = (shadow.offsetY ?? 0) * fontSize * pr
+    mainCtx.shadowBlur = (shadow.blur ?? 0) * fontSize * pr
+    mainCtx.shadowColor = shadow.color as unknown as string
+    mainCtx.drawImage(off, 0, 0, view.width, view.height, 0, 0, view.width, view.height)
+    mainCtx.restore()
   }
 
   drawCharacter = (

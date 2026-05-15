@@ -1,0 +1,16 @@
+{
+  "content": "Shadow",
+  "style": {
+    "fontSize": 80,
+    "color": "#ff3333ff"
+  },
+  "effects": [
+    {
+      "shadowOffsetX": -1,
+      "shadowOffsetY": 0,
+      "shadowBlur": 0.13,
+      "shadowColor": "#000000ff",
+      "color": "#ff3333ff"
+    }
+  ]
+}

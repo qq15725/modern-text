@@ -24,7 +24,7 @@ export function renderPlugin(): Plugin {
       })
     },
     getBoundingBox: (text) => {
-      const { characters, computedEffects } = text
+      const { characters, computedEffects, fontSize } = text
       const boxes: BoundingBox[] = []
       computedEffects.forEach((effect) => {
         const t2d = getEffectTransform2D(text, effect)
@@ -46,9 +46,17 @@ export function renderPlugin(): Plugin {
           aabb.width = maxX - minX
           aabb.height = maxY - minY
           if (effect.shadow?.enabled) {
-            const { offsetX = 0, offsetY = 0 } = effect.shadow
-            aabb.left -= offsetX
-            aabb.top -= offsetY
+            const sx = (effect.shadow.offsetX ?? 0) * fontSize
+            const sy = (effect.shadow.offsetY ?? 0) * fontSize
+            const sb = (effect.shadow.blur ?? 0) * fontSize
+            const left = aabb.left + Math.min(0, sx - sb)
+            const top = aabb.top + Math.min(0, sy - sb)
+            const right = aabb.left + aabb.width + Math.max(0, sx + sb)
+            const bottom = aabb.top + aabb.height + Math.max(0, sy + sb)
+            aabb.left = left
+            aabb.top = top
+            aabb.width = right - left
+            aabb.height = bottom - top
           }
           if (effect.outline?.enabled) {
             const outlineWidth = Math.max(0.1, effect.outline.width ?? 0)
@@ -79,9 +87,19 @@ export function renderPlugin(): Plugin {
           renderer.uploadColor(glyphBox, effect)
           context.save()
           renderer.transformEffect(effect)
-          text.forEachCharacter((character) => {
-            renderer.drawCharacter(character, effect)
-          })
+          if (effect.shadow?.enabled) {
+            const bodyEffect = { ...effect, shadow: { ...effect.shadow, enabled: false } }
+            renderer.drawWithShadow(effect.shadow, () => {
+              text.forEachCharacter((character) => {
+                renderer.drawCharacter(character, bodyEffect)
+              })
+            })
+          }
+          else {
+            text.forEachCharacter((character) => {
+              renderer.drawCharacter(character, effect)
+            })
+          }
           context.restore()
         })
       }

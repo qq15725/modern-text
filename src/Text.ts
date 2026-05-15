@@ -71,7 +71,6 @@ export class Text extends Reactivable {
   computedFill: NormalizedFill | undefined
   computedOutline: NormalizedOutline | undefined
   computedEffects: NormalizedEffect[] = []
-  paragraphs: Paragraph[] = []
   inlineBox = new BoundingBox()
   lineBox = new BoundingBox()
   rawGlyphBox = new BoundingBox()
@@ -81,6 +80,21 @@ export class Text extends Reactivable {
   measurer = new Measurer()
   plugins = new Map<string, Plugin>()
   pathSets: Path2DSet[] = []
+  protected _paragraphs: Paragraph[] = []
+  protected _cachedCharacters?: Character[]
+  protected _pluginsByUpdateOrder: Plugin[] = []
+  protected _pluginsByRenderOrder: Plugin[] = []
+  protected _renderer?: Canvas2DRenderer
+  protected _rendererCtx?: CanvasRenderingContext2D
+
+  get paragraphs(): Paragraph[] {
+    return this._paragraphs
+  }
+
+  set paragraphs(value: Paragraph[]) {
+    this._paragraphs = value
+    this._cachedCharacters = undefined
+  }
 
   get fontSize(): number {
     return this.computedStyle.fontSize
@@ -95,7 +109,22 @@ export class Text extends Reactivable {
   }
 
   get characters(): Character[] {
-    return this.paragraphs.flatMap(p => p.fragments.flatMap(f => f.characters))
+    if (this._cachedCharacters) {
+      return this._cachedCharacters
+    }
+    const list: Character[] = []
+    const paragraphs = this._paragraphs
+    for (let i = 0; i < paragraphs.length; i++) {
+      const fragments = paragraphs[i].fragments
+      for (let j = 0; j < fragments.length; j++) {
+        const characters = fragments[j].characters
+        for (let k = 0; k < characters.length; k++) {
+          list.push(characters[k])
+        }
+      }
+    }
+    this._cachedCharacters = list
+    return list
   }
 
   constructor(options: Options = {}) {
@@ -141,17 +170,28 @@ export class Text extends Reactivable {
 
   use(plugin: Plugin): this {
     this.plugins.set(plugin.name, plugin)
+    this._resortPlugins()
     return this
   }
 
+  protected _resortPlugins(): void {
+    this._pluginsByUpdateOrder = [...this.plugins.values()]
+      .sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
+    this._pluginsByRenderOrder = [...this.plugins.values()]
+      .sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
+  }
+
   forEachCharacter(handle: (character: Character, ctx: { paragraphIndex: number, fragmentIndex: number, characterIndex: number }) => void): this {
-    this.paragraphs.forEach((p, paragraphIndex) => {
-      p.fragments.forEach((f, fragmentIndex) => {
-        f.characters.forEach((c, characterIndex) => {
-          handle(c, { paragraphIndex, fragmentIndex, characterIndex })
-        })
-      })
-    })
+    const paragraphs = this._paragraphs
+    for (let paragraphIndex = 0; paragraphIndex < paragraphs.length; paragraphIndex++) {
+      const fragments = paragraphs[paragraphIndex].fragments
+      for (let fragmentIndex = 0; fragmentIndex < fragments.length; fragmentIndex++) {
+        const characters = fragments[fragmentIndex].characters
+        for (let characterIndex = 0; characterIndex < characters.length; characterIndex++) {
+          handle(characters[characterIndex], { paragraphIndex, fragmentIndex, characterIndex })
+        }
+      }
+    }
     return this
   }
 
@@ -211,31 +251,35 @@ export class Text extends Reactivable {
     const result = this.measurer.measure(this.paragraphs, this.computedStyle, dom) as MeasureResult
     this.paragraphs = result.paragraphs
     this.lineBox = result.boundingBox
-    this.characters.forEach((c) => {
-      c.update(this.fonts)
-    })
-    this.rawGlyphBox = this.getGlyphBox()
-    Array.from(this.plugins.values())
-      .sort((a, b) => (a.updateOrder ?? 0) - (b.updateOrder ?? 0))
-      .forEach((plugin) => {
-        plugin.update?.(this)
-      })
+    const characters = this.characters
+    for (let i = 0; i < characters.length; i++) {
+      characters[i].update(this.fonts)
+    }
+    const glyphBox = this.getGlyphBox()
+    this.rawGlyphBox = glyphBox
+    this.glyphBox = glyphBox
+    const updatePlugins = this._pluginsByUpdateOrder
+    for (let i = 0; i < updatePlugins.length; i++) {
+      updatePlugins[i].update?.(this)
+    }
+    const renderPlugins = this._pluginsByRenderOrder
     this.pathSets.length = 0
-    Array.from(this.plugins.values())
-      .sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
-      .forEach((plugin) => {
-        if (plugin.pathSet?.paths.length) {
-          this.pathSets.push(plugin.pathSet)
-        }
-      })
-    this.glyphBox = this.getGlyphBox()
+    for (let i = 0; i < renderPlugins.length; i++) {
+      const plugin = renderPlugins[i]
+      if (plugin.pathSet?.paths.length) {
+        this.pathSets.push(plugin.pathSet)
+      }
+    }
     this
       ._updateInlineBox()
       ._updatePathBox()
       ._updateBoundingBox()
+    // Swap: capture the freshly computed state into `result` and restore `this` to its prior state,
+    // so `measure()` itself stays non-destructive (use `update()` to commit).
     for (const key in old) {
-      ;(result as any)[key] = (this as any)[key]
+      const next = (this as any)[key]
       ;(this as any)[key] = (old as any)[key]
+      ;(result as any)[key] = next
     }
     this.emit('measure', { text: this, result })
     return result
@@ -244,16 +288,18 @@ export class Text extends Reactivable {
   getGlyphBox(): BoundingBox {
     const min = Vector2.MAX
     const max = Vector2.MIN
-    this.characters.forEach((c) => {
-      if (!c.getGlyphMinMax(min, max)) {
-        const { inlineBox: glyphBox } = c
-        const { left, top, width, height } = glyphBox
-        const a = new Vector2(left, top)
-        const b = new Vector2(left + width, top + height)
-        min.clampMin(a, b)
-        max.clampMax(a, b)
+    const characters = this.characters
+    for (let i = 0; i < characters.length; i++) {
+      const character = characters[i]
+      if (character.getGlyphMinMax(min, max)) {
+        continue
       }
-    })
+      const { left, top, width, height } = character.inlineBox
+      const topLeft = new Vector2(left, top)
+      const bottomRight = new Vector2(left + width, top + height)
+      min.clampMin(topLeft, bottomRight)
+      max.clampMax(topLeft, bottomRight)
+    }
 
     if (
       min.x === Number.MIN_SAFE_INTEGER
@@ -273,23 +319,29 @@ export class Text extends Reactivable {
   }
 
   protected _updateInlineBox(): this {
-    this.inlineBox = BoundingBox.from(
-      ...this.paragraphs.flatMap(p => p.fragments.map(f => f.inlineBox)),
-    )
+    const boxes: BoundingBox[] = []
+    const paragraphs = this._paragraphs
+    for (let i = 0; i < paragraphs.length; i++) {
+      const fragments = paragraphs[i].fragments
+      for (let j = 0; j < fragments.length; j++) {
+        boxes.push(fragments[j].inlineBox)
+      }
+    }
+    this.inlineBox = BoundingBox.from(...boxes)
     return this
   }
 
   protected _updatePathBox(): this {
-    this.pathBox = BoundingBox.from(
-      this.glyphBox,
-      ...Array.from(this.plugins.values())
-        .map((plugin) => {
-          return plugin.getBoundingBox
-            ? plugin.getBoundingBox(this)
-            : plugin.pathSet?.getBoundingBox()
-        })
-        .filter(Boolean) as BoundingBox[],
-    )
+    const boxes: BoundingBox[] = [this.glyphBox]
+    for (const plugin of this.plugins.values()) {
+      const box = plugin.getBoundingBox
+        ? plugin.getBoundingBox(this)
+        : plugin.pathSet?.getBoundingBox()
+      if (box) {
+        boxes.push(box)
+      }
+    }
+    this.pathBox = BoundingBox.from(...boxes)
     return this
   }
 
@@ -309,12 +361,17 @@ export class Text extends Reactivable {
 
   update(dom = this.measureDom): this {
     this.needsUpdate = false
-    const result = this.measure(dom)
-    for (const key in result) {
-      (this as any)[key] = (result as any)[key]
-    }
+    Object.assign(this, this.measure(dom))
     this.emit('update', { text: this })
     return this
+  }
+
+  protected _getRenderer(ctx: CanvasRenderingContext2D): Canvas2DRenderer {
+    if (!this._renderer || this._rendererCtx !== ctx) {
+      this._renderer = new Canvas2DRenderer(this, ctx)
+      this._rendererCtx = ctx
+    }
+    return this._renderer
   }
 
   render(options: RenderOptions): void {
@@ -329,26 +386,33 @@ export class Text extends Reactivable {
       this.update()
     }
 
-    const renderer = new Canvas2DRenderer(this, ctx)
+    const renderer = this._getRenderer(ctx)
     renderer.pixelRatio = pixelRatio
     renderer.setup()
 
-    Array.from(this.plugins.values())
-      .sort((a, b) => (a.renderOrder ?? 0) - (b.renderOrder ?? 0))
-      .forEach((plugin) => {
-        if (plugin.render) {
-          plugin.render?.(renderer)
+    const renderPlugins = this._pluginsByRenderOrder
+    for (let i = 0; i < renderPlugins.length; i++) {
+      const plugin = renderPlugins[i]
+      if (plugin.render) {
+        plugin.render(renderer)
+      }
+      else if (plugin.pathSet) {
+        const paths = plugin.pathSet.paths
+        for (let j = 0; j < paths.length; j++) {
+          renderer.drawPath(paths[j])
         }
-        else if (plugin.pathSet) {
-          plugin.pathSet.paths.forEach((path) => {
-            renderer.drawPath(path)
-          })
-        }
-      })
+      }
+    }
 
     this.emit('render', { text: this, view, pixelRatio })
 
     options.onContext?.(ctx)
+  }
+
+  dispose(): void {
+    this.measurer.dispose()
+    this._renderer = undefined
+    this._rendererCtx = undefined
   }
 
   toString(): string {
