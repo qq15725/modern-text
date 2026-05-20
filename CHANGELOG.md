@@ -1,3 +1,9 @@
+# [1.12.0](https://github.com/qq15725/modern-text/compare/v1.11.1...v1.12.0) (2026-05-20)
+
+
+### Features
+
+* text deformation (data-driven engines + external presets) ([c3e45ca](https://github.com/qq15725/modern-text/commit/c3e45ca1074c9099af13558c740f71729c821726))
 ## [1.11.1](https://github.com/qq15725/modern-text/compare/v1.11.0...v1.11.1) (2026-05-15)
 
 
