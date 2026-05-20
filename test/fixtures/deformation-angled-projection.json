@@ -1,0 +1,13 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "angled-projection",
+    "intensities": [
+      40,
+      20
+    ]
+  }
+}

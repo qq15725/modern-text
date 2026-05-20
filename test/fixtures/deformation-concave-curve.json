@@ -1,0 +1,12 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "concave-curve",
+    "intensities": [
+      40
+    ]
+  }
+}

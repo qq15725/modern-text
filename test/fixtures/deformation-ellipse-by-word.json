@@ -1,0 +1,15 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "ellipse-by-word",
+    "intensities": [
+      80,
+      0,
+      360,
+      0
+    ]
+  }
+}

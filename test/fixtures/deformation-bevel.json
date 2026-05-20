@@ -1,0 +1,13 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "bevel",
+    "intensities": [
+      40,
+      20
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "step-far-and-near-by-word",
+    "intensities": [
+      50
+    ]
+  }
+}

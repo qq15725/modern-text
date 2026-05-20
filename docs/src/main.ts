@@ -1,10 +1,12 @@
 import type { Options } from '../../src'
 import { fonts } from 'modern-font'
 import { Text } from '../../src'
+import { registerDeformations } from '../../src/deformations'
 import { TextEditor } from '../../src/web-components'
 import { webglRender } from './webgl'
 
 TextEditor.register()
+registerDeformations()
 
 const useWebgl = false
 

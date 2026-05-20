@@ -1,0 +1,14 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "heart-by-word",
+    "intensities": [
+      50,
+      0,
+      100
+    ]
+  }
+}

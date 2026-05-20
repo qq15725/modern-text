@@ -1,0 +1,13 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "lower-roof",
+    "intensities": [
+      30,
+      20
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "content": "Deformation",
+  "style": {
+    "fontSize": 100
+  },
+  "deformation": {
+    "type": "pentagon-by-word"
+  }
+}

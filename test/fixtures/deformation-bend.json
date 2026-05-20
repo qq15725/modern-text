@@ -1,0 +1,12 @@
+{
+  "content": "Deformation",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "bend",
+    "intensities": [
+      50
+    ]
+  }
+}

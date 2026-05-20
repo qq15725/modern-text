@@ -1,0 +1,13 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "arbitrary-offset-rotate-by-word",
+    "intensities": [
+      50,
+      50
+    ]
+  }
+}

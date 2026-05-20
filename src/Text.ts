@@ -17,6 +17,7 @@ import { Fragment, Paragraph } from './content'
 import { Measurer } from './Measurer'
 import {
   backgroundPlugin,
+  deformationPlugin,
   highlightPlugin,
   listStylePlugin,
   outlinePlugin,
@@ -63,6 +64,7 @@ export class Text extends Reactivable {
   @property() declare effects?: NormalizedText['effects']
   @property() declare fill?: NormalizedText['fill']
   @property() declare outline?: NormalizedText['outline']
+  @property() declare deformation?: NormalizedText['deformation']
   @property({ internal: true }) declare measureDom?: HTMLElement
   @property({ internal: true }) declare fonts?: Fonts
 
@@ -142,6 +144,7 @@ export class Text extends Reactivable {
       fonts,
       fill,
       outline,
+      deformation,
     } = normalizeText(options)
 
     this.debug = options.debug ?? false
@@ -152,6 +155,7 @@ export class Text extends Reactivable {
     this.fonts = fonts
     this.fill = fill
     this.outline = outline
+    this.deformation = deformation
 
     this
       .use(backgroundPlugin())
@@ -160,6 +164,7 @@ export class Text extends Reactivable {
       .use(textDecorationPlugin())
       .use(highlightPlugin())
       .use(renderPlugin())
+      .use(deformationPlugin())
 
     ;(options.plugins ?? []).forEach((plugin) => {
       this.use(plugin)

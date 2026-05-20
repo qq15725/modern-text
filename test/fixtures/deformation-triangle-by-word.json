@@ -1,0 +1,15 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "triangle-by-word",
+    "intensities": [
+      50,
+      3,
+      0,
+      100
+    ]
+  }
+}

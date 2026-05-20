@@ -331,7 +331,9 @@ export function highlightPlugin(): Plugin {
         }
         boundingBoxs.push(box)
       })
-      return BoundingBox.from(...boundingBoxs)
+      // 无高亮路径时返回 undefined,避免 BoundingBox.from() 产出 (0,0,0,0)
+      // 把原点并入 pathBox(对远离原点的文本——如竖排变形——会撑出大片空白)
+      return boundingBoxs.length ? BoundingBox.from(...boundingBoxs) : undefined
     },
     render: (renderer) => {
       const { text, context } = renderer

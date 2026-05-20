@@ -1,0 +1,13 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "folded-corner",
+    "intensities": [
+      40,
+      20
+    ]
+  }
+}

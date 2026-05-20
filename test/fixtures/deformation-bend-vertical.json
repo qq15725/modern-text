@@ -1,0 +1,12 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "bend-vertical",
+    "intensities": [
+      50
+    ]
+  }
+}

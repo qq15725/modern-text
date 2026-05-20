@@ -1,0 +1,13 @@
+{
+  "content": "Deform",
+  "style": {
+    "fontSize": 80
+  },
+  "deformation": {
+    "type": "top-trapezoid",
+    "intensities": [
+      30,
+      30
+    ]
+  }
+}

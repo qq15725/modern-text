@@ -1,0 +1,7 @@
+export * from './BendDeformer'
+export * from './curves'
+export * from './Deformer'
+export * from './FfdDeformer'
+export * from './splitCurve'
+export * from './types'
+export * from './VerbatimDeformer'
