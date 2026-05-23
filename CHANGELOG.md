@@ -1,3 +1,9 @@
+## [2.0.1](https://github.com/qq15725/modern-text/compare/v2.0.0...v2.0.1) (2026-05-23)
+
+
+### Performance Improvements
+
+* decode fonts off the main thread in load() ([74b9816](https://github.com/qq15725/modern-text/commit/74b9816afc81aad9dce9894d39c3e5ccce87f979))
 # [2.0.0](https://github.com/qq15725/modern-text/compare/v1.12.0...v2.0.0) (2026-05-23)
 
 
