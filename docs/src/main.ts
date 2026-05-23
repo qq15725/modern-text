@@ -140,7 +140,7 @@ function createToolbar(): void {
     button.disabled = true
     status.textContent = '重新测算中…'
     await renderAll()
-    status.textContent = `已用 ${mode === 'dom' ? 'DOM Measurer' : 'FontMeasurer'} 重新测算`
+    status.textContent = `已用 ${mode === 'dom' ? 'DomMeasurer' : 'FontMeasurer'} 重新测算`
     button.disabled = false
 
     const target = document.querySelectorAll<HTMLElement>('.fixture')[anchor]
