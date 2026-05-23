@@ -15,15 +15,16 @@ let fonts: Fonts
 function loadFont(file: string, family: string): FontLoadedResult {
   const buf = readFileSync(resolve(dir, `../docs/public/${file}`))
   const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
-  const font = parseFont(ab)
-  const sfnt = (font as any).getSFNT?.() ?? (font as any).createSFNT?.()
+  const font = parseFont(ab) as any
   return {
     src: '',
     family,
     familySet: new Set([family]),
     buffer: ab,
     getFont: () => font,
-    getSFNT: () => sfnt,
+    // read the `.sfnt` getter (cached in `_sfnt`) like modern-font's real loader,
+    // so Text.load()'s async pre-decode (createSFNTAsync) is actually used.
+    getSFNT: () => font.sfnt,
   } as unknown as FontLoadedResult
 }
 
@@ -271,6 +272,24 @@ describe('measurer auto-selection (no explicit measurer)', () => {
   it('selects a built-in by string (measurer: \'dom\' | \'font\')', () => {
     expect(new Text({ fonts, content: [['A']], measurer: 'dom' }).measurer).toBeInstanceOf(DomMeasurer)
     expect(new Text({ content: [['A']], measurer: 'font' }).measurer).toBeInstanceOf(FontMeasurer)
+  })
+})
+
+describe('fontMeasurer — async font decode', () => {
+  it('decodes fonts in load() (off-thread), then measures correctly', async () => {
+    const text = new Text({
+      fonts,
+      measurer: 'font',
+      content: [['你好世界']],
+      style: { fontFamily: 'Fallback', fontSize: 20 },
+    })
+    await text.load() // eager async WOFF decode (createSFNTAsync)
+    text.update()
+    const chars = text.characters
+    expect(chars.length).toBe(4)
+    expect(chars[3].inlineBox.left).toBeCloseTo(3 * chars[0].advanceWidth, 1)
+    // the SFNT cache was warmed off the main thread
+    expect((fonts.get('Fallback') as any).getFont()._sfnt).toBeTruthy()
   })
 })
 

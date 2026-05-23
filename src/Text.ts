@@ -10,6 +10,7 @@ import type {
 import type { Path2DSet } from 'modern-path2d'
 import type { Character } from './content'
 import type { Options, Plugin, TextMeasurer } from './types'
+import { fonts as globalFonts } from 'modern-font'
 import { getDefaultStyle, normalizeText, property, Reactivable } from 'modern-idoc'
 import { BoundingBox, Vector2 } from 'modern-path2d'
 import { Canvas2DRenderer } from './Canvas2DRenderer'
@@ -214,7 +215,36 @@ export class Text extends Reactivable {
 
   async load(): Promise<void> {
     this._update()
-    await Promise.all(Array.from(this.plugins.values()).map(p => p.load?.(this)))
+    await Promise.all([
+      this._decodeFonts(),
+      ...Array.from(this.plugins.values()).map(p => p.load?.(this)),
+    ])
+  }
+
+  /**
+   * Eagerly decode the fonts this text uses, off the main thread — WOFF tables
+   * are decompressed via modern-font's async `createSFNTAsync` (fflate async).
+   * This warms the SFNT cache so the synchronous `measure()` / `render()` pass
+   * never stalls the main thread inflating WOFF tables on first glyph access.
+   *
+   * No-op for already-decoded fonts and for formats without async decoding.
+   */
+  protected async _decodeFonts(): Promise<void> {
+    const fonts = this.fonts ?? globalFonts
+    const entries = new Set<ReturnType<Fonts['get']>>()
+    for (const character of this.characters) {
+      const family = character.computedStyle.fontFamily
+      if (family) {
+        entries.add(fonts.get(family))
+      }
+    }
+    entries.add(fonts.fallbackFont)
+    await Promise.all(Array.from(entries, async (entry) => {
+      const font = entry?.getFont() as any
+      if (font && typeof font.createSFNTAsync === 'function' && !font._sfnt) {
+        font._sfnt = await font.createSFNTAsync()
+      }
+    }))
   }
 
   protected _update(): this {
