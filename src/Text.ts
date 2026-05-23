@@ -148,18 +148,14 @@ export class Text extends Reactivable {
       deformation,
     } = normalizeText(options)
 
-    // Pick the layout backend. Explicit `measurer` wins; otherwise auto-select:
-    // prefer the pure-JS FontMeasurer when fonts are available (it needs them to
-    // resolve glyph advances), falling back to the DOM-based DomMeasurer. Vertical
-    // writing-mode still routes to DomMeasurer until FontMeasurer supports it.
+    // Pick the layout backend. Explicit `measurer` wins; otherwise prefer the
+    // pure-JS FontMeasurer when fonts are available (it needs them to resolve
+    // glyph advances), falling back to the DOM-based DomMeasurer.
     if (options.measurer) {
       this.measurer = options.measurer
     }
     else {
-      const writingMode = style?.writingMode ?? textDefaultStyle.writingMode
-      this.measurer = fonts && !writingMode.includes('vertical')
-        ? new FontMeasurer(fonts)
-        : new DomMeasurer()
+      this.measurer = fonts ? new FontMeasurer(fonts) : new DomMeasurer()
     }
     this.debug = options.debug ?? false
     this.content = content

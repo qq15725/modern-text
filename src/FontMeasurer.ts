@@ -22,17 +22,17 @@ function side(style: Record<string, any>, name: 'padding' | 'margin', edge: Edge
  * from `modern-font` glyph advances, so the downstream
  * measure → glyph → plugin pipeline is unchanged and it runs in Node/SSR/Worker.
  *
- * ## v1 scope (horizontal only)
- * - writing-mode `horizontal-tb`, left-to-right
+ * ## Scope
+ * - `horizontal-tb` (LTR) and `vertical-rl` (columns right-to-left, glyphs top↓)
  * - line breaking: `word-break: break-all` (greedy, break anywhere) + explicit `\n`
  * - per-line `text-align` (start/left/center/end/right), `text-indent` (first line)
- * - box model: root + paragraph `padding`/`margin`, `letter-spacing`, `line-height`
- * - block `vertical-align` (top/middle/bottom) when the root `height` is fixed
+ * - box model: root + paragraph `padding`/`margin` (horizontal), `letter-spacing`,
+ *   `line-height`; block `vertical-align` (top/middle/bottom) at fixed height
  *
  * ## Not yet implemented (TODO)
- * - vertical writing-mode (needs vmtx/VORG + `vert` GSUB from modern-font)
  * - UAX#14 `word-break: normal` + 避头尾/kinsoku (`line-break`)
  * - BiDi, per-fragment inline `vertical-align`, borders
+ * - vertical: per-paragraph margin/padding and block alignment
  * - kerning/ligatures (GSUB/GPOS) — fine for CJK, diverges for proportional Latin
  *
  * Coordinates are relative to the root border-box top-left (matching the DOM
@@ -47,13 +47,9 @@ export class FontMeasurer implements TextMeasurer {
     _dom?: HTMLElement,
     fonts: Fonts | undefined = this.fonts,
   ): MeasureDomResult {
-    if (rootStyle.writingMode.includes('vertical')) {
-      throw new Error('[FontMeasurer] vertical writing-mode is not implemented yet (v1: horizontal only)')
-    }
-
     const _fonts = fonts ?? globalFonts
 
-    // Glyph advances must be known before placement.
+    // Glyph advances/metrics must be known before placement.
     for (const paragraph of paragraphs) {
       for (const fragment of paragraph.fragments) {
         for (const character of fragment.characters) {
@@ -62,12 +58,22 @@ export class FontMeasurer implements TextMeasurer {
       }
     }
 
-    const rootPad = {
+    return rootStyle.writingMode.includes('vertical')
+      ? this._measureVertical(paragraphs, rootStyle)
+      : this._measureHorizontal(paragraphs, rootStyle)
+  }
+
+  protected _rootPadding(rootStyle: FullStyle): { top: number, right: number, bottom: number, left: number } {
+    return {
       top: side(rootStyle, 'padding', 'Top'),
       right: side(rootStyle, 'padding', 'Right'),
       bottom: side(rootStyle, 'padding', 'Bottom'),
       left: side(rootStyle, 'padding', 'Left'),
     }
+  }
+
+  protected _measureHorizontal(paragraphs: Paragraph[], rootStyle: FullStyle): MeasureDomResult {
+    const rootPad = this._rootPadding(rootStyle)
     // border-box: the content area excludes padding.
     const hasWidth = typeof rootStyle.width === 'number'
     const availWidth = hasWidth
@@ -184,6 +190,89 @@ export class FontMeasurer implements TextMeasurer {
       }
     }
 
+    return {
+      paragraphs,
+      boundingBox: new BoundingBox(0, 0, totalWidth, totalHeight),
+    }
+  }
+
+  /**
+   * Vertical writing-mode (`vertical-rl`): columns stack right-to-left, glyphs
+   * flow top→bottom. It is the horizontal layout with the inline and block axes
+   * swapped — the inline (down-column) advance is `advanceWidth` (CJK upright = em;
+   * Latin is rotated, so its advance ≈ its width), the cross-axis content box is
+   * `advanceHeight`, and the column thickness is `fontHeight`. The lineBox is
+   * derived exactly as DomMeasurer.measureParagraphDom's vertical branch, so it
+   * stays accurate even though inlineBox carries the content-box rounding residual.
+   *
+   * v1: `vertical-rl` only; no per-paragraph margin/padding or block alignment.
+   */
+  protected _measureVertical(paragraphs: Paragraph[], rootStyle: FullStyle): MeasureDomResult {
+    const rootPad = this._rootPadding(rootStyle)
+    const hasHeight = typeof rootStyle.height === 'number'
+    const availHeight = hasHeight
+      ? (rootStyle.height as number) - rootPad.top - rootPad.bottom
+      : Infinity
+
+    // Phase 1: break paragraphs into columns (top→bottom, break-all on availHeight).
+    const columns: { chars: Character[], thickness: number }[] = []
+    for (const paragraph of paragraphs) {
+      const strut = paragraph.computedStyle.fontSize * paragraph.computedStyle.lineHeight
+      for (const line of this._breakLines(paragraph, availHeight)) {
+        let thickness = strut
+        for (const c of line) {
+          if (c.fontHeight > thickness) {
+            thickness = c.fontHeight
+          }
+        }
+        columns.push({ chars: line, thickness })
+      }
+    }
+
+    const totalThickness = columns.reduce((sum, c) => sum + c.thickness, 0)
+    const hasWidth = typeof rootStyle.width === 'number'
+    const blockWidth = hasWidth
+      ? Math.max((rootStyle.width as number) - rootPad.left - rootPad.right, totalThickness)
+      : totalThickness
+
+    // Phase 2: place columns right-to-left, characters top→bottom.
+    let xRight = rootPad.left + blockWidth
+    let maxBottom = rootPad.top
+    for (const column of columns) {
+      xRight -= column.thickness
+      const colLeft = xRight
+      let y = rootPad.top
+      for (const c of column.chars) {
+        const advance = c.advanceWidth // inline-axis advance (down the column)
+        const contentWidth = c.advanceHeight // cross-axis content box (ascent+descent)
+        const fontHeight = c.fontHeight
+        c.inlineBox.top = y
+        c.inlineBox.height = advance
+        c.inlineBox.width = contentWidth
+        c.inlineBox.left = colLeft + (column.thickness - contentWidth) / 2
+        c.lineBox.left = c.inlineBox.left + (contentWidth - fontHeight) / 2
+        c.lineBox.top = y
+        c.lineBox.width = fontHeight
+        c.lineBox.height = advance
+        y += this._advance(c)
+      }
+      if (y > maxBottom) {
+        maxBottom = y
+      }
+    }
+
+    for (const paragraph of paragraphs) {
+      for (const fragment of paragraph.fragments) {
+        this._unionInto(fragment.inlineBox, fragment.characters.map(c => c.inlineBox))
+      }
+      this._unionInto(
+        paragraph.lineBox,
+        paragraph.fragments.flatMap(f => f.characters.map(c => c.inlineBox)),
+      )
+    }
+
+    const totalWidth = hasWidth ? (rootStyle.width as number) : blockWidth + rootPad.left + rootPad.right
+    const totalHeight = hasHeight ? (rootStyle.height as number) : maxBottom + rootPad.bottom
     return {
       paragraphs,
       boundingBox: new BoundingBox(0, 0, totalWidth, totalHeight),

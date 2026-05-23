@@ -55,6 +55,28 @@ async function run(): Promise<void> {
   for (const [key, importJson] of Object.entries(import.meta.glob('../../test/fixtures/*.json'))) {
     fixtureMap[key.split('/').pop()!] = await (importJson as () => Promise<any>)().then(m => m.default)
   }
+  // DOM-only geometry probe (works for vertical, where FontMeasurer may not yet
+  // render). Dumps inlineBox + lineBox + advance metrics per character.
+  ;(window as any).__geom__ = async (file: string, vertical = false, useFont = false): Promise<any> => {
+    const fixture = fixtureMap[file]
+    const opts = vertical
+      ? { ...fixture, style: { ...fixture.style, writingMode: 'vertical-rl' } }
+      : fixture
+    const text = await build(opts, useFont)
+    const r2 = (n: number): number => +n.toFixed(2)
+    return {
+      style: opts.style,
+      bbox: [r2(text.boundingBox.width), r2(text.boundingBox.height)],
+      rows: text.characters.slice(0, 8).map(c => ({
+        c: c.content,
+        ib: [r2(c.inlineBox.left), r2(c.inlineBox.top), r2(c.inlineBox.width), r2(c.inlineBox.height)],
+        lb: [r2(c.lineBox.left), r2(c.lineBox.top), r2(c.lineBox.width), r2(c.lineBox.height)],
+        aw: r2(c.advanceWidth),
+        ah: r2(c.advanceHeight),
+        fh: r2(c.fontHeight),
+      })),
+    }
+  }
   ;(window as any).__probe__ = async (file: string): Promise<any> => {
     const fixture = fixtureMap[file]
     const dom = collect(await build(fixture, false))
@@ -79,18 +101,15 @@ async function run(): Promise<void> {
     return { style: fixture.style, content: fixture.content, rows }
   }
 
-  for (const [key, importJson] of Object.entries(import.meta.glob('../../test/fixtures/*.json'))) {
-    const file = key.split('/').pop()!
-    const fixture = await (importJson as () => Promise<any>)().then(m => m.default)
-    // horizontal only (FontMeasurer v1)
-    if (typeof fixture?.style?.writingMode === 'string' && fixture.style.writingMode.includes('vertical')) {
-      continue
-    }
+  const diffInto = async (label: string, opts: any): Promise<void> => {
     try {
-      const dom = collect(await build(fixture, false))
-      const font = collect(await build(fixture, true))
+      const dom = collect(await build(opts, false))
+      const font = collect(await build(opts, true))
       const n = Math.min(dom.length, font.length)
-      let maxLeft = 0; let maxTop = 0; let maxWidth = 0; let maxHeight = 0
+      let maxLeft = 0
+      let maxTop = 0
+      let maxWidth = 0
+      let maxHeight = 0
       let worst: FixtureDiff['worst'] = null
       let worstScore = -1
       for (let i = 0; i < n; i++) {
@@ -108,11 +127,18 @@ async function run(): Promise<void> {
           worst = { content: dom[i].content, dom: dom[i], font: font[i] }
         }
       }
-      results.push({ file, count: n, maxLeft, maxTop, maxWidth, maxHeight, worst })
+      results.push({ file: label, count: n, maxLeft, maxTop, maxWidth, maxHeight, worst })
     }
     catch (err: any) {
-      results.push({ file, count: 0, maxLeft: 0, maxTop: 0, maxWidth: 0, maxHeight: 0, worst: null, error: String(err?.message ?? err) })
+      results.push({ file: label, count: 0, maxLeft: 0, maxTop: 0, maxWidth: 0, maxHeight: 0, worst: null, error: String(err?.message ?? err) })
     }
+  }
+
+  for (const [key, importJson] of Object.entries(import.meta.glob('../../test/fixtures/*.json'))) {
+    const file = key.split('/').pop()!
+    const fixture = await (importJson as () => Promise<any>)().then(m => m.default)
+    await diffInto(file, fixture)
+    await diffInto(`${file} [V]`, { ...fixture, style: { ...fixture.style, writingMode: 'vertical-rl' } })
   }
 
   results.sort((a, b) => Math.max(b.maxLeft, b.maxTop) - Math.max(a.maxLeft, a.maxTop))

@@ -58,9 +58,8 @@ async function renderInto(fig: Figure, options: Options): Promise<void> {
     }
   }
   catch (err) {
-    // FontMeasurer v1 doesn't support vertical writing-mode yet.
-    const msg = (err as Error)?.message ?? String(err)
-    caption.textContent = `${label} — ✗ ${/vertical/i.test(msg) ? 'font 模式暂不支持竖排' : msg}`
+    // Safety net so one bad fixture doesn't abort the whole page.
+    caption.textContent = `${label} — ✗ ${(err as Error)?.message ?? String(err)}`
     canvas.style.display = 'none'
   }
 }

@@ -252,9 +252,9 @@ describe('measurer auto-selection (no explicit measurer)', () => {
     expect(text.measurer).toBeInstanceOf(FontMeasurer)
   })
 
-  it('falls back to DomMeasurer for vertical writing-mode even with fonts', () => {
-    const text = new Text({ fonts, content: [['A']], style: { writingMode: 'vertical-rl' } })
-    expect(text.measurer).toBeInstanceOf(DomMeasurer)
+  it('uses FontMeasurer for vertical writing-mode too (now supported)', () => {
+    const text = new Text({ fonts, content: [['A']], style: { fontFamily: 'Fallback', writingMode: 'vertical-rl' } })
+    expect(text.measurer).toBeInstanceOf(FontMeasurer)
   })
 
   it('uses DomMeasurer when no fonts are provided', () => {
@@ -275,9 +275,41 @@ describe('fontMeasurer — invariants', () => {
     const b = makeText({ content: [['Hello']] }).characters.map(c => ({ ...c.inlineBox }))
     expect(a).toEqual(b)
   })
+})
 
-  it('throws on vertical writing-mode (not implemented in v1)', () => {
-    expect(() => makeText({ content: [['A']], style: { writingMode: 'vertical-rl' } }))
-      .toThrow(/vertical/i)
+describe('fontMeasurer — vertical (vertical-rl)', () => {
+  const V = { fontFamily: 'Fallback', fontSize: 20, writingMode: 'vertical-rl' as const }
+
+  it('stacks CJK glyphs top-to-bottom by advanceWidth', () => {
+    const chars = makeText({ content: [['你好世界']], style: V }).characters
+    expect(chars.length).toBe(4)
+    for (let i = 0; i < chars.length; i++) {
+      expect(chars[i].inlineBox.top).toBeCloseTo(i * chars[0].advanceWidth, 1)
+      expect(chars[i].inlineBox.height).toBeCloseTo(chars[i].advanceWidth, 5)
+    }
+    // lineBox is the fontHeight-wide column strip, sharing the inlineBox's top
+    expect(chars[0].lineBox.width).toBeCloseTo(chars[0].fontHeight, 5)
+    expect(chars[0].lineBox.top).toBeCloseTo(chars[0].inlineBox.top, 5)
+  })
+
+  it('stacks columns right-to-left (first paragraph on the right)', () => {
+    const text = makeText({ content: [['右'], ['左']], style: V })
+    const right = text.paragraphs[0].fragments[0].characters[0]
+    const left = text.paragraphs[1].fragments[0].characters[0]
+    expect(right.lineBox.left).toBeGreaterThan(left.lineBox.left)
+    expect(right.lineBox.left - left.lineBox.left).toBeCloseTo(right.fontHeight, 1)
+  })
+
+  it('wraps a column on fixed height (break-all down the column)', () => {
+    const tall = makeText({ content: [['一二三四五六']], style: V })
+    const short = makeText({ content: [['一二三四五六']], style: { ...V, height: 50 } })
+    expect(new Set(tall.characters.map(c => Math.round(c.lineBox.left))).size).toBe(1)
+    expect(new Set(short.characters.map(c => Math.round(c.lineBox.left))).size).toBeGreaterThan(1)
+  })
+
+  it('reports a column-width bounding box', () => {
+    const text = makeText({ content: [['你好']], style: V })
+    expect(text.boundingBox.width).toBeCloseTo(text.characters[0].fontHeight, 1)
+    expect(text.boundingBox.height).toBeCloseTo(2 * text.characters[0].advanceWidth, 1)
   })
 })
