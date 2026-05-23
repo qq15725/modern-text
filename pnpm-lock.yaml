@@ -18,8 +18,8 @@ importers:
         specifier: ^0.11.5
         version: 0.11.5
       modern-path2d:
-        specifier: ^1.6.0
-        version: 1.6.0
+        specifier: ^1.7.0
+        version: 1.7.0
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^9.0.0
@@ -1253,6 +1253,10 @@ packages:
     resolution: {integrity: sha512-ObxuY6vnbWTN6Od72xfwN9DbzC7Y2vv8u1Soi9ahRKL37gb6y1qk6/dgjs+3JWuXJHWvsg3BXIwzd/rkmAwavg==}
     engines: {node: '>= 12.0.0'}
 
+  comment-parser@1.4.7:
+    resolution: {integrity: sha512-0h+uSNtQGW3D98eQt3jJ8L06Fves8hncB4V/PKdw/Qb8Hnk19VaKuTr55UNRYiSoVa7WwrFls+rh3ux9agmkeQ==}
+    engines: {node: '>= 12.0.0'}
+
   commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
 
@@ -2220,8 +2224,8 @@ packages:
   modern-idoc@0.11.5:
     resolution: {integrity: sha512-aa4v6ZSz2eCQE6AVSpIaOZ36v5GugXWZxY8SlKKaafJjawxT2a926Wk5MLiGLY8TAJir/PnAZ25eiBKTFHv7JQ==}
 
-  modern-path2d@1.6.0:
-    resolution: {integrity: sha512-TBSYWQde7hLB1xxihJDmM6gcG9PlHRyPf1in+ho4YPnOHgfRM4SUhKUkkycHobVxrxXP8OlUXyvXgsgLuHNprg==}
+  modern-path2d@1.7.0:
+    resolution: {integrity: sha512-9BIk0manYEmJRMknVdhumn4Sn7JCR7b2oC4Oc5geAfPFMEaySFXiPbhCrBLLkJ65Ty4WWzwOnvSzslBGeBNeLQ==}
 
   module-replacements@3.0.0-beta.7:
     resolution: {integrity: sha512-n1F9l3gF1wNh13xmnXS2JU7P9c3DlzCgVEyLKrVN0U37RwrXyYoePMMvYvs/6aUONAxbnscphzESZTCorXFh7Q==}
@@ -3930,6 +3934,8 @@ snapshots:
 
   comment-parser@1.4.6: {}
 
+  comment-parser@1.4.7: {}
+
   commondir@1.0.1: {}
 
   compare-func@2.0.0:
@@ -4366,7 +4372,7 @@ snapshots:
     dependencies:
       '@eslint-community/eslint-utils': 4.9.1(eslint@10.4.0(jiti@2.7.0))
       '@eslint-community/regexpp': 4.12.2
-      comment-parser: 1.4.6
+      comment-parser: 1.4.7
       eslint: 10.4.0(jiti@2.7.0)
       jsdoc-type-pratt-parser: 7.2.0
       refa: 0.12.1
@@ -5169,7 +5175,7 @@ snapshots:
       colord: 2.9.3
       nanoid: 5.1.11
 
-  modern-path2d@1.6.0:
+  modern-path2d@1.7.0:
     dependencies:
       earcut: 3.0.2
 
