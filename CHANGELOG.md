@@ -1,3 +1,9 @@
+## [2.0.3](https://github.com/qq15725/modern-text/compare/v2.0.2...v2.0.3) (2026-05-23)
+
+
+### Bug Fixes
+
+* default the measurer to 'font' unconditionally ([04771d7](https://github.com/qq15725/modern-text/commit/04771d7b59334a41038c3443456f8d4cba94914b))
 ## [2.0.2](https://github.com/qq15725/modern-text/compare/v2.0.1...v2.0.2) (2026-05-23)
 ## [2.0.1](https://github.com/qq15725/modern-text/compare/v2.0.0...v2.0.1) (2026-05-23)
 
