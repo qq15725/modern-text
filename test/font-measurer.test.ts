@@ -32,7 +32,8 @@ beforeAll(() => {
   // in Node with no DOM and no browser font loading. Arial covers Latin; the
   // Fallback font carries CJK (Arial has no CJK glyphs → falls back to it).
   const arial = loadFont('Arial.woff', 'Arial')
-  const fallback = loadFont('Fallback.woff', 'Fallback')
+  // NB: the file is lowercase `fallback.woff`; case matters on Linux CI.
+  const fallback = loadFont('fallback.woff', 'Fallback')
   fonts = new Fonts()
   fonts.set('Arial', arial)
   fonts.set('Fallback', fallback)
@@ -116,7 +117,7 @@ describe('fontMeasurer — CJK (the primary use case)', () => {
   })
 
   it('falls back to the fallback font for glyphs the family lacks', () => {
-    // Arial has no CJK glyphs → should resolve via the fallback (Fallback.woff)
+    // Arial has no CJK glyphs → should resolve via the fallback (fallback.woff)
     const chars = makeText({ content: [['你好']], style: { fontFamily: 'Arial', fontSize: 20 } }).characters
     expect(chars[0].advanceWidth).toBeCloseTo(20, 1)
     expect(chars[1].inlineBox.left).toBeCloseTo(chars[0].advanceWidth, 1)
