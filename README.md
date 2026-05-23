@@ -83,12 +83,13 @@ renderText({
 
 ## Layout backends
 
-By default `modern-text` picks **`'font'`** (the pure-JS `FontMeasurer`) when
-`fonts` are provided, otherwise **`'dom'`** (the browser-based `DomMeasurer`).
-You can force either, or pass a custom `TextMeasurer`:
+By default `modern-text` uses the pure-JS **`'font'`** backend (`FontMeasurer`),
+which resolves fonts from the `fonts` you pass or from `modern-font`'s global
+registry. Pass `'dom'` to use the browser as ground truth, or a custom
+`TextMeasurer`:
 
 ```ts
-new Text({ fonts, measurer: 'font' }) // pure-JS, DOM-free (default with fonts)
+new Text({ fonts, measurer: 'font' }) // pure-JS, DOM-free (default)
 new Text({ fonts, measurer: 'dom' }) //  browser ground truth
 new Text({ measurer: myCustomMeasurer }) // any object implementing TextMeasurer
 ```

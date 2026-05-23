@@ -45,7 +45,7 @@ export interface Options extends _TextOptions {
   plugins?: Plugin[]
   /**
    * Layout backend: `'font'` (pure-JS) or `'dom'` (browser), or a custom
-   * `TextMeasurer`. Defaults to `'font'` when `fonts` are provided, else `'dom'`.
+   * `TextMeasurer`. Defaults to `'font'`.
    */
   measurer?: MeasurerKind | TextMeasurer
 }

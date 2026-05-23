@@ -258,9 +258,9 @@ describe('measurer auto-selection (no explicit measurer)', () => {
     expect(text.measurer).toBeInstanceOf(FontMeasurer)
   })
 
-  it('uses DomMeasurer when no fonts are provided', () => {
+  it('defaults to FontMeasurer even without explicitly provided fonts', () => {
     const text = new Text({ content: [['A']] })
-    expect(text.measurer).toBeInstanceOf(DomMeasurer)
+    expect(text.measurer).toBeInstanceOf(FontMeasurer)
   })
 
   it('respects an explicitly provided custom measurer instance', () => {

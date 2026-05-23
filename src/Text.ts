@@ -150,14 +150,14 @@ export class Text extends Reactivable {
     } = normalizeText(options)
 
     // Pick the layout backend. A custom `TextMeasurer` instance wins; a `'font'`
-    // / `'dom'` string selects a built-in; otherwise auto-select: FontMeasurer
-    // when fonts are available (it needs them for glyph advances), else DomMeasurer.
-    // FontMeasurer receives `fonts` positionally from `measure()`, so it needs none here.
+    // / `'dom'` string selects a built-in; otherwise default to the pure-JS
+    // FontMeasurer (it resolves fonts from `measure()` or modern-font's global
+    // registry, so it needs none here).
     if (options.measurer && typeof options.measurer !== 'string') {
       this.measurer = options.measurer
     }
     else {
-      const kind = options.measurer ?? (fonts ? 'font' : 'dom')
+      const kind = options.measurer ?? 'font'
       this.measurer = kind === 'font' ? new FontMeasurer() : new DomMeasurer()
     }
     this.debug = options.debug ?? false
