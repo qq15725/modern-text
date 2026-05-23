@@ -15,6 +15,7 @@ import { BoundingBox, Vector2 } from 'modern-path2d'
 import { Canvas2DRenderer } from './Canvas2DRenderer'
 import { Fragment, Paragraph } from './content'
 import { DomMeasurer } from './DomMeasurer'
+import { FontMeasurer } from './FontMeasurer'
 import {
   backgroundPlugin,
   deformationPlugin,
@@ -147,8 +148,18 @@ export class Text extends Reactivable {
       deformation,
     } = normalizeText(options)
 
+    // Pick the layout backend. Explicit `measurer` wins; otherwise auto-select:
+    // prefer the pure-JS FontMeasurer when fonts are available (it needs them to
+    // resolve glyph advances), falling back to the DOM-based DomMeasurer. Vertical
+    // writing-mode still routes to DomMeasurer until FontMeasurer supports it.
     if (options.measurer) {
       this.measurer = options.measurer
+    }
+    else {
+      const writingMode = style?.writingMode ?? textDefaultStyle.writingMode
+      this.measurer = fonts && !writingMode.includes('vertical')
+        ? new FontMeasurer(fonts)
+        : new DomMeasurer()
     }
     this.debug = options.debug ?? false
     this.content = content

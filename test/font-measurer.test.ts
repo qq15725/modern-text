@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Fonts, parseFont } from 'modern-font'
 import { beforeAll, describe, expect, it } from 'vitest'
+import { DomMeasurer } from '../src/DomMeasurer'
 import { FontMeasurer } from '../src/FontMeasurer'
 import { Text } from '../src/Text'
 
@@ -240,6 +241,30 @@ describe('fontMeasurer — box model, alignment, wrapping', () => {
       .top
     expect(top).toBeCloseTo(0, 5)
     expect(middle).toBeCloseTo((100 - LH) / 2, 5)
+  })
+})
+
+describe('measurer auto-selection (no explicit measurer)', () => {
+  // construct only (no .update()) so the DOM path isn't exercised in Node
+  it('uses FontMeasurer when fonts are present and content is horizontal', () => {
+    const text = new Text({ fonts, content: [['A']], style: { fontFamily: 'Arial' } })
+    expect(text.measurer).toBeInstanceOf(FontMeasurer)
+  })
+
+  it('falls back to DomMeasurer for vertical writing-mode even with fonts', () => {
+    const text = new Text({ fonts, content: [['A']], style: { writingMode: 'vertical-rl' } })
+    expect(text.measurer).toBeInstanceOf(DomMeasurer)
+  })
+
+  it('uses DomMeasurer when no fonts are provided', () => {
+    const text = new Text({ content: [['A']] })
+    expect(text.measurer).toBeInstanceOf(DomMeasurer)
+  })
+
+  it('respects an explicitly provided measurer', () => {
+    const measurer = new FontMeasurer(fonts)
+    const text = new Text({ content: [['A']], measurer })
+    expect(text.measurer).toBe(measurer)
   })
 })
 
