@@ -171,6 +171,19 @@ export class Character {
     return this
   }
 
+  /**
+   * Populate glyph metrics only (advance width/height, ascender/descender,
+   * baseline, …) without building the glyph `path` or touching boxes.
+   *
+   * The DOM {@link DomMeasurer} never needs this — it reads positions back from the
+   * browser. A pure-JS measurer (e.g. `FontMeasurer`) must know advances *before*
+   * it can place characters, so it calls this ahead of layout. `update()` later
+   * recomputes the same metrics while building the path, so this is idempotent.
+   */
+  measureGlyph(fonts?: Fonts): this {
+    return this.updateGlyph(this._getFontSFNT(fonts))
+  }
+
   update(fonts?: Fonts): this {
     const sfnt = this._getFontSFNT(fonts)
 

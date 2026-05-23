@@ -71,7 +71,7 @@ function getSharedContainer(): HTMLDivElement {
   return container
 }
 
-export class Measurer {
+export class DomMeasurer {
   static notZeroStyles = new Set([
     'width',
     'height',
@@ -109,7 +109,7 @@ export class Measurer {
       return cached
     }
     const domStyle: Record<string, any> = {}
-    const { notZeroStyles, pxStyles } = Measurer
+    const { notZeroStyles, pxStyles } = DomMeasurer
     for (const key in style) {
       const value = style[key]
       if (notZeroStyles.has(key) && value === 0) {

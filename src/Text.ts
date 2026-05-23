@@ -9,12 +9,12 @@ import type {
 } from 'modern-idoc'
 import type { Path2DSet } from 'modern-path2d'
 import type { Character } from './content'
-import type { Options, Plugin } from './types'
+import type { Options, Plugin, TextMeasurer } from './types'
 import { getDefaultStyle, normalizeText, property, Reactivable } from 'modern-idoc'
 import { BoundingBox, Vector2 } from 'modern-path2d'
 import { Canvas2DRenderer } from './Canvas2DRenderer'
 import { Fragment, Paragraph } from './content'
-import { Measurer } from './Measurer'
+import { DomMeasurer } from './DomMeasurer'
 import {
   backgroundPlugin,
   deformationPlugin,
@@ -79,7 +79,7 @@ export class Text extends Reactivable {
   glyphBox = new BoundingBox()
   pathBox = new BoundingBox()
   boundingBox = new BoundingBox()
-  measurer = new Measurer()
+  measurer: TextMeasurer = new DomMeasurer()
   plugins = new Map<string, Plugin>()
   pathSets: Path2DSet[] = []
   protected _paragraphs: Paragraph[] = []
@@ -147,6 +147,9 @@ export class Text extends Reactivable {
       deformation,
     } = normalizeText(options)
 
+    if (options.measurer) {
+      this.measurer = options.measurer
+    }
     this.debug = options.debug ?? false
     this.content = content
     this.effects = effects
@@ -239,6 +242,9 @@ export class Text extends Reactivable {
 
   createDom(): HTMLElement {
     this._update()
+    if (!this.measurer.createDom) {
+      throw new Error('current measurer does not support createDom()')
+    }
     return this.measurer.createDom(this.paragraphs, this.computedStyle)
   }
 
@@ -253,7 +259,7 @@ export class Text extends Reactivable {
       boundingBox: this.boundingBox,
     }
     this._update()
-    const result = this.measurer.measure(this.paragraphs, this.computedStyle, dom) as MeasureResult
+    const result = this.measurer.measure(this.paragraphs, this.computedStyle, dom, this.fonts) as MeasureResult
     this.paragraphs = result.paragraphs
     this.lineBox = result.boundingBox
     const characters = this.characters
@@ -415,7 +421,7 @@ export class Text extends Reactivable {
   }
 
   dispose(): void {
-    this.measurer.dispose()
+    this.measurer.dispose?.()
     this._renderer = undefined
     this._rendererCtx = undefined
   }

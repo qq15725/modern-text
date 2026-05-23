@@ -42,7 +42,8 @@ Each level inherits and merges style downward (`computedStyle`, `computedFill`, 
 | File | Role |
 |------|------|
 | `src/Text.ts` | Entry point. Orchestrates measure → plugin update → render pipeline. Emits `update`, `measure`, `render` events. Caches a `Canvas2DRenderer` per ctx; `dispose()` releases the cached renderer and forwards to `measurer.dispose()`. |
-| `src/Measurer.ts` | DOM-based layout engine. Builds a `<section>/<ul>/<li>/<span>` tree and keeps it mounted inside a shared hidden `<div data-modern-text="measurer">` container under `document.body`; subsequent `measure()` calls reuse the same DOM, patching text/styles in place when the structural signature (`paragraphCount:fragmentCountsPerParagraph`) is unchanged, and only rebuild when it differs. `dispose()` unmounts the cached DOM. Reads back `getBoundingClientRect()` for every character. Also provides `createDom()` for external use. |
+| `src/DomMeasurer.ts` | DOM-based layout engine (class `DomMeasurer`, the default). Builds a `<section>/<ul>/<li>/<span>` tree and keeps it mounted inside a shared hidden `<div data-modern-text="measurer">` container under `document.body`; subsequent `measure()` calls reuse the same DOM, patching text/styles in place when the structural signature (`paragraphCount:fragmentCountsPerParagraph`) is unchanged, and only rebuild when it differs. `dispose()` unmounts the cached DOM. Reads back `getBoundingClientRect()` for every character. Also provides `createDom()` for external use. |
+| `src/FontMeasurer.ts` | Pure-JS, DOM-free layout engine (class `FontMeasurer`, implements `TextMeasurer`). Computes the same four-level boxes from `modern-font` glyph advances, so it runs in Node/SSR/Worker. v1: horizontal only. Inject via `new Text({ measurer: new FontMeasurer(fonts) })`. |
 | `src/Canvas2DRenderer.ts` | Wraps `CanvasRenderingContext2D`. Handles pixel-ratio scaling, gradient resolution, and drawing `Path2D` paths or fallback `fillText`. Owns a reusable offscreen canvas (`grow-only` resize) and exposes `drawWithShadow(shadow, drawFn)` — the offscreen pass collects all character paths first, then is `drawImage`'d back to the main ctx with `shadow*` set, producing a single shadow under the whole text (fixes negative-offset layering and per-character shadow overlap). |
 | `src/content/Character.ts` | Converts a Unicode character into a `Path2D` using `modern-font` SFNT tables (advance width, glyph paths, italic skew, bold offset). Falls back to `ctx.fillText` when no glyph path is available. |
 | `src/definePlugin.ts` | Identity helper — just returns the plugin object typed as `Plugin`. |
@@ -91,7 +92,7 @@ Each plugin may implement:
 - `Text.paragraphs` is a getter/setter that invalidates a cached flat `characters` list — reads of `text.characters` are O(1) after the first build.
 - Plugins are pre-sorted into `_pluginsByUpdateOrder` / `_pluginsByRenderOrder` at `use()` time, so neither `measure()` nor `render()` sorts on the hot path.
 - `Canvas2DRenderer` and its offscreen shadow canvas are reused across frames; the shadow canvas only grows, never shrinks, to avoid backing-store reallocations.
-- `Measurer._toDomStyle` results are WeakMap-cached per style object reference.
+- `DomMeasurer._toDomStyle` results are WeakMap-cached per style object reference.
 
 ### Dependencies
 

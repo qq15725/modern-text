@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DOM vs FontMeasurer diff</title>
+  <meta name="referrer" content="no-referrer">
+  <style>
+    /* Match the modern-font fallback so unstyled fixtures use the same font in
+       both the DOM measurer and FontMeasurer. The report <pre> stays monospace. */
+    body { margin: 16px; font-family: "Fallback"; }
+    pre { white-space: pre; font: 12px/1.5 ui-monospace, monospace; }
+  </style>
+</head>
+<body>
+  <pre id="out">running…</pre>
+  <script src="./src/diff.ts" type="module"></script>
+</body>
+</html>

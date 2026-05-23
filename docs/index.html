@@ -11,15 +11,82 @@
     }
 
     body {
+      font-family: "Fallback";
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: #fafafa;
+    }
+
+    #toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      background: #fafafa;
+      border-bottom: 1px solid #e2e2e2;
+    }
+
+    #toolbar button {
+      font: 600 13px ui-monospace, monospace;
+      padding: 7px 14px;
+      border: 1px solid #2563eb;
+      border-radius: 6px;
+      background: #2563eb;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    #toolbar button:disabled {
+      opacity: 0.5;
+      cursor: progress;
+    }
+
+    #toolbar .status {
+      font: 12px ui-monospace, monospace;
+      color: #888;
+    }
+
+    .fixture {
+      border: 1px solid #e2e2e2;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: #fff;
+    }
+
+    .fixture > h3 {
+      margin: 0 0 8px;
+      font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #2563eb;
+    }
+
+    .fixture .views {
       display: flex;
       flex-wrap: wrap;
-      gap: 100px;
-      font-family: "Fallback";
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    .fixture figure {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .fixture figcaption {
+      font: 11px ui-monospace, monospace;
+      color: #999;
     }
 
     canvas {
       display: inline-block;
       box-sizing: content-box;
+      outline: 1px dashed #e5e5e5;
       /*transform: rotate(45deg);*/
     }
   </style>
