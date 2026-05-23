@@ -1,6 +1,6 @@
-import type { Options, TextMeasurer } from '../../src'
+import type { Options } from '../../src'
 import { fonts } from 'modern-font'
-import { DomMeasurer, FontMeasurer, Text } from '../../src'
+import { Text } from '../../src'
 import { registerDeformations } from '../../src/deformations'
 import { TextEditor } from '../../src/web-components'
 import { webglRender } from './webgl'
@@ -27,11 +27,6 @@ async function loadFallbackFont(): Promise<void> {
   await fonts.load({ family: 'LogoSCUnboundedSans-Regular', src: '/LogoSCUnboundedSans-Regular.woff' })
 }
 
-/** Explicitly pick the backend per mode (don't rely on Text's auto-select). */
-function measurerFor(): TextMeasurer {
-  return mode === 'font' ? new FontMeasurer(fonts) : new DomMeasurer()
-}
-
 interface Figure { canvas: HTMLCanvasElement, caption: HTMLElement, label: string }
 
 /** Render one fixture into a figure; annotate (instead of crashing) on failure. */
@@ -40,7 +35,8 @@ async function renderInto(fig: Figure, options: Options): Promise<void> {
   caption.textContent = label
   canvas.style.display = ''
   try {
-    const text = new Text({ ...options, measurer: measurerFor() })
+    // explicit per mode, so the toggle compares the two backends directly
+    const text = new Text({ ...options, measurer: mode })
     text.on('update', () => {
       if (useWebgl) {
         webglRender(text, canvas)

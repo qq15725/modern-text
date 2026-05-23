@@ -39,14 +39,14 @@ function side(style: Record<string, any>, name: 'padding' | 'margin', edge: Edge
  * measurer, whose rects are taken relative to `section.getBoundingClientRect()`).
  */
 export class FontMeasurer implements TextMeasurer {
-  constructor(public fonts?: Fonts) {}
-
   measure(
     paragraphs: Paragraph[],
     rootStyle: FullStyle,
     _dom?: HTMLElement,
-    fonts: Fonts | undefined = this.fonts,
+    fonts?: Fonts,
   ): MeasureDomResult {
+    // `fonts` is supplied by Text.measure(); fall back to the global registry
+    // for standalone use.
     const _fonts = fonts ?? globalFonts
 
     // Glyph advances/metrics must be known before placement.

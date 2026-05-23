@@ -1,5 +1,5 @@
 import { fonts } from 'modern-font'
-import { DomMeasurer, FontMeasurer, Text } from '../../src'
+import { Text } from '../../src'
 import { registerDeformations } from '../../src/deformations'
 
 registerDeformations()
@@ -37,8 +37,8 @@ function collect(text: Text): CharBox[] {
 async function build(fixture: any, useFont: boolean): Promise<Text> {
   const text = new Text({
     fonts,
-    // explicit per side — Text now auto-selects FontMeasurer when fonts exist
-    measurer: useFont ? new FontMeasurer(fonts) : new DomMeasurer(),
+    // explicit per side — Text auto-selects FontMeasurer when fonts exist
+    measurer: useFont ? 'font' : 'dom',
     ...fixture,
   })
   await text.load()

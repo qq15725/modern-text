@@ -35,11 +35,17 @@ export interface TextMeasurer {
   dispose?: () => void
 }
 
+/** Built-in layout backends. `'font'` → `FontMeasurer`, `'dom'` → `DomMeasurer`. */
+export type MeasurerKind = 'dom' | 'font'
+
 export interface Options extends _TextOptions {
   debug?: boolean
   measureDom?: HTMLElement
   fonts?: Fonts
   plugins?: Plugin[]
-  /** Override the layout backend. Defaults to the DOM-based `DomMeasurer`. */
-  measurer?: TextMeasurer
+  /**
+   * Layout backend: `'font'` (pure-JS) or `'dom'` (browser), or a custom
+   * `TextMeasurer`. Defaults to `'font'` when `fonts` are provided, else `'dom'`.
+   */
+  measurer?: MeasurerKind | TextMeasurer
 }

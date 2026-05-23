@@ -43,7 +43,7 @@ beforeAll(() => {
 function makeText(options: Record<string, any>): Text {
   return new Text({
     fonts,
-    measurer: new FontMeasurer(fonts),
+    measurer: 'font',
     style: { fontFamily: 'Arial', fontSize: 14, ...options.style },
     ...options,
   }).update() as unknown as Text
@@ -262,10 +262,15 @@ describe('measurer auto-selection (no explicit measurer)', () => {
     expect(text.measurer).toBeInstanceOf(DomMeasurer)
   })
 
-  it('respects an explicitly provided measurer', () => {
-    const measurer = new FontMeasurer(fonts)
+  it('respects an explicitly provided custom measurer instance', () => {
+    const measurer = new FontMeasurer()
     const text = new Text({ content: [['A']], measurer })
     expect(text.measurer).toBe(measurer)
+  })
+
+  it('selects a built-in by string (measurer: \'dom\' | \'font\')', () => {
+    expect(new Text({ fonts, content: [['A']], measurer: 'dom' }).measurer).toBeInstanceOf(DomMeasurer)
+    expect(new Text({ content: [['A']], measurer: 'font' }).measurer).toBeInstanceOf(FontMeasurer)
   })
 })
 
