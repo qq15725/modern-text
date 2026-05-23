@@ -1,3 +1,16 @@
+# [2.0.0](https://github.com/qq15725/modern-text/compare/v1.12.0...v2.0.0) (2026-05-23)
+
+
+### Bug Fixes
+
+* **test:** use lowercase fallback.woff so font tests pass on case-sensitive CI ([417a0dc](https://github.com/qq15725/modern-text/commit/417a0dc4c1f17075f1726c316c8baa153e2094af))
+
+
+### Features
+
+* auto-select FontMeasurer when fonts are provided ([4551a49](https://github.com/qq15725/modern-text/commit/4551a492ed08b27d5c822770093e5a770b7d9108))
+* pure-JS DOM-free layout engine (FontMeasurer) ([7783d55](https://github.com/qq15725/modern-text/commit/7783d55fae1f12952a2a4b9caa5a1f057b2edb57))
+* vertical writing-mode (vertical-rl) in FontMeasurer ([612f2a7](https://github.com/qq15725/modern-text/commit/612f2a74ba0683f2431ec817758c31513ae017fc))
 # [1.12.0](https://github.com/qq15725/modern-text/compare/v1.11.1...v1.12.0) (2026-05-20)
 
 
