@@ -1,3 +1,4 @@
+## [2.0.4](https://github.com/qq15725/modern-text/compare/v2.0.3...v2.0.4) (2026-06-05)
 ## [2.0.3](https://github.com/qq15725/modern-text/compare/v2.0.2...v2.0.3) (2026-05-23)
 
 
