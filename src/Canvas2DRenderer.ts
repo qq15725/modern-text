@@ -92,6 +92,11 @@ export class Canvas2DRenderer {
         case 'linear-gradient': {
           const { left, top, width: w, height: h } = box
           const { angle = 0, stops } = source
+          // box/angle 非有限（如自定义字体未就绪时文字测量为 NaN）会让 createLinearGradient 抛错、
+          // 崩掉整个文本渲染；退化为首个有效色标的纯色，待重绘尺寸正常后再走渐变
+          if (![left, top, w, h, angle].every(Number.isFinite)) {
+            return stops?.find(s => s?.color)?.color ?? 'transparent'
+          }
           const cx = left + w / 2
           const cy = top + h / 2
           const rad = (angle + 90) * Math.PI / 180
@@ -103,7 +108,14 @@ export class Canvas2DRenderer {
           const x1 = cx + dx * (l / 2)
           const y1 = cy + dy * (l / 2)
           const g = this.context.createLinearGradient(x0, y0, x1, y1)
-          for (const s of stops) g.addColorStop(s.offset, s.color)
+          for (const s of stops) {
+            // 非法 offset/color 跳过单个色标，避免崩掉整张渐变
+            const offset = Number.isFinite(s.offset) ? Math.min(1, Math.max(0, s.offset)) : 0
+            try {
+              g.addColorStop(offset, s.color)
+            }
+            catch {}
+          }
           return g
         }
         case 'radial-gradient':
