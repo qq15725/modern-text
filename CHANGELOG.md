@@ -1,3 +1,9 @@
+## [2.0.6](https://github.com/qq15725/modern-text/compare/v2.0.5...v2.0.6) (2026-06-10)
+
+
+### Bug Fixes
+
+* coerce numeric computedStyle fields to finite numbers ([54d6a05](https://github.com/qq15725/modern-text/commit/54d6a052bc0b03018f7e382e3ca5202d2a1bbec6))
 ## [2.0.5](https://github.com/qq15725/modern-text/compare/v2.0.4...v2.0.5) (2026-06-10)
 
 
