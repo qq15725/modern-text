@@ -1,3 +1,9 @@
+## [2.0.5](https://github.com/qq15725/modern-text/compare/v2.0.4...v2.0.5) (2026-06-10)
+
+
+### Bug Fixes
+
+* fall back to solid color when text gradient box/angle is non-finite ([b4ff319](https://github.com/qq15725/modern-text/commit/b4ff319a172143f8b0295cbb5507e582c7b81540))
 ## [2.0.4](https://github.com/qq15725/modern-text/compare/v2.0.3...v2.0.4) (2026-06-05)
 ## [2.0.3](https://github.com/qq15725/modern-text/compare/v2.0.2...v2.0.3) (2026-05-23)
 
