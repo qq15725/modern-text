@@ -247,8 +247,41 @@ export class Text extends Reactivable {
     }))
   }
 
+  /**
+   * Coerce numeric style fields to finite numbers.
+   *
+   * `normalizeText`/`normalizeStyle` only runs through the constructor, so a
+   * `style` provided via direct assignment or `setPropertyAccessor` reaches
+   * `computedStyle` un-normalized. An invalid numeric value (`''`, `NaN`,
+   * `'10px'`, `'50%'`) would then poison layout arithmetic — e.g.
+   * `textIndent ?? 0` keeps `''` (`??` does not catch empty strings), which
+   * corrupts glyph positions and the text fails to render. Fall every numeric
+   * field back to its default when it is not a finite number (parsing leading
+   * numerics like `parseFloat`, matching the normalized path).
+   */
+  protected _normalizeComputedStyle(style: FullStyle): FullStyle {
+    const result = style as Record<string, any>
+    for (const key in textDefaultStyle) {
+      const fallback = (textDefaultStyle as Record<string, any>)[key]
+      if (typeof fallback !== 'number') {
+        continue
+      }
+      const value = result[key]
+      if (typeof value === 'number') {
+        if (!Number.isFinite(value)) {
+          result[key] = fallback
+        }
+      }
+      else {
+        const parsed = Number.parseFloat(value)
+        result[key] = Number.isFinite(parsed) ? parsed : fallback
+      }
+    }
+    return style
+  }
+
   protected _update(): this {
-    this.computedStyle = { ...textDefaultStyle, ...this.style }
+    this.computedStyle = this._normalizeComputedStyle({ ...textDefaultStyle, ...this.style })
     this.computedFill = this.fill ? { ...this.fill } : undefined
     this.computedOutline = this.outline ? { ...this.outline } : undefined
     this.computedEffects = this.effects?.map(v => v) ?? []

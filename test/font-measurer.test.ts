@@ -6,7 +6,7 @@ import { Fonts, parseFont } from 'modern-font'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { DomMeasurer } from '../src/DomMeasurer'
 import { FontMeasurer } from '../src/FontMeasurer'
-import { Text } from '../src/Text'
+import { Text, textDefaultStyle } from '../src/Text'
 
 const dir = fileURLToPath(new URL('.', import.meta.url))
 
@@ -335,5 +335,46 @@ describe('fontMeasurer — vertical (vertical-rl)', () => {
     const text = makeText({ content: [['你好']], style: V })
     expect(text.boundingBox.width).toBeCloseTo(text.characters[0].fontHeight, 1)
     expect(text.boundingBox.height).toBeCloseTo(2 * text.characters[0].advanceWidth, 1)
+  })
+})
+
+// A `style` supplied via direct assignment or `setPropertyAccessor` (e.g. modern-canvas
+// feeds its reactive style straight through) skips the constructor's `normalizeText`, so
+// invalid numeric values reach `computedStyle` raw. `_normalizeComputedStyle` must coerce
+// them, otherwise `textIndent ?? 0` keeps `''` and corrupts glyph positions → blank text.
+describe('fontMeasurer — un-normalized style (raw assignment / accessor path)', () => {
+  // Build with normalized content via the constructor, then overwrite `style` with a raw
+  // object (assignment skips `normalizeText`) — this is exactly modern-canvas's accessor path.
+  function rawText(style: Record<string, any>): Text {
+    const text = new Text({ fonts, measurer: 'font', content: [['AV指标']] }) as unknown as Text
+    ;(text as any).style = { fontFamily: 'Arial', fontSize: 14, ...style }
+    return text.update() as unknown as Text
+  }
+
+  it('coerces textIndent: "" to the default 0 and keeps glyphs finite', () => {
+    const text = rawText({ textIndent: '' })
+    expect(text.computedStyle.textIndent).toBe(0)
+    for (const c of text.characters) {
+      expect(Number.isFinite(c.inlineBox.left)).toBe(true)
+      expect(Number.isFinite(c.inlineBox.top)).toBe(true)
+    }
+    expect(Number.isFinite(text.boundingBox.width)).toBe(true)
+  })
+
+  it('first-line indent matches between textIndent: "" and textIndent: 0', () => {
+    const empty = rawText({ textIndent: '' }).characters[0].inlineBox.left
+    const zero = rawText({ textIndent: 0 }).characters[0].inlineBox.left
+    expect(empty).toBeCloseTo(zero, 5)
+  })
+
+  it('parses leading-numeric strings (e.g. "20px") like the normalized path', () => {
+    expect(rawText({ textIndent: '20px' }).computedStyle.textIndent).toBe(20)
+    expect(rawText({ fontSize: '' }).computedStyle.fontSize).toBe(textDefaultStyle.fontSize)
+  })
+
+  it('still honours a real first-line indent', () => {
+    const indented = rawText({ textIndent: 20 }).characters[0].inlineBox.left
+    const plain = rawText({ textIndent: 0 }).characters[0].inlineBox.left
+    expect(indented).toBeCloseTo(plain + 20, 5)
   })
 })
