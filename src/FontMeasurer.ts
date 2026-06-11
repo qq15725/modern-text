@@ -75,8 +75,13 @@ export class FontMeasurer implements TextMeasurer {
   protected _measureHorizontal(paragraphs: Paragraph[], rootStyle: FullStyle): MeasureDomResult {
     const rootPad = this._rootPadding(rootStyle)
     // border-box: the content area excludes padding.
+    // textWrap: 'nowrap' → don't break by width (availWidth = Infinity), lay text on a single
+    // line; the element's `width` is still honored for totalWidth/alignment below. Single-line
+    // art text (arc/arch deformations) relies on this so the box can be sized to the deformed
+    // glyph width without the smaller width feeding back into line-breaking.
     const hasWidth = typeof rootStyle.width === 'number'
-    const availWidth = hasWidth
+    const noWrap = rootStyle.textWrap === 'nowrap'
+    const availWidth = (hasWidth && !noWrap)
       ? (rootStyle.width as number) - rootPad.left - rootPad.right
       : Infinity
 
@@ -209,8 +214,10 @@ export class FontMeasurer implements TextMeasurer {
    */
   protected _measureVertical(paragraphs: Paragraph[], rootStyle: FullStyle): MeasureDomResult {
     const rootPad = this._rootPadding(rootStyle)
+    // textWrap: 'nowrap' → don't break by height in vertical writing mode (single column).
     const hasHeight = typeof rootStyle.height === 'number'
-    const availHeight = hasHeight
+    const noWrap = rootStyle.textWrap === 'nowrap'
+    const availHeight = (hasHeight && !noWrap)
       ? (rootStyle.height as number) - rootPad.top - rootPad.bottom
       : Infinity
 
