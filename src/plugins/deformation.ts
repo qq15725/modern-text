@@ -76,7 +76,35 @@ export function deformationPlugin(): Plugin {
       // 变形把字形移到了新位置;若不同步,boundingBox 会并入变形前的原始布局框
       // (rawGlyphBox / lineBox),在大幅位移时(尤其竖排)留下大片空白。
       // 这里用变形后的字形范围覆盖这几个文本级外接框。
-      const box = text.getGlyphBox()
+      let box = text.getGlyphBox()
+      // 归一化:把变形后字形整体平移回本地原点 (0,0)。否则 boundingBox 会带上非零
+      // 偏移(如下拱形使顶部下沉令 box.top 变正),而下游按 boundingBox.left/top 定位
+      // 字形纹理时(如 modern-canvas Element2DText._textureDraw),元素框从 (0,0) 起算,
+      // 二者错位——表现为选框/外框无法贴合变形后的文字。平移范围与 Deformer._transform
+      // 保持一致(字符 path + highlight pathSet),并同步各字符的 glyphBox/inlineBox。
+      const dx = box.left
+      const dy = box.top
+      if (dx || dy) {
+        const highlight = text.plugins.get('highlight')
+        for (const character of text.characters) {
+          if (!character.glyphBox) {
+            continue
+          }
+          character.path.getControlPointRefs().forEach((point) => {
+            point.set(point.x - dx, point.y - dy)
+          })
+          character.glyphBox = character.getGlyphBoundingBox()
+          if (character.glyphBox) {
+            character.inlineBox = character.glyphBox
+          }
+        }
+        highlight?.pathSet?.paths?.forEach((path) => {
+          path.getControlPointRefs().forEach((point) => {
+            point.set(point.x - dx, point.y - dy)
+          })
+        })
+        box = text.getGlyphBox()
+      }
       text.rawGlyphBox = box
       text.glyphBox = box
       text.lineBox = box
