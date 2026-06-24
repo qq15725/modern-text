@@ -1,7 +1,7 @@
 {
   "name": "modern-text",
   "type": "module",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "packageManager": "pnpm@10.18.1",
   "description": "Measure and render text in a way that describes the DOM.",
   "author": "wxm",
@@ -61,7 +61,7 @@
   "dependencies": {
     "diff": "^9.0.0",
     "modern-font": "^0.6.0",
-    "modern-idoc": "^0.11.9",
+    "modern-idoc": "^0.12.1",
     "modern-path2d": "^1.7.0"
   },
   "devDependencies": {
