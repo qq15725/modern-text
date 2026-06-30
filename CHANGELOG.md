@@ -1,3 +1,9 @@
+## [2.1.1](https://github.com/qq15725/modern-text/compare/v2.1.0...v2.1.1) (2026-06-30)
+
+
+### Bug Fixes
+
+* make text deformation scale-invariant ([8226875](https://github.com/qq15725/modern-text/commit/82268756b0a2c641cdcd08dbf913a3a3ac936054))
 # [2.1.0](https://github.com/qq15725/modern-text/compare/v2.0.9...v2.1.0) (2026-06-30)
 
 
