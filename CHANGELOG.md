@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/qq15725/modern-text/compare/v2.0.9...v2.1.0) (2026-06-30)
+
+
+### Performance Improvements
+
+* cut per-character memory via shared font metrics and derived lineBox ([b1c2b22](https://github.com/qq15725/modern-text/commit/b1c2b220f0040d268abb66f6181bea55298b44b1))
+* incremental layout + lazy glyph paths + kerning, drop DOM measurer ([934e182](https://github.com/qq15725/modern-text/commit/934e1825db20805e9c07dcb713805f7be6635cf1))
 ## [2.0.9](https://github.com/qq15725/modern-text/compare/v2.0.8...v2.0.9) (2026-06-24)
 ## [2.0.8](https://github.com/qq15725/modern-text/compare/v2.0.7...v2.0.8) (2026-06-11)
 ## [2.0.7](https://github.com/qq15725/modern-text/compare/v2.0.6...v2.0.7) (2026-06-11)
