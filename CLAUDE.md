@@ -77,6 +77,33 @@ Each plugin may implement:
 - `getBoundingBox(text)` — contributes to `pathBox`
 - `load(text)` — async, called by `text.load()`
 
+### Deformation (opt-in)
+
+Text deformation (warping glyphs onto arcs, waves, trapezoids, …) is **not** a
+built-in plugin. The engine `deformationPlugin` lives in core, but ships **no
+presets** — register the official set from the `modern-text/deformations`
+subpath (`registerDeformations()`), or add your own with
+`defineDeformation(name, preset)`. Activate per-instance via
+`text.deformation = { type, intensities }`.
+
+- `intensities` are `0`–`100` per axis (internally divided by 100). Single-axis
+  presets read `intensities[0]`; two-axis presets (`skew`, `trapezoid`, …) also
+  read `intensities[1]`. A missing axis defaults to `0` (`FfdDeformer` — passing
+  fewer values than a preset reads must not produce `NaN`).
+- Engines (`preset.engine`), all under `src/plugins/deformers/`:
+  - `BendDeformer` — wraps glyphs onto a circular arc (arch/bend/flag/…).
+  - `FfdDeformer` — free-form deformation over an `hBlocks×vBlocks` control grid
+    (trapezoid/skew/concave/…); `build(points, ctx)` per preset positions the grid.
+  - `VerbatimDeformer` — lays each character along an arbitrary `DeformationCurve`.
+- **Scale-invariance**: the bend radius / reference size is derived from the
+  text's *actual* max font size (`Deformer._maxFontSize()`), not a fixed
+  constant — so a given `intensities` yields the same shape at any `fontSize`.
+  The line-subdivision threshold in `_lineToQuadraticBezier` is likewise scaled
+  by font size. `DeformerOptions.maxFontSize` is a deprecated fallback only.
+- After deforming, `deformationPlugin` overwrites the text-level boxes from the
+  warped glyph extent (`getGlyphBox`) and normalizes the result back to origin,
+  so downstream consumers see the post-deformation bounding box.
+
 ### Lifecycle
 
 1. `new Text(options)` → normalises options via `modern-idoc`, registers plugins, calls `_update()`

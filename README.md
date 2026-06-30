@@ -232,10 +232,20 @@ renderText({
   view,
   fonts,
   content: 'Deformation',
-  style: { fontSize: 100 },
-  deformation: { type: 'arch-curve' },
+  style: { fontSize: 64 },
+  deformation: { type: 'arch-curve', intensities: [50] },
 })
 ```
+
+`intensities` is the strength of the effect, `0`–`100` per axis. Most presets
+read a single value (`intensities[0]`); a few are **two-axis** and also read
+`intensities[1]` — e.g. `skew` and `trapezoid` slant/taper independently on the
+x and y axes. A missing axis is treated as `0`.
+
+Deformation is **scale-invariant**: the geometry is derived from the text's own
+font size, so the same `intensities` produce the same shape at any `fontSize` —
+you don't pass a reference size. (The legacy `deformation.maxFontSize` field is
+no longer needed and is only used as a fallback when no glyphs are measurable.)
 
 <details>
 <summary>Available presets (34)</summary>
