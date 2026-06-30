@@ -21,7 +21,9 @@ export class FfdDeformer extends Deformer {
     if (preset.lineToQuad) {
       this._lineToQuadraticBezier()
     }
-    const [a, b] = this.intensities
+    // 缺省的强度按 0 处理：双轴预设（如 skew/trapezoid 读 a、b）若只给一个强度，
+    // 早期会让 b 为 undefined → tan(NaN) → 整个字形塌成 0 高度。
+    const [a = 0, b = 0] = this.intensities
     const points = this._createFFDControlPoints(preset.hBlocks, preset.vBlocks)
     preset.build(points, {
       a,

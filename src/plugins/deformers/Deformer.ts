@@ -6,7 +6,12 @@ import { splitCurve } from './splitCurve'
 
 export interface DeformerOptions {
   text: Text
+  /** 各轴强度，0–100（内部 /100）。单轴预设读 [0]，双轴预设（skew/trapezoid…）另读 [1]。 */
   intensities?: number[]
+  /**
+   * @deprecated 变形半径基准已改为从文字真实最大字号自动推导（缩放无关），无需再传。
+   * 仅在无可测字形时作兜底。
+   */
   maxFontSize?: number
 }
 
@@ -39,10 +44,25 @@ export abstract class Deformer {
     return this.paragraphs.flatMap(p => p.fragments.flatMap(f => f.characters))
   }
 
-  constructor({ text, intensities = [], maxFontSize = 100 }: DeformerOptions) {
+  constructor({ text, intensities = [], maxFontSize }: DeformerOptions) {
     this.text = text
     this.intensities = intensities.map(val => val / 100)
-    this.lineHeight = maxFontSize
+    // 变形半径基准：取文字里真实的最大字号。
+    // 早期实现固定取外部传入的 maxFontSize（默认 100），任意字号的文字都按 100px 弯曲——
+    // 半径不随字号缩放，于是字号一变形状就垮（缩放相关，小字被挤成竖条）。
+    // 这里直接从已 measure 的字形读取真实最大字号，使变形对字号缩放保持不变；
+    // maxFontSize 仅在无可测字形时作兜底。
+    this.lineHeight = this._maxFontSize() || maxFontSize || 100
+  }
+
+  protected _maxFontSize(): number {
+    let max = 0
+    this.characters.forEach((character) => {
+      if (character.glyphBox) {
+        max = Math.max(max, character.fontSize)
+      }
+    })
+    return max
   }
 
   abstract deform(): void
@@ -86,7 +106,9 @@ export abstract class Deformer {
       }
       character.path.curves.forEach((subPath) => {
         subPath.curves = subPath.curves.map((curve) => {
-          if (curve instanceof LineCurve && curve.getLength() > 5) {
+          // 细分阈值随字号缩放（原固定 5px 是按 ~100px 字号调的：5/100）：
+          // 小字时阈值变小→同样细分，避免小字弯曲不足而与大字形状不一致。
+          if (curve instanceof LineCurve && curve.getLength() > this.lineHeight * 0.05) {
             const { p1, p2 } = curve
             const res = new QuadraticBezierCurve(
               p1.clone(),
