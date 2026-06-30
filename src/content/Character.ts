@@ -76,6 +76,77 @@ function sfntId(sfnt: object): number {
   return id
 }
 
+// 字体度量 flyweight：除 advanceWidth（逐字）外，所有度量只取决于 (sfnt, fontSize)，原本每个
+// Character 都重复存一份（~17 个 number）。改为按 (sfntId, fontSize) 共享一份，Character 只存一个
+// 引用，度量经 getter 推导 —— 大段文本省下绝大部分逐字度量内存，且 updateGlyph 对每个 (字体,字号)
+// 只算一次而非逐字算。
+interface FontMetrics {
+  sfnt: SFNT
+  unitsPerEm: number
+  advanceHeight: number
+  baseline: number
+  ascender: number
+  descender: number
+  underlinePosition: number
+  underlineThickness: number
+  strikeoutPosition: number
+  strikeoutSize: number
+  typoAscender: number
+  typoDescender: number
+  typoLineGap: number
+  winAscent: number
+  winDescent: number
+  xHeight: number
+  capHeight: number
+  centerDiviation: number
+  fontStyle?: 'bold' | 'italic'
+}
+
+const FONT_METRICS_CAP = 256
+const fontMetricsCache = new Map<string, FontMetrics>()
+
+function getFontMetrics(sfnt: SFNT, fontSize: number): FontMetrics {
+  const key = `${sfntId(sfnt)}|${fontSize}`
+  const cached = fontMetricsCache.get(key)
+  if (cached) {
+    return cached
+  }
+  const { hhea, os2, post, head } = sfnt
+  const unitsPerEm = head.unitsPerEm
+  const ascender = hhea.ascent
+  const descender = hhea.descent
+  const rate = unitsPerEm / fontSize
+  const advanceHeight = (ascender + Math.abs(descender)) / rate
+  const baseline = ascender / rate
+  const m: FontMetrics = {
+    sfnt,
+    unitsPerEm,
+    advanceHeight,
+    baseline,
+    ascender: ascender / rate,
+    descender: descender / rate,
+    underlinePosition: (ascender - post.underlinePosition) / rate,
+    underlineThickness: post.underlineThickness / rate,
+    strikeoutPosition: (ascender - os2.yStrikeoutPosition) / rate,
+    strikeoutSize: os2.yStrikeoutSize / rate,
+    typoAscender: os2.sTypoAscender / rate,
+    typoDescender: os2.sTypoDescender / rate,
+    typoLineGap: os2.sTypoLineGap / rate,
+    winAscent: os2.usWinAscent / rate,
+    winDescent: os2.usWinDescent / rate,
+    xHeight: os2.version > 1 ? os2.sxHeight / rate : 0,
+    capHeight: os2.version > 1 ? os2.sCapHeight / rate : 0,
+    centerDiviation: advanceHeight / 2 - baseline,
+    fontStyle: fsSelectionMap[os2.fsSelection] ?? macStyleMap[head.macStyle],
+  }
+  // 逐出（FIFO）：度量对象即便被逐出 cache 仍被引用它的 Character 持有，不影响正确性。
+  if (fontMetricsCache.size >= FONT_METRICS_CAP) {
+    fontMetricsCache.delete(fontMetricsCache.keys().next().value as string)
+  }
+  fontMetricsCache.set(key, m)
+  return m
+}
+
 export class Character {
   // 惰性 path：布局阶段（measure）只算度量 + glyphBox，不构造逐字定位 path
   // （3681 字逐字 clone+平移占 Text.update 主成本）。path 仅在真正渲染/命中时才按需构建。
@@ -109,36 +180,47 @@ export class Character {
     this._lazyPath = undefined
   }
 
-  lineBox = new BoundingBox()
   inlineBox = new BoundingBox()
+
+  // lineBox（行高/列厚那条 strip）完全由 inlineBox + fontHeight 推出，不再逐字存一个 BoundingBox。
+  // 横排：与 inlineBox 同列、在内容盒上下居中、高=fontHeight；竖排：inline/block 轴交换。
+  get lineBox(): BoundingBox {
+    const ib = this.inlineBox
+    const fh = this.fontHeight
+    return this.isVertical
+      ? new BoundingBox(ib.left + (ib.width - fh) / 2, ib.top, fh, ib.height)
+      : new BoundingBox(ib.left, ib.top + (ib.height - fh) / 2, ib.width, fh)
+  }
+
   glyphBox?: BoundingBox
   advanceWidth = 0
-  advanceHeight = 0
-  underlinePosition = 0
-  underlineThickness = 0
-  strikeoutPosition = 0
-  strikeoutSize = 0
-  ascender = 0
-  descender = 0
-  typoAscender = 0
-  typoDescender = 0
-  typoLineGap = 0
-  winAscent = 0
-  winDescent = 0
-  xHeight = 0
-  capHeight = 0
-  baseline = 0
-  centerDiviation = 0
-  fontStyle?: 'bold' | 'italic'
-
   // 字偶距（kerning）：与「行内逻辑前一字符」之间的水平调整（px，通常为负=拉近）。
   // 由 Measurer._applyKerning 在横排测量时按字形对填充；行首/换字体/竖排时为 0。
   // 断行与定位都计入它，使纯/混排拉丁文本的行宽、换行点与浏览器渲染一致。
   kerningBefore = 0
-  // kerning 查询所需的字形身份（measureGlyph 时记录）：同一 sfnt 的相邻字形才有字偶距。
-  protected _sfnt?: SFNT
+  // 本字符首字形在其 sfnt 内的索引（逐字），供相邻字符查字偶距。
   protected _glyphIndex?: number
-  protected _unitsPerEm = 0
+  // 字体度量 flyweight（按 (sfnt,fontSize) 共享）；下面所有度量 getter 都从这里推导，不逐字存。
+  protected _metrics?: FontMetrics
+
+  // 度量 getter —— 零实例存储，从共享 _metrics 推导（advanceWidth 是唯一逐字存的度量）。
+  get advanceHeight(): number { return this._metrics?.advanceHeight ?? 0 }
+  get baseline(): number { return this._metrics?.baseline ?? 0 }
+  get ascender(): number { return this._metrics?.ascender ?? 0 }
+  get descender(): number { return this._metrics?.descender ?? 0 }
+  get underlinePosition(): number { return this._metrics?.underlinePosition ?? 0 }
+  get underlineThickness(): number { return this._metrics?.underlineThickness ?? 0 }
+  get strikeoutPosition(): number { return this._metrics?.strikeoutPosition ?? 0 }
+  get strikeoutSize(): number { return this._metrics?.strikeoutSize ?? 0 }
+  get typoAscender(): number { return this._metrics?.typoAscender ?? 0 }
+  get typoDescender(): number { return this._metrics?.typoDescender ?? 0 }
+  get typoLineGap(): number { return this._metrics?.typoLineGap ?? 0 }
+  get winAscent(): number { return this._metrics?.winAscent ?? 0 }
+  get winDescent(): number { return this._metrics?.winDescent ?? 0 }
+  get xHeight(): number { return this._metrics?.xHeight ?? 0 }
+  get capHeight(): number { return this._metrics?.capHeight ?? 0 }
+  get centerDiviation(): number { return this._metrics?.centerDiviation ?? 0 }
+  get fontStyle(): 'bold' | 'italic' | undefined { return this._metrics?.fontStyle }
 
   // 增量布局：把已测量的字形整体沿 y 平移 dy（用于未变段落因前序段落高度变化而下移）。
   // 同步移动所有盒（inline/line/glyph）与 path（惰性偏移或已构建几何），保持与全量重排一致。
@@ -147,7 +229,7 @@ export class Character {
       return
     }
     this.inlineBox.top += dy
-    this.lineBox.top += dy
+    // lineBox 由 inlineBox 派生，随之自动平移，无需单独处理。
     if (this.glyphBox) {
       this.glyphBox.top += dy
     }
@@ -162,22 +244,14 @@ export class Character {
   }
 
   get compatibleGlyphBox(): BoundingBox {
+    if (this.glyphBox) {
+      return this.glyphBox
+    }
     const size = this.computedStyle.fontSize * 0.8
-    return this.glyphBox ?? (
-      this.isVertical
-        ? new BoundingBox(
-            this.lineBox.left + this.lineBox.width / 2 - size / 2,
-            this.lineBox.top,
-            size,
-            this.lineBox.height,
-          )
-        : new BoundingBox(
-            this.lineBox.left,
-            this.lineBox.top + this.lineBox.height / 2 - size / 2,
-            this.lineBox.width,
-            size,
-          )
-    )
+    const lb = this.lineBox // derived; read once
+    return this.isVertical
+      ? new BoundingBox(lb.left + lb.width / 2 - size / 2, lb.top, size, lb.height)
+      : new BoundingBox(lb.left, lb.top + lb.height / 2 - size / 2, lb.width, size)
   }
 
   get center(): Vector2 {
@@ -233,37 +307,11 @@ export class Character {
     if (!sfnt) {
       return this
     }
-    const { hhea, os2, post, head } = sfnt
-    const unitsPerEm = head.unitsPerEm
-    const ascender = hhea.ascent
-    const descender = hhea.descent
     const { content, computedStyle } = this
-    const { fontSize } = computedStyle
-    const rate = unitsPerEm / fontSize
-    const advanceWidth = sfnt.getAdvanceWidth(content, fontSize)
-    const advanceHeight = (ascender + Math.abs(descender)) / rate
-    const baseline = ascender / rate
-    this.advanceWidth = advanceWidth
-    this.advanceHeight = advanceHeight
-    this.underlinePosition = (ascender - post.underlinePosition) / rate
-    this.underlineThickness = post.underlineThickness / rate
-    this.strikeoutPosition = (ascender - os2.yStrikeoutPosition) / rate
-    this.strikeoutSize = os2.yStrikeoutSize / rate
-    this.ascender = ascender / rate
-    this.descender = descender / rate
-    this.typoAscender = os2.sTypoAscender / rate
-    this.typoDescender = os2.sTypoDescender / rate
-    this.typoLineGap = os2.sTypoLineGap / rate
-    this.winAscent = os2.usWinAscent / rate
-    this.winDescent = os2.usWinDescent / rate
-    this.xHeight = os2.version > 1 ? os2.sxHeight / rate : 0
-    this.capHeight = os2.version > 1 ? os2.sCapHeight / rate : 0
-    this.baseline = baseline
-    this.centerDiviation = advanceHeight / 2 - baseline
-    this.fontStyle = fsSelectionMap[os2.fsSelection] ?? macStyleMap[head.macStyle]
-    // kerning 身份：本字符首字形在该 sfnt 内的索引，供相邻字符查字偶距。
-    this._sfnt = sfnt
-    this._unitsPerEm = unitsPerEm
+    const fontSize = computedStyle.fontSize
+    // 共享度量（每个 (sfnt,fontSize) 只算一次）；逐字只算 advance + 字形索引。
+    this._metrics = getFontMetrics(sfnt, fontSize)
+    this.advanceWidth = sfnt.getAdvanceWidth(content, fontSize)
     this._glyphIndex = sfnt.textToGlyphIndexes(content)[0]
     return this
   }
@@ -271,19 +319,18 @@ export class Character {
   // 与逻辑前一字符 prev 之间的字偶距（px）。仅当同一 sfnt（同字体、非缺字回退分叉）
   // 且两侧字形索引均有效时返回非零；否则 0。kerning value 为 font units，按本字符字号转 px。
   computeKerningBefore(prev?: Character): number {
-    const sfnt = this._sfnt
+    const m = this._metrics
     if (
       !prev
-      || !sfnt
-      || prev._sfnt !== sfnt
+      || !m
+      || prev._metrics?.sfnt !== m.sfnt
       || prev._glyphIndex === undefined
       || this._glyphIndex === undefined
-      || this._unitsPerEm <= 0
     ) {
       return 0
     }
-    const kv = sfnt.getKerningValue(prev._glyphIndex, this._glyphIndex)
-    return kv ? (kv * this.computedStyle.fontSize) / this._unitsPerEm : 0
+    const kv = m.sfnt.getKerningValue(prev._glyphIndex, this._glyphIndex)
+    return kv ? (kv * this.computedStyle.fontSize) / m.unitsPerEm : 0
   }
 
   /**

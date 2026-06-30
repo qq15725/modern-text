@@ -192,19 +192,14 @@ export class Measurer implements TextMeasurer {
           firstInLine = false
           const adv = c.advanceWidth
           const contentHeight = c.advanceHeight // font content box (ascent+descent)
-          const fontHeight = c.fontHeight // fontSize * line-height
           // inlineBox mirrors the browser's per-character client rect: the font
           // content box, vertically centered within the line box. (getClientRects
           // returns the content box — ascent+descent — not the full line box.)
+          // lineBox (the line-height strip) is derived from inlineBox on read — see Character.
           c.inlineBox.left = x
           c.inlineBox.top = y + (lineHeight - contentHeight) / 2
           c.inlineBox.width = adv
           c.inlineBox.height = contentHeight
-          // lineBox: the line-height-tall strip centered on the content box.
-          c.lineBox.left = x
-          c.lineBox.top = c.inlineBox.top + (contentHeight - fontHeight) / 2
-          c.lineBox.width = adv
-          c.lineBox.height = fontHeight
           x += this._advance(c)
         }
 
@@ -306,15 +301,11 @@ export class Measurer implements TextMeasurer {
       for (const c of column.chars) {
         const advance = c.advanceWidth // inline-axis advance (down the column)
         const contentWidth = c.advanceHeight // cross-axis content box (ascent+descent)
-        const fontHeight = c.fontHeight
         c.inlineBox.top = y
         c.inlineBox.height = advance
         c.inlineBox.width = contentWidth
         c.inlineBox.left = colLeft + (column.thickness - contentWidth) / 2
-        c.lineBox.left = c.inlineBox.left + (contentWidth - fontHeight) / 2
-        c.lineBox.top = y
-        c.lineBox.width = fontHeight
-        c.lineBox.height = advance
+        // lineBox (the column-thickness strip) is derived from inlineBox on read — see Character.
         y += this._advance(c)
       }
       if (y > maxBottom) {
@@ -417,7 +408,7 @@ export class Measurer implements TextMeasurer {
         fragment.inlineBox.top += dy
         for (const character of fragment.characters) {
           character.inlineBox.top += dy
-          character.lineBox.top += dy
+          // lineBox is derived from inlineBox — no separate shift needed.
         }
       }
     }
