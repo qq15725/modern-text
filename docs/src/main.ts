@@ -15,8 +15,6 @@ const sharedOptions: Partial<Options> = {
   fonts,
 }
 
-type Mode = 'dom' | 'font'
-let mode: Mode = 'dom'
 const loaded: { name: string, fixture: any }[] = []
 
 async function loadFallbackFont(): Promise<void> {
@@ -35,8 +33,7 @@ async function renderInto(fig: Figure, options: Options): Promise<void> {
   caption.textContent = label
   canvas.style.display = ''
   try {
-    // explicit per mode, so the toggle compares the two backends directly
-    const text = new Text({ ...options, measurer: mode })
+    const text = new Text({ ...options })
     text.on('update', () => {
       if (useWebgl) {
         webglRender(text, canvas)
@@ -117,7 +114,7 @@ function createToolbar(): void {
   status.className = 'status'
 
   const syncLabel = (): void => {
-    button.textContent = `测算模式：${mode === 'dom' ? 'DOM（浏览器）' : 'Font（纯 JS）'} — 点击切换`
+    button.textContent = 'Measurer（纯 JS，DOM-free）— 点击重新测算'
   }
   syncLabel()
 
@@ -135,12 +132,11 @@ function createToolbar(): void {
       }
     }
 
-    mode = mode === 'dom' ? 'font' : 'dom'
     syncLabel()
     button.disabled = true
     status.textContent = '重新测算中…'
     await renderAll()
-    status.textContent = `已用 ${mode === 'dom' ? 'DomMeasurer' : 'FontMeasurer'} 重新测算`
+    status.textContent = '已用 Measurer 重新测算'
     button.disabled = false
 
     const target = document.querySelectorAll<HTMLElement>('.fixture')[anchor]

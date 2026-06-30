@@ -21,6 +21,10 @@ export interface DrawShapePathsOptions extends Partial<Path2DStyle> {
 export class Canvas2DRenderer {
   pixelRatio = window?.devicePixelRatio || 1
 
+  // 子区域（平铺）渲染：只把 boundingBox 内相对偏移 (x,y)、尺寸 (width,height) 的一块
+  // 画到画布上（其余字形被画布边界裁掉）。用于超大文字按 GPU 上限分块栅格。不设则画整段。
+  region?: { x: number, y: number, width: number, height: number }
+
   constructor(
     public text: Text,
     public context: CanvasRenderingContext2D,
@@ -31,12 +35,15 @@ export class Canvas2DRenderer {
   protected _setupView = (): void => {
     const pixelRatio = this.pixelRatio
     const ctx = this.context
-    const { left, top, width, height } = this.text.boundingBox
+    const bb = this.text.boundingBox
+    const region = this.region
+    const left = bb.left + (region?.x ?? 0)
+    const top = bb.top + (region?.y ?? 0)
+    const canvasWidth = region?.width ?? bb.width
+    const canvasHeight = region?.height ?? bb.height
     const view = ctx.canvas
-    view.dataset.viewBox = String(`${left} ${top} ${width} ${height}`)
+    view.dataset.viewBox = String(`${left} ${top} ${canvasWidth} ${canvasHeight}`)
     view.dataset.pixelRatio = String(pixelRatio)
-    const canvasWidth = width
-    const canvasHeight = height
     view.width = Math.max(1, Math.ceil(canvasWidth * pixelRatio))
     view.height = Math.max(1, Math.ceil(canvasHeight * pixelRatio))
     view.style.width = `${canvasWidth}px`

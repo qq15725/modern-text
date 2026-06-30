@@ -15,8 +15,7 @@ import { getDefaultStyle, normalizeText, property, Reactivable } from 'modern-id
 import { BoundingBox, Vector2 } from 'modern-path2d'
 import { Canvas2DRenderer } from './Canvas2DRenderer'
 import { Fragment, Paragraph } from './content'
-import { DomMeasurer } from './DomMeasurer'
-import { FontMeasurer } from './FontMeasurer'
+import { Measurer } from './Measurer'
 import {
   backgroundPlugin,
   deformationPlugin,
@@ -30,6 +29,8 @@ import {
 export interface RenderOptions {
   view: HTMLCanvasElement
   pixelRatio?: number
+  /** 只渲染 boundingBox 内的这一子块（相对偏移 + 尺寸），用于超大文字按 GPU 上限分块栅格。 */
+  region?: { x: number, y: number, width: number, height: number }
   onContext?: (context: CanvasRenderingContext2D) => void
 }
 
@@ -81,11 +82,24 @@ export class Text extends Reactivable {
   glyphBox = new BoundingBox()
   pathBox = new BoundingBox()
   boundingBox = new BoundingBox()
-  measurer: TextMeasurer = new DomMeasurer()
+  measurer: TextMeasurer = new Measurer()
   plugins = new Map<string, Plugin>()
   pathSets: Path2DSet[] = []
   protected _paragraphs: Paragraph[] = []
   protected _cachedCharacters?: Character[]
+  // 增量布局开关与上一帧快照：未变段落按内容键复用，仅重排受影响段、平移后续段。
+  incrementalLayout = true
+  protected _prevParagraphs: Paragraph[] = []
+  protected _prevContentKeys: string[] = []
+  protected _prevStyleKey = ''
+  // 上次测量所用的 fonts 引用：从 undefined→tree.fonts 的赋值会改变字形度量，须作废增量基准
+  // （否则会复用「fonts 未就绪」时测得的零宽字形）。
+  protected _prevFonts: unknown
+  protected _prevFontsSet = false
+  // _update 计算出的待提交快照；仅在 measure() 真正完成测量后才提交到 _prev*（见 measure），
+  // 否则构造函数里的 _update（只建树不测量）会让首测误把未测量段当作可复用。
+  protected _pendingContentKeys: string[] = []
+  protected _pendingStyleKey = ''
   protected _pluginsByUpdateOrder: Plugin[] = []
   protected _pluginsByRenderOrder: Plugin[] = []
   protected _renderer?: Canvas2DRenderer
@@ -149,17 +163,6 @@ export class Text extends Reactivable {
       deformation,
     } = normalizeText(options)
 
-    // Pick the layout backend. A custom `TextMeasurer` instance wins; a `'font'`
-    // / `'dom'` string selects a built-in; otherwise default to the pure-JS
-    // FontMeasurer (it resolves fonts from `measure()` or modern-font's global
-    // registry, so it needs none here).
-    if (options.measurer && typeof options.measurer !== 'string') {
-      this.measurer = options.measurer
-    }
-    else {
-      const kind = options.measurer ?? 'font'
-      this.measurer = kind === 'font' ? new FontMeasurer() : new DomMeasurer()
-    }
     this.debug = options.debug ?? false
     this.content = content
     this.effects = effects
@@ -215,10 +218,16 @@ export class Text extends Reactivable {
 
   async load(): Promise<void> {
     this._update()
-    await Promise.all([
+    const [decoded] = await Promise.all([
       this._decodeFonts(),
       ...Array.from(this.plugins.values()).map(p => p.load?.(this)),
     ])
+    // 仅当本次有字体「首次解码就绪」时作废增量基准，强制下次 measure 全量重排 ——
+    // 否则会复用「字体就绪前」测得的零宽字形（内容未变但 fonts 变了）。
+    // 已解码字体的重复 load（逐键编辑）不命中此分支，增量复用照常生效。
+    if (decoded > 0) {
+      this._prevParagraphs = []
+    }
   }
 
   /**
@@ -229,7 +238,7 @@ export class Text extends Reactivable {
    *
    * No-op for already-decoded fonts and for formats without async decoding.
    */
-  protected async _decodeFonts(): Promise<void> {
+  protected async _decodeFonts(): Promise<number> {
     const fonts = this.fonts ?? globalFonts
     const entries = new Set<ReturnType<Fonts['get']>>()
     for (const character of this.characters) {
@@ -239,12 +248,17 @@ export class Text extends Reactivable {
       }
     }
     entries.add(fonts.fallbackFont)
-    await Promise.all(Array.from(entries, async (entry) => {
+    // 返回本次「新解码」的字体数：仅当确有字体首次就绪时，调用方才需作废增量基准
+    // （已解码字体的重复 load —— 如逐键编辑 —— 不应触发全量重排）。
+    const decoded = await Promise.all(Array.from(entries, async (entry) => {
       const font = entry?.getFont() as any
       if (font && typeof font.createSFNTAsync === 'function' && !font._sfnt) {
         font._sfnt = await font.createSFNTAsync()
+        return 1
       }
+      return 0
     }))
+    return (decoded as number[]).reduce((a, b) => a + b, 0)
   }
 
   /**
@@ -280,44 +294,79 @@ export class Text extends Reactivable {
     return style
   }
 
+  protected _buildParagraph(p: NormalizedText['content'][number], pIndex: number): Paragraph {
+    const { fragments, fill: pFill, outline: pOutline, ...pStyle } = p
+    const paragraph = new Paragraph(pStyle, pIndex, this)
+    paragraph.fill = pFill
+    paragraph.outline = pOutline
+    fragments.forEach((f, fIndex) => {
+      const { content, fill: fFill, outline: fOutline, ...fStyle } = f
+      if (content !== undefined) {
+        paragraph.fragments.push(
+          new Fragment(content, fStyle, fFill, fOutline, fIndex, paragraph),
+        )
+      }
+    })
+    return paragraph
+  }
+
+  // 仅当根级样式/填充/描边/特效/形变未变、且非竖排、非块级垂直对齐位移时，才允许复用未变段落
+  // （这些会改变各段 computedStyle 或全局位移，复用会得到错误结果）。
+  protected _canReuseLayout(styleKey: string): boolean {
+    if (!this.incrementalLayout || !this._prevParagraphs.length) {
+      return false
+    }
+    if (styleKey !== this._prevStyleKey) {
+      return false
+    }
+    // fonts 引用变化（典型：首次挂载到 tree 后由 undefined 变为 tree.fonts）→ 度量会变，不可复用。
+    if (!this._prevFontsSet || this.fonts !== this._prevFonts) {
+      return false
+    }
+    const cs = this.computedStyle
+    if (cs.writingMode.includes('vertical')) {
+      return false
+    }
+    if (typeof cs.height === 'number' && (cs.verticalAlign === 'middle' || cs.verticalAlign === 'bottom')) {
+      return false
+    }
+    return true
+  }
+
   protected _update(): this {
     this.computedStyle = this._normalizeComputedStyle({ ...textDefaultStyle, ...this.style })
     this.computedFill = this.fill ? { ...this.fill } : undefined
     this.computedOutline = this.outline ? { ...this.outline } : undefined
     this.computedEffects = this.effects?.map(v => v) ?? []
-    const paragraphs: Paragraph[] = []
-    this.content.forEach((p, pIndex) => {
-      const { fragments, fill: pFill, outline: pOutline, ...pStyle } = p
-      const paragraph = new Paragraph(pStyle, pIndex, this)
-      paragraph.fill = pFill
-      paragraph.outline = pOutline
-      fragments.forEach((f, fIndex) => {
-        const { content, fill: fFill, outline: fOutline, ...fStyle } = f
-        if (content !== undefined) {
-          paragraph.fragments.push(
-            new Fragment(
-              content,
-              fStyle,
-              fFill,
-              fOutline,
-              fIndex,
-              paragraph,
-            ),
-          )
-        }
-      })
-      paragraphs.push(paragraph)
-    })
-    this.paragraphs = paragraphs
-    return this
-  }
 
-  createDom(): HTMLElement {
-    this._update()
-    if (!this.measurer.createDom) {
-      throw new Error('current measurer does not support createDom()')
+    // 根级布局/渲染相关项的快照键：任一变化都强制全量重排（各段 computedStyle 会变）。
+    const styleKey = JSON.stringify([this.style, this.fill, this.outline, this.effects, this.deformation])
+    const reuse = this._canReuseLayout(styleKey)
+
+    const content = this.content
+    const contentKeys: string[] = Array.from({ length: content.length })
+    const paragraphs: Paragraph[] = Array.from({ length: content.length })
+    for (let i = 0; i < content.length; i++) {
+      const key = JSON.stringify(content[i])
+      contentKeys[i] = key
+      const prev = this._prevParagraphs[i]
+      if (reuse && prev && prev._layoutValid && this._prevContentKeys[i] === key) {
+        // 内容/样式在同一索引位未变 → 复用已测量段落，仅标记可平移（measurer 据 dy 平移）。
+        prev._layoutDirty = false
+        paragraphs[i] = prev
+      }
+      else {
+        const para = this._buildParagraph(content[i], i)
+        para._layoutDirty = true
+        paragraphs[i] = para
+      }
     }
-    return this.measurer.createDom(this.paragraphs, this.computedStyle)
+
+    this.paragraphs = paragraphs
+    // 暂存快照；measure() 完成测量后才提交到 _prev*（避免复用未测量段）。
+    this._pendingContentKeys = contentKeys
+    this._pendingStyleKey = styleKey
+    return this
   }
 
   measure(dom = this.measureDom): MeasureResult {
@@ -334,13 +383,29 @@ export class Text extends Reactivable {
     const result = this.measurer.measure(this.paragraphs, this.computedStyle, dom, this.fonts) as MeasureResult
     this.paragraphs = result.paragraphs
     this.lineBox = result.boundingBox
-    const characters = this.characters
-    for (let i = 0; i < characters.length; i++) {
-      characters[i].update(this.fonts)
+    // 增量：仅重排段（_layoutDirty）需要重建 path/glyphBox；未变段的字形已由 measurer 平移到位。
+    const paragraphs = this.paragraphs
+    for (let pi = 0; pi < paragraphs.length; pi++) {
+      const paragraph = paragraphs[pi]
+      if (!paragraph._layoutDirty) {
+        continue
+      }
+      for (const fragment of paragraph.fragments) {
+        const chars = fragment.characters
+        for (let i = 0; i < chars.length; i++) {
+          chars[i].update(this.fonts)
+        }
+      }
     }
-    const glyphBox = this.getGlyphBox()
+    const glyphBox = this._computeGlyphBox()
     this.rawGlyphBox = glyphBox
     this.glyphBox = glyphBox
+    // 测量完成：把本次（已测量的）段落与快照提交为下次增量复用的基准。
+    this._prevParagraphs = this.paragraphs
+    this._prevContentKeys = this._pendingContentKeys
+    this._prevStyleKey = this._pendingStyleKey
+    this._prevFonts = this.fonts
+    this._prevFontsSet = true
     const updatePlugins = this._pluginsByUpdateOrder
     for (let i = 0; i < updatePlugins.length; i++) {
       updatePlugins[i].update?.(this)
@@ -349,8 +414,11 @@ export class Text extends Reactivable {
     this.pathSets.length = 0
     for (let i = 0; i < renderPlugins.length; i++) {
       const plugin = renderPlugins[i]
-      if (plugin.pathSet?.paths.length) {
-        this.pathSets.push(plugin.pathSet)
+      // 用 _lazyCount（若有）判断是否产出 path，避免读取 .paths 触发惰性逐字 path 构建。
+      const ps = plugin.pathSet
+      const count = (ps as any)?._lazyCount ?? ps?.paths.length
+      if (ps && count) {
+        this.pathSets.push(ps)
       }
     }
     this
@@ -399,6 +467,53 @@ export class Text extends Reactivable {
       max.x - min.x,
       max.y - min.y,
     )
+  }
+
+  // 单段字形包围盒（绝对坐标），逻辑与 getGlyphBox 等价但只覆盖一段；空段返回 undefined。
+  protected _paragraphGlyphBox(paragraph: Paragraph): BoundingBox | undefined {
+    const min = Vector2.MAX
+    const max = Vector2.MIN
+    const fragments = paragraph.fragments
+    for (let fi = 0; fi < fragments.length; fi++) {
+      const chars = fragments[fi].characters
+      for (let i = 0; i < chars.length; i++) {
+        const character = chars[i]
+        if (character.getGlyphMinMax(min, max)) {
+          continue
+        }
+        const { left, top, width, height } = character.inlineBox
+        min.clampMin(new Vector2(left, top), new Vector2(left + width, top + height))
+        max.clampMax(new Vector2(left, top), new Vector2(left + width, top + height))
+      }
+    }
+    // 空段（无字形且无字符，如尾随换行的空行）：min/max 仍为 ±Infinity → 无贡献。
+    if (
+      !Number.isFinite(min.x)
+      || !Number.isFinite(min.y)
+      || !Number.isFinite(max.x)
+      || !Number.isFinite(max.y)
+    ) {
+      return undefined
+    }
+    return new BoundingBox(min.x, min.y, max.x - min.x, max.y - min.y)
+  }
+
+  // 增量版整体字形盒：仅重排段重算并缓存 _glyphBox，未变段复用已平移的缓存，再并集。
+  protected _computeGlyphBox(): BoundingBox {
+    const paragraphs = this.paragraphs
+    const boxes: BoundingBox[] = []
+    for (let pi = 0; pi < paragraphs.length; pi++) {
+      const paragraph = paragraphs[pi]
+      let pbox = paragraph._glyphBox
+      if (paragraph._layoutDirty || !pbox) {
+        pbox = this._paragraphGlyphBox(paragraph)
+        paragraph._glyphBox = pbox
+      }
+      if (pbox) {
+        boxes.push(pbox)
+      }
+    }
+    return boxes.length ? BoundingBox.from(...boxes) : new BoundingBox(0, 0, 0, 0)
   }
 
   protected _updateInlineBox(): this {
@@ -471,6 +586,7 @@ export class Text extends Reactivable {
 
     const renderer = this._getRenderer(ctx)
     renderer.pixelRatio = pixelRatio
+    renderer.region = options.region
     renderer.setup()
 
     const renderPlugins = this._pluginsByRenderOrder

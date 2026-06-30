@@ -1,8 +1,7 @@
 import type { Fonts } from 'modern-font'
 import type { FullStyle } from 'modern-idoc'
 import type { Character, Paragraph } from './content'
-import type { MeasureDomResult } from './DomMeasurer'
-import type { TextMeasurer } from './types'
+import type { MeasurerResult, TextMeasurer } from './types'
 import { fonts as globalFonts } from 'modern-font'
 import { BoundingBox } from 'modern-path2d'
 
@@ -14,13 +13,12 @@ function side(style: Record<string, any>, name: 'padding' | 'margin', edge: Edge
 }
 
 /**
- * Pure-JS, DOM-free text measurer — a drop-in alternative to {@link DomMeasurer}.
+ * The pure-JS, DOM-free text measurer (the only built-in backend).
  *
- * Instead of mounting a `<section>/<ul>/<li>/<span>` tree and reading
- * `getBoundingClientRect()`, it computes the same four-level boxes
- * (`character.inlineBox`/`lineBox`, `fragment.inlineBox`, `paragraph.lineBox`)
- * from `modern-font` glyph advances, so the downstream
- * measure → glyph → plugin pipeline is unchanged and it runs in Node/SSR/Worker.
+ * It computes the four-level boxes (`character.inlineBox`/`lineBox`, `fragment.inlineBox`,
+ * `paragraph.lineBox`) directly from `modern-font` glyph advances + kerning — no DOM, so it
+ * runs in Node/SSR/Worker and measures the *exact* font that is rendered (advances come from
+ * the same SFNT the glyph paths do, so layout and rendering are pixel-consistent by construction).
  *
  * ## Scope
  * - `horizontal-tb` (LTR) and `vertical-rl` (columns right-to-left, glyphs top↓)
@@ -28,34 +26,43 @@ function side(style: Record<string, any>, name: 'padding' | 'margin', edge: Edge
  * - per-line `text-align` (start/left/center/end/right), `text-indent` (first line)
  * - box model: root + paragraph `padding`/`margin` (horizontal), `letter-spacing`,
  *   `line-height`; block `vertical-align` (top/middle/bottom) at fixed height
+ * - pair kerning (GPOS `kern` feature / legacy `kern` table) folded into break + positioning
  *
  * ## Not yet implemented (TODO)
  * - UAX#14 `word-break: normal` + 避头尾/kinsoku (`line-break`)
  * - BiDi, per-fragment inline `vertical-align`, borders
  * - vertical: per-paragraph margin/padding and block alignment
- * - kerning/ligatures (GSUB/GPOS) — fine for CJK, diverges for proportional Latin
+ * - ligatures (GSUB) — fine for CJK and most UI Latin
  *
- * Coordinates are relative to the root border-box top-left (matching the DOM
- * measurer, whose rects are taken relative to `section.getBoundingClientRect()`).
+ * Coordinates are relative to the root border-box top-left.
  */
-export class FontMeasurer implements TextMeasurer {
+export class Measurer implements TextMeasurer {
   measure(
     paragraphs: Paragraph[],
     rootStyle: FullStyle,
     _dom?: HTMLElement,
     fonts?: Fonts,
-  ): MeasureDomResult {
+  ): MeasurerResult {
     // `fonts` is supplied by Text.measure(); fall back to the global registry
     // for standalone use.
     const _fonts = fonts ?? globalFonts
 
     // Glyph advances/metrics must be known before placement.
+    // 增量：未变段落（_layoutDirty=false）的字形度量已在上次测量得出，跳过。
     for (const paragraph of paragraphs) {
+      if (!paragraph._layoutDirty) {
+        continue
+      }
       for (const fragment of paragraph.fragments) {
         for (const character of fragment.characters) {
           character.measureGlyph(_fonts)
         }
       }
+    }
+
+    // 横排：填充相邻字形的字偶距（kerning）。竖排不适用横向 kern，保持 0。
+    if (!rootStyle.writingMode.includes('vertical')) {
+      this._applyKerning(paragraphs)
     }
 
     return rootStyle.writingMode.includes('vertical')
@@ -72,7 +79,7 @@ export class FontMeasurer implements TextMeasurer {
     }
   }
 
-  protected _measureHorizontal(paragraphs: Paragraph[], rootStyle: FullStyle): MeasureDomResult {
+  protected _measureHorizontal(paragraphs: Paragraph[], rootStyle: FullStyle): MeasurerResult {
     const rootPad = this._rootPadding(rootStyle)
     // border-box: the content area excludes padding.
     // textWrap: 'nowrap' → don't break by width (availWidth = Infinity), lay text on a single
@@ -111,9 +118,36 @@ export class FontMeasurer implements TextMeasurer {
       const paraTop = y
       let paraRight = liLeft
 
+      if (!paragraph._layoutDirty) {
+        // 增量复用：内容/样式未变，整段相对布局不变，只随前序高度变化沿 y 平移 dy。
+        const dy = paraTop - paragraph._layoutTop
+        if (dy) {
+          for (const fragment of paragraph.fragments) {
+            for (const c of fragment.characters) {
+              c.translateY(dy)
+            }
+            fragment.inlineBox.top += dy
+          }
+          paragraph.lineBox.top += dy
+          if (paragraph._glyphBox) {
+            paragraph._glyphBox.top += dy
+          }
+        }
+        paragraph._layoutTop = paraTop
+        paraRight = paragraph._layoutRight
+        y = paraTop + paragraph.lineBox.height
+        if (paraRight > maxRight) {
+          maxRight = paraRight
+        }
+        y += pBottom + mBottom
+        continue
+      }
+
       const lines = this._breakLines(paragraph, liAvail)
       const align = pStyle.textAlign
       const indent = pStyle.textIndent ?? 0
+      let hasChars = false
+      let anyAdvance = false
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
@@ -122,10 +156,15 @@ export class FontMeasurer implements TextMeasurer {
         // Line-box height = max contribution; an empty line keeps the paragraph's strut.
         let lineHeight = pStyle.fontSize * pStyle.lineHeight
         let contentWidth = 0
+        let firstW = true
         for (const c of line) {
           if (c.fontHeight > lineHeight) {
             lineHeight = c.fontHeight
           }
+          if (!firstW) {
+            contentWidth += c.kerningBefore
+          }
+          firstW = false
           contentWidth += this._advance(c)
         }
 
@@ -140,7 +179,17 @@ export class FontMeasurer implements TextMeasurer {
           }
         }
 
+        let firstInLine = true
         for (const c of line) {
+          hasChars = true
+          if (c.advanceWidth > 0) {
+            anyAdvance = true
+          }
+          // 行内非首字：放置前推进字偶距（与断行/宽度计算口径一致）。
+          if (!firstInLine) {
+            x += c.kerningBefore
+          }
+          firstInLine = false
           const adv = c.advanceWidth
           const contentHeight = c.advanceHeight // font content box (ascent+descent)
           const fontHeight = c.fontHeight // fontSize * line-height
@@ -151,8 +200,7 @@ export class FontMeasurer implements TextMeasurer {
           c.inlineBox.top = y + (lineHeight - contentHeight) / 2
           c.inlineBox.width = adv
           c.inlineBox.height = contentHeight
-          // lineBox: the line-height-tall strip, derived exactly as the DOM
-          // measurer does (DomMeasurer.measureParagraphDom, horizontal branch).
+          // lineBox: the line-height-tall strip centered on the content box.
           c.lineBox.left = x
           c.lineBox.top = c.inlineBox.top + (contentHeight - fontHeight) / 2
           c.lineBox.width = adv
@@ -177,6 +225,13 @@ export class FontMeasurer implements TextMeasurer {
       paragraph.lineBox.top = paraTop
       paragraph.lineBox.width = liAvail === Infinity ? paraRight - liLeft : liAvail
       paragraph.lineBox.height = y - paraTop
+      // 缓存本段绝对布局，供下次增量复用时平移/并集。
+      paragraph._layoutTop = paraTop
+      paragraph._layoutHeight = paragraph.lineBox.height
+      paragraph._layoutRight = paraRight
+      paragraph._glyphBox = undefined // 由 Text.measure 的 getGlyphBox 重新填充。
+      // 退化测量（有字符但字形 advance 全为 0 → 字体未就绪）不作为可复用基准。
+      paragraph._layoutValid = !hasChars || anyAdvance
 
       y += pBottom + mBottom
     }
@@ -206,13 +261,12 @@ export class FontMeasurer implements TextMeasurer {
    * flow top→bottom. It is the horizontal layout with the inline and block axes
    * swapped — the inline (down-column) advance is `advanceWidth` (CJK upright = em;
    * Latin is rotated, so its advance ≈ its width), the cross-axis content box is
-   * `advanceHeight`, and the column thickness is `fontHeight`. The lineBox is
-   * derived exactly as DomMeasurer.measureParagraphDom's vertical branch, so it
-   * stays accurate even though inlineBox carries the content-box rounding residual.
+   * `advanceHeight`, and the column thickness is `fontHeight`. The lineBox stays
+   * accurate even though inlineBox carries the content-box rounding residual.
    *
    * v1: `vertical-rl` only; no per-paragraph margin/padding or block alignment.
    */
-  protected _measureVertical(paragraphs: Paragraph[], rootStyle: FullStyle): MeasureDomResult {
+  protected _measureVertical(paragraphs: Paragraph[], rootStyle: FullStyle): MeasurerResult {
     const rootPad = this._rootPadding(rootStyle)
     // textWrap: 'nowrap' → don't break by height in vertical writing mode (single column).
     const hasHeight = typeof rootStyle.height === 'number'
@@ -311,8 +365,13 @@ export class FontMeasurer implements TextMeasurer {
           flush()
           continue
         }
-        if (avail !== Infinity && current.length > 0 && width + c.advanceWidth > avail) {
+        // 行内非首字计入字偶距（kerning）：与浏览器一样按「含 kern 的渲染宽度」断行。
+        const kern = current.length > 0 ? c.kerningBefore : 0
+        if (avail !== Infinity && current.length > 0 && width + kern + c.advanceWidth > avail) {
           flush()
+        }
+        if (current.length > 0) {
+          width += c.kerningBefore
         }
         current.push(c)
         width += this._advance(c)
@@ -320,6 +379,23 @@ export class FontMeasurer implements TextMeasurer {
     }
     flush()
     return lines
+  }
+
+  // 横排：为每段（仅 dirty 段）填充相邻字形的字偶距。clean 段沿用上次结果（kern 是行内水平量，
+  // 不随段落 y 平移变化），契合增量布局。
+  protected _applyKerning(paragraphs: Paragraph[]): void {
+    for (const paragraph of paragraphs) {
+      if (!paragraph._layoutDirty) {
+        continue
+      }
+      let prev: Character | undefined
+      for (const fragment of paragraph.fragments) {
+        for (const c of fragment.characters) {
+          c.kerningBefore = c.computeKerningBefore(prev)
+          prev = c
+        }
+      }
+    }
   }
 
   protected _unionInto(target: BoundingBox, boxes: BoundingBox[]): void {

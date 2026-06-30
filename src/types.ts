@@ -3,8 +3,17 @@ import type { TextObject as _TextOptions, FullStyle } from 'modern-idoc'
 import type { BoundingBox, Path2DSet } from 'modern-path2d'
 import type { Canvas2DRenderer } from './Canvas2DRenderer'
 import type { Paragraph } from './content'
-import type { MeasureDomResult } from './DomMeasurer'
 import type { Text } from './Text'
+
+/**
+ * A measurer's output: the paragraphs with their four-level boxes filled in place,
+ * plus the overall bounding box. (Formerly `MeasureDomResult`; layout is now
+ * DOM-free via {@link import('./Measurer').Measurer}.)
+ */
+export interface MeasurerResult {
+  paragraphs: Paragraph[]
+  boundingBox: BoundingBox
+}
 
 export interface Plugin {
   name: string
@@ -23,29 +32,19 @@ export interface Plugin {
  * (`character.inlineBox`/`lineBox`, `fragment.inlineBox`, `paragraph.lineBox`)
  * in place and return the overall bounding box.
  *
- * - `DomMeasurer` — DOM-based, uses the browser as ground truth (default).
- * - `FontMeasurer` — pure-JS, DOM-free; needs `fonts` to resolve glyph advances.
- *
- * `fonts` is passed positionally by `Text.measure()`; DOM-based measurers ignore
- * it (a method may safely declare fewer parameters than the interface).
+ * The built-in backend is the pure-JS, DOM-free {@link import('./Measurer').Measurer},
+ * which resolves glyph advances/kerning from `modern-font` — it runs in Node/SSR/Worker
+ * and measures the exact font that is rendered. `fonts` is passed positionally by
+ * `Text.measure()`.
  */
 export interface TextMeasurer {
-  measure: (paragraphs: Paragraph[], rootStyle: FullStyle, dom?: HTMLElement, fonts?: Fonts) => MeasureDomResult
-  createDom?: (paragraphs: Paragraph[], rootStyle: FullStyle) => HTMLElement
+  measure: (paragraphs: Paragraph[], rootStyle: FullStyle, dom?: HTMLElement, fonts?: Fonts) => MeasurerResult
   dispose?: () => void
 }
-
-/** Built-in layout backends. `'font'` → `FontMeasurer`, `'dom'` → `DomMeasurer`. */
-export type MeasurerKind = 'dom' | 'font'
 
 export interface Options extends _TextOptions {
   debug?: boolean
   measureDom?: HTMLElement
   fonts?: Fonts
   plugins?: Plugin[]
-  /**
-   * Layout backend: `'font'` (pure-JS) or `'dom'` (browser), or a custom
-   * `TextMeasurer`. Defaults to `'font'`.
-   */
-  measurer?: MeasurerKind | TextMeasurer
 }

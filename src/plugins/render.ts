@@ -1,3 +1,5 @@
+import type { Path2D } from 'modern-path2d'
+import type { Character } from '../content/Character'
 import type { Plugin } from '../types'
 import { BoundingBox, Path2DSet } from 'modern-path2d'
 import { definePlugin } from '../definePlugin'
@@ -5,23 +7,40 @@ import { getEffectTransform2D } from '../utils'
 
 export function renderPlugin(): Plugin {
   const pathSet = new Path2DSet()
+  // 惰性 pathSet：measure 阶段只记录字符引用，不读取 character.path（那会触发逐字 path 构建）。
+  // 真正消费 pathSet（path 模式渲染/命中）首次访问 .paths 时才构建。`_lazyCount` 让
+  // Text.measure 能在不触发构建的前提下判断「本插件是否产出 path」。
+  let chars: Character[] = []
+  let built: Path2D[] | null = []
+  Object.defineProperty(pathSet, 'paths', {
+    configurable: true,
+    enumerable: true,
+    get(): Path2D[] {
+      if (built === null) {
+        built = chars.map(c => c.path)
+      }
+      return built
+    },
+    set(value: Path2D[]) {
+      built = value
+    },
+  })
   return definePlugin({
     name: 'render',
     pathSet,
     update: (text) => {
-      pathSet.paths.length = 0
-
+      const next: Character[] = []
       const { paragraphs } = text
-
-      // TODO effects
-
       paragraphs.forEach((paragraph) => {
         paragraph.fragments.forEach((fragment) => {
           fragment.characters.forEach((character) => {
-            pathSet.paths.push(character.path)
+            next.push(character as unknown as Character)
           })
         })
       })
+      chars = next
+      built = null
+      ;(pathSet as any)._lazyCount = next.length
     },
     getBoundingBox: (text) => {
       const { characters, computedEffects, fontSize } = text

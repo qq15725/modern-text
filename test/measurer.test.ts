@@ -4,8 +4,7 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Fonts, parseFont } from 'modern-font'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { DomMeasurer } from '../src/DomMeasurer'
-import { FontMeasurer } from '../src/FontMeasurer'
+import { Measurer } from '../src/Measurer'
 import { Text, textDefaultStyle } from '../src/Text'
 
 const dir = fileURLToPath(new URL('.', import.meta.url))
@@ -44,7 +43,6 @@ beforeAll(() => {
 function makeText(options: Record<string, any>): Text {
   return new Text({
     fonts,
-    measurer: 'font',
     style: { fontFamily: 'Arial', fontSize: 14, ...options.style },
     ...options,
   }).update() as unknown as Text
@@ -52,7 +50,7 @@ function makeText(options: Record<string, any>): Text {
 
 const LH = 14 * 1.2 // default line height (fontSize * lineHeight)
 
-describe('fontMeasurer — horizontal layout (v1)', () => {
+describe('measurer — horizontal layout (v1)', () => {
   it('lays out a single line left-to-right with positive advances', () => {
     const text = makeText({ content: [['AV']] })
     const chars = text.characters
@@ -65,7 +63,8 @@ describe('fontMeasurer — horizontal layout (v1)', () => {
     expect(chars[0].inlineBox.top).toBeCloseTo((LH - chars[0].advanceHeight) / 2, 5)
     expect(chars[0].inlineBox.left).toBeCloseTo(0, 5)
     expect(chars[0].inlineBox.width).toBeGreaterThan(0)
-    expect(chars[1].inlineBox.left).toBeCloseTo(chars[0].advanceWidth, 5)
+    // second glyph sits after the first's advance plus their pair kerning (A·V kerns negative)
+    expect(chars[1].inlineBox.left).toBeCloseTo(chars[0].advanceWidth + chars[1].kerningBefore, 5)
     expect(chars[1].inlineBox.left).toBeGreaterThan(chars[0].inlineBox.left)
   })
 
@@ -81,7 +80,8 @@ describe('fontMeasurer — horizontal layout (v1)', () => {
   it('adds letter-spacing (px) between glyphs', () => {
     const base = makeText({ content: [['AV']] }).characters
     const spaced = makeText({ content: [['AV']], style: { letterSpacing: 5 } }).characters
-    expect(spaced[1].inlineBox.left).toBeCloseTo(base[0].advanceWidth + 5, 5)
+    // letter-spacing adds 5px on top of advance + pair kerning
+    expect(spaced[1].inlineBox.left).toBeCloseTo(base[0].advanceWidth + spaced[1].kerningBefore + 5, 5)
   })
 
   it('gives spaces a positive advance', () => {
@@ -107,7 +107,7 @@ describe('fontMeasurer — horizontal layout (v1)', () => {
   })
 })
 
-describe('fontMeasurer — CJK (the primary use case)', () => {
+describe('measurer — CJK (the primary use case)', () => {
   it('lays out fullwidth CJK glyphs at em-width steps', () => {
     const chars = makeText({ content: [['你好世界']], style: { fontFamily: 'Fallback', fontSize: 20 } }).characters
     expect(chars.length).toBe(4)
@@ -134,7 +134,7 @@ describe('fontMeasurer — CJK (the primary use case)', () => {
   })
 })
 
-describe('fontMeasurer — paragraphs, newlines and empties', () => {
+describe('measurer — paragraphs, newlines and empties', () => {
   it('stacks paragraphs vertically by line height', () => {
     const text = makeText({ content: [['Aa'], ['Bb']] })
     const p0 = text.paragraphs[0].fragments[0].characters[0]
@@ -172,7 +172,7 @@ describe('fontMeasurer — paragraphs, newlines and empties', () => {
   })
 })
 
-describe('fontMeasurer — box model, alignment, wrapping', () => {
+describe('measurer — box model, alignment, wrapping', () => {
   it('shifts the content origin by root padding', () => {
     const chars = makeText({ content: [['A']], style: { padding: 10 } }).characters
     expect(chars[0].lineBox.left).toBeCloseTo(10, 5)
@@ -248,38 +248,34 @@ describe('fontMeasurer — box model, alignment, wrapping', () => {
 
 describe('measurer auto-selection (no explicit measurer)', () => {
   // construct only (no .update()) so the DOM path isn't exercised in Node
-  it('uses FontMeasurer when fonts are present and content is horizontal', () => {
+  it('uses Measurer when fonts are present and content is horizontal', () => {
     const text = new Text({ fonts, content: [['A']], style: { fontFamily: 'Arial' } })
-    expect(text.measurer).toBeInstanceOf(FontMeasurer)
+    expect(text.measurer).toBeInstanceOf(Measurer)
   })
 
-  it('uses FontMeasurer for vertical writing-mode too (now supported)', () => {
+  it('uses Measurer for vertical writing-mode too (now supported)', () => {
     const text = new Text({ fonts, content: [['A']], style: { fontFamily: 'Fallback', writingMode: 'vertical-rl' } })
-    expect(text.measurer).toBeInstanceOf(FontMeasurer)
+    expect(text.measurer).toBeInstanceOf(Measurer)
   })
 
-  it('defaults to FontMeasurer even without explicitly provided fonts', () => {
+  it('defaults to Measurer even without explicitly provided fonts', () => {
     const text = new Text({ content: [['A']] })
-    expect(text.measurer).toBeInstanceOf(FontMeasurer)
+    expect(text.measurer).toBeInstanceOf(Measurer)
   })
 
-  it('respects an explicitly provided custom measurer instance', () => {
-    const measurer = new FontMeasurer()
-    const text = new Text({ content: [['A']], measurer })
-    expect(text.measurer).toBe(measurer)
-  })
-
-  it('selects a built-in by string (measurer: \'dom\' | \'font\')', () => {
-    expect(new Text({ fonts, content: [['A']], measurer: 'dom' }).measurer).toBeInstanceOf(DomMeasurer)
-    expect(new Text({ content: [['A']], measurer: 'font' }).measurer).toBeInstanceOf(FontMeasurer)
+  it('exposes the measurer as a swappable field', () => {
+    const text = new Text({ content: [['A']] })
+    expect(text.measurer).toBeInstanceOf(Measurer)
+    const custom = new Measurer()
+    text.measurer = custom
+    expect(text.measurer).toBe(custom)
   })
 })
 
-describe('fontMeasurer — async font decode', () => {
+describe('measurer — async font decode', () => {
   it('decodes fonts in load() (off-thread), then measures correctly', async () => {
     const text = new Text({
       fonts,
-      measurer: 'font',
       content: [['你好世界']],
       style: { fontFamily: 'Fallback', fontSize: 20 },
     })
@@ -293,7 +289,7 @@ describe('fontMeasurer — async font decode', () => {
   })
 })
 
-describe('fontMeasurer — invariants', () => {
+describe('measurer — invariants', () => {
   it('is deterministic across runs', () => {
     const a = makeText({ content: [['Hello']] }).characters.map(c => ({ ...c.inlineBox }))
     const b = makeText({ content: [['Hello']] }).characters.map(c => ({ ...c.inlineBox }))
@@ -301,7 +297,7 @@ describe('fontMeasurer — invariants', () => {
   })
 })
 
-describe('fontMeasurer — vertical (vertical-rl)', () => {
+describe('measurer — vertical (vertical-rl)', () => {
   const V = { fontFamily: 'Fallback', fontSize: 20, writingMode: 'vertical-rl' as const }
 
   it('stacks CJK glyphs top-to-bottom by advanceWidth', () => {
@@ -342,11 +338,11 @@ describe('fontMeasurer — vertical (vertical-rl)', () => {
 // feeds its reactive style straight through) skips the constructor's `normalizeText`, so
 // invalid numeric values reach `computedStyle` raw. `_normalizeComputedStyle` must coerce
 // them, otherwise `textIndent ?? 0` keeps `''` and corrupts glyph positions → blank text.
-describe('fontMeasurer — un-normalized style (raw assignment / accessor path)', () => {
+describe('measurer — un-normalized style (raw assignment / accessor path)', () => {
   // Build with normalized content via the constructor, then overwrite `style` with a raw
   // object (assignment skips `normalizeText`) — this is exactly modern-canvas's accessor path.
   function rawText(style: Record<string, any>): Text {
-    const text = new Text({ fonts, measurer: 'font', content: [['AV指标']] }) as unknown as Text
+    const text = new Text({ fonts, content: [['AV指标']] }) as unknown as Text
     ;(text as any).style = { fontFamily: 'Arial', fontSize: 14, ...style }
     return text.update() as unknown as Text
   }
