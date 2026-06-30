@@ -41,9 +41,8 @@ Each level inherits and merges style downward (`computedStyle`, `computedFill`, 
 
 | File | Role |
 |------|------|
-| `src/Text.ts` | Entry point. Orchestrates measure → plugin update → render pipeline. Emits `update`, `measure`, `render` events. Caches a `Canvas2DRenderer` per ctx; `dispose()` releases the cached renderer and forwards to `measurer.dispose()`. |
-| `src/DomMeasurer.ts` | DOM-based layout engine (class `DomMeasurer`, the default). Builds a `<section>/<ul>/<li>/<span>` tree and keeps it mounted inside a shared hidden `<div data-modern-text="measurer">` container under `document.body`; subsequent `measure()` calls reuse the same DOM, patching text/styles in place when the structural signature (`paragraphCount:fragmentCountsPerParagraph`) is unchanged, and only rebuild when it differs. `dispose()` unmounts the cached DOM. Reads back `getBoundingClientRect()` for every character. Also provides `createDom()` for external use. |
-| `src/FontMeasurer.ts` | Pure-JS, DOM-free layout engine (class `FontMeasurer`, implements `TextMeasurer`). Computes the same four-level boxes from `modern-font` glyph advances, so it runs in Node/SSR/Worker. Handles `horizontal-tb` and `vertical-rl`. Receives `fonts` positionally from `Text.measure()`. Select with `new Text({ measurer: 'font' })` (or `'dom'`); `'font'` is the default. |
+| `src/Text.ts` | Entry point. Orchestrates measure → plugin update → render pipeline. Emits `update`, `measure`, `render` events. Caches a `Canvas2DRenderer` per ctx; `dispose()` releases the cached renderer and forwards to `measurer.dispose?.()`. |
+| `src/Measurer.ts` | The only built-in layout engine (class `Measurer`, implements `TextMeasurer`) — pure-JS and DOM-free. Computes the four-level boxes from `modern-font` glyph advances + GPOS/`kern` kerning, so it runs in Node/SSR/Worker and measures the exact SFNT it renders (layout and rendering are pixel-consistent by construction). Handles `horizontal-tb` and `vertical-rl`; receives `fonts` positionally from `Text.measure()`. Override via `new Text({ measurer })` with any `TextMeasurer`; the built-in is the default. (The legacy `DomMeasurer` / `getBoundingClientRect` backend was dropped in 2.1.0.) |
 | `src/Canvas2DRenderer.ts` | Wraps `CanvasRenderingContext2D`. Handles pixel-ratio scaling, gradient resolution, and drawing `Path2D` paths or fallback `fillText`. Owns a reusable offscreen canvas (`grow-only` resize) and exposes `drawWithShadow(shadow, drawFn)` — the offscreen pass collects all character paths first, then is `drawImage`'d back to the main ctx with `shadow*` set, producing a single shadow under the whole text (fixes negative-offset layering and per-character shadow overlap). |
 | `src/content/Character.ts` | Converts a Unicode character into a `Path2D` using `modern-font` SFNT tables (advance width, glyph paths, italic skew, bold offset). Falls back to `ctx.fillText` when no glyph path is available. |
 | `src/definePlugin.ts` | Identity helper — just returns the plugin object typed as `Plugin`. |
@@ -110,7 +109,7 @@ subpath (`registerDeformations()`), or add your own with
 2. `text.measure(dom?)` → non-destructive snapshot: runs layout, updates character glyphs, runs plugin `update()`, returns `MeasureResult` without committing state to `this`
 3. `text.update(dom?)` → calls `measure()` and commits all result fields back to `this`, then emits `update`
 4. `text.render({ view })` → calls `update()` if `needsUpdate`, runs plugin `render()` in order
-5. `text.dispose()` → forwards to `measurer.dispose()` (unmounts the cached measure DOM) and clears the cached `Canvas2DRenderer`. Call this when an editor/component using a `Text` instance is torn down.
+5. `text.dispose()` → forwards to `measurer.dispose?.()` and clears the cached `Canvas2DRenderer`. Call this when an editor/component using a `Text` instance is torn down.
 
 `measure()` intentionally leaves `this` in its old state (it swaps old/new at the end of the method). Use `update()` when you need the measured values to persist on the `Text` instance.
 
@@ -119,7 +118,7 @@ subpath (`registerDeformations()`), or add your own with
 - `Text.paragraphs` is a getter/setter that invalidates a cached flat `characters` list — reads of `text.characters` are O(1) after the first build.
 - Plugins are pre-sorted into `_pluginsByUpdateOrder` / `_pluginsByRenderOrder` at `use()` time, so neither `measure()` nor `render()` sorts on the hot path.
 - `Canvas2DRenderer` and its offscreen shadow canvas are reused across frames; the shadow canvas only grows, never shrinks, to avoid backing-store reallocations.
-- `DomMeasurer._toDomStyle` results are WeakMap-cached per style object reference.
+- Layout is incremental (2.1.0): unchanged paragraphs are reused and only shifted by `dy`; glyph `Path2D`s are built lazily and cached by glyph template, and per-character font metrics are shared via a `(sfnt, fontSize)` flyweight — so only re-flowed lines rebuild paths.
 
 ### Dependencies
 

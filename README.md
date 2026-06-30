@@ -19,17 +19,16 @@
 </p>
 
 `modern-text` measures and renders rich text on Canvas with a layout model that
-mirrors the browser's. It has no React/Vue dependency, ships ESM + CJS, and can
-run **either in the browser (using the DOM as ground truth) or fully DOM-free in
-Node / SSR / Web Workers**.
+mirrors the browser's. It has no React/Vue dependency, ships ESM + CJS, and is
+**fully DOM-free** — the same measure → render pipeline runs in the browser,
+Node, SSR or Web Workers.
 
 ## Features
 
 - 📐 **DOM-accurate layout** — paragraphs, line wrapping, baselines, alignment.
-- 🧩 **Two interchangeable layout backends**
-  - `DomMeasurer` — measures via a hidden DOM tree + `getBoundingClientRect()`.
-  - `FontMeasurer` — pure-JS, computes layout from font glyph metrics; runs with
-    no `document`, so it works in **Node / SSR / Workers** and is deterministic.
+- 🧩 **Pure-JS, DOM-free layout** — the built-in `Measurer` computes layout from
+  `modern-font` glyph metrics + kerning with no `document`, so it works in **Node
+  / SSR / Workers**, is deterministic, and measures the exact font it renders.
 - ↔️ **Horizontal & vertical** writing modes (`horizontal-tb`, `vertical-rl`).
 - 🅰️ **Rich inline styling** — per-fragment font size/family/weight/style, color,
   letter-spacing, line-height, text-indent, text-align, vertical-align,
@@ -81,23 +80,23 @@ renderText({
 })
 ```
 
-## Layout backends
+## Layout backend
 
-By default `modern-text` uses the pure-JS **`'font'`** backend (`FontMeasurer`),
-which resolves fonts from the `fonts` you pass or from `modern-font`'s global
-registry. Pass `'dom'` to use the browser as ground truth, or a custom
-`TextMeasurer`:
+`modern-text` measures with a single built-in **`Measurer`** — pure-JS and
+DOM-free — which resolves fonts from the `fonts` you pass or from `modern-font`'s
+global registry. It's the default; to plug in your own engine, pass any object
+implementing `TextMeasurer`:
 
 ```ts
-new Text({ fonts, measurer: 'font' }) // pure-JS, DOM-free (default)
-new Text({ fonts, measurer: 'dom' }) //  browser ground truth
+new Text({ fonts }) // uses the built-in Measurer (default)
 new Text({ measurer: myCustomMeasurer }) // any object implementing TextMeasurer
 ```
 
 ### Node / SSR / Workers
 
-`FontMeasurer` needs no `document`, so the whole measure → render pipeline runs
-outside the browser. Register fonts from a buffer with `modern-font`:
+The built-in `Measurer` needs no `document`, so the whole measure → render
+pipeline runs outside the browser. Register fonts from a buffer with
+`modern-font`:
 
 ```ts
 import { readFileSync } from 'node:fs'
