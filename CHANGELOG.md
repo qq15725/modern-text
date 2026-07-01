@@ -1,3 +1,10 @@
+## [2.1.3](https://github.com/qq15725/modern-text/compare/v2.1.2...v2.1.3) (2026-07-01)
+
+
+### Bug Fixes
+
+* keep deformation idempotent across re-measure ([c095a71](https://github.com/qq15725/modern-text/commit/c095a71da64aafb969130e0234b8a8fd17a6f40b))
+* make deformation non-destructive to layout, not by disabling reuse ([a9a6767](https://github.com/qq15725/modern-text/commit/a9a6767393dc64398fec7e1001c9240520ed1a2a))
 ## [2.1.2](https://github.com/qq15725/modern-text/compare/v2.1.1...v2.1.2) (2026-07-01)
 ## [2.1.1](https://github.com/qq15725/modern-text/compare/v2.1.0...v2.1.1) (2026-06-30)
 
