@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Fonts, parseFont } from 'modern-font'
 import { beforeAll, describe, expect, it } from 'vitest'
+import { registerDeformations } from '../src/deformations'
 import { Text } from '../src/Text'
 
 // Incremental layout (Text.incrementalLayout) must produce byte-identical results to a
@@ -123,4 +124,29 @@ describe('incremental layout ≡ full layout', () => {
     t.update() // all paragraphs clean, dy = 0
     expect(snapshot(t)).toEqual(a)
   })
+})
+
+// Deformation is destructive (deform() rewrites glyph path control points in place and
+// writes the deformed box back to glyphBox/inlineBox). Layout reuse must be disabled for
+// deformed text, otherwise each re-measure deforms the already-deformed result and the
+// glyphs compound until they blow up. Guards the fix in Text._canReuseLayout.
+describe('deformation is idempotent across re-measure', () => {
+  beforeAll(() => registerDeformations())
+
+  for (const type of ['arch-curve', 'bend', 'wave-by-word', 'trapezoid']) {
+    it(`repeated update() does not compound "${type}"`, () => {
+      const t = new Text({
+        fonts,
+        content: content(['ARCHED']),
+        style: { fontFamily: 'Arial', fontSize: 30 },
+        deformation: { type, intensities: [50, 40] },
+      }).update() as unknown as Text
+      const box = (): string => `${Math.round(t.glyphBox.width)}x${Math.round(t.glyphBox.height)}`
+      const first = box()
+      for (let i = 0; i < 5; i++) t.update()
+      expect(box()).toBe(first) // idempotent: box stays put, no compounding
+      expect(t.glyphBox.width).toBeGreaterThan(0)
+      expect(t.glyphBox.height).toBeGreaterThan(0)
+    })
+  }
 })

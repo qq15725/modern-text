@@ -323,6 +323,13 @@ export class Text extends Reactivable {
     if (!this._prevFontsSet || this.fonts !== this._prevFonts) {
       return false
     }
+    // 变形是破坏性的：deform 原地改写字形 path 控制点，并把变形后的框写回 glyphBox/inlineBox。
+    // 若复用布局，下一帧会在「上一帧的变形结果」上再次变形，多次 measure 后层层叠加、字形崩坏
+    // （放大成黑块、字符四散）。有变形时禁用增量复用，每帧全量重排 → 干净布局 → 变形对 measure 幂等。
+    const deformType = this.deformation?.type
+    if (deformType && deformType !== 'none') {
+      return false
+    }
     const cs = this.computedStyle
     if (cs.writingMode.includes('vertical')) {
       return false
