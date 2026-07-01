@@ -60,19 +60,19 @@
   },
   "dependencies": {
     "diff": "^9.0.0",
-    "modern-font": "^0.6.0",
-    "modern-idoc": "^0.12.1",
-    "modern-path2d": "^1.7.0"
+    "modern-font": "^0.6.2",
+    "modern-idoc": "^0.12.3",
+    "modern-path2d": "^1.8.6"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^9.0.0",
-    "@types/node": "^25.9.1",
+    "@antfu/eslint-config": "^9.1.0",
+    "@types/node": "^26.0.1",
     "bumpp": "^11.1.0",
     "conventional-changelog-cli": "^5.0.0",
-    "eslint": "^10.4.0",
+    "eslint": "^10.6.0",
     "typescript": "^6.0.3",
     "unbuild": "^3.6.1",
-    "vite": "^8.0.14",
-    "vitest": "^4.1.7"
+    "vite": "^8.1.2",
+    "vitest": "^4.1.9"
   }
 }
