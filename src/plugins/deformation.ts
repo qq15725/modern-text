@@ -72,6 +72,11 @@ export function deformationPlugin(): Plugin {
           deformer = new VerbatimDeformer(options, preset)
           break
       }
+      // 变形是幂等的几何变换，必须每次从「干净字形」算起：deform 原地改写 glyph path 控制点，
+      // 而增量布局会跳过未变段的字形重建、复用上一帧的 path。变形前把每个字符的 path 重置回
+      // 当前布局位置上的干净字形（inlineBox 未被变形污染，故定位正确），使变形对 measure 幂等，
+      // 且不牺牲增量布局。
+      text.forEachCharacter(character => character.update(text.fonts))
       deformer.deform()
       // 变形把字形移到了新位置;若不同步,boundingBox 会并入变形前的原始布局框
       // (rawGlyphBox / lineBox),在大幅位移时(尤其竖排)留下大片空白。
@@ -93,10 +98,9 @@ export function deformationPlugin(): Plugin {
           character.path.getControlPointRefs().forEach((point) => {
             point.set(point.x - dx, point.y - dy)
           })
+          // 只同步 glyphBox（变形后的字形框，供 boundingBox / 渲染定位）。不写 inlineBox：
+          // 它是布局位置、被增量布局复用，变形污染它会让下一帧基于错位再变形而层层叠加。
           character.glyphBox = character.getGlyphBoundingBox()
-          if (character.glyphBox) {
-            character.inlineBox = character.glyphBox
-          }
         }
         highlight?.pathSet?.paths?.forEach((path) => {
           path.getControlPointRefs().forEach((point) => {

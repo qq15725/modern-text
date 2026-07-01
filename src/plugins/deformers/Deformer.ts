@@ -167,10 +167,9 @@ export abstract class Deformer {
     this.paragraphs.forEach((paragraph) => {
       paragraph.fragments.forEach((fragment) => {
         fragment.characters.forEach((character) => {
+          // 只更新 glyphBox（变形后的字形框，供 boundingBox / 渲染定位）。不写 inlineBox：
+          // inlineBox 是布局位置、被增量布局复用，变形若污染它，下一帧就会基于错位再变形。
           character.glyphBox = character.getGlyphBoundingBox()
-          if (character.glyphBox) {
-            character.inlineBox = character.glyphBox
-          }
         })
       })
     })
