@@ -346,7 +346,10 @@ export class Text extends Reactivable {
         }
       }
     }
-    let sig = ''
+    // 兜底字体也纳入签名：未声明字体族的文字用兜底字体，声明了但未加载的字体族也回落到它——
+    // 兜底字体本身异步加载完成（setFallbackFont）时其 src 变化，据此让这些文字也能自动重排，
+    // 否则「无 fontFamily / 字体族未加载」的文字永远测不出兜底字体到位（表现为点一下才生效）。
+    let sig = `*fallback#${fonts.fallbackFont?.src ?? ''};`
     for (const family of families) {
       sig += `${family}#${fonts.get(family)?.src ?? ''};`
     }
