@@ -1,3 +1,9 @@
+## [2.1.4](https://github.com/qq15725/modern-text/compare/v2.1.3...v2.1.4) (2026-07-03)
+
+
+### Bug Fixes
+
+* 字体异步加载完成后文字未重排（需手动激活才生效） ([3f45d4b](https://github.com/qq15725/modern-text/commit/3f45d4b680ed5c42891fd9548e15d9ec1c928ac1))
 ## [2.1.3](https://github.com/qq15725/modern-text/compare/v2.1.2...v2.1.3) (2026-07-01)
 
 
