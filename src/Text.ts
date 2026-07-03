@@ -96,6 +96,11 @@ export class Text extends Reactivable {
   // （否则会复用「fonts 未就绪」时测得的零宽字形）。
   protected _prevFonts: unknown
   protected _prevFontsSet = false
+  // 字体解析签名（见 _computeFontSig）：Fonts 容器引用不变、但某字体族从 fallback 变为已加载时，
+  // 其解析结果会变 → 签名变 → 作废增量复用。修复「字体异步加载完文字不重排、须手动激活才生效」的根因
+  // （原先只比较 fonts 容器引用，往同一实例新增字体时引用不变，永远测不出字体到位）。
+  protected _prevFontSig = ''
+  protected _pendingFontSig = ''
   // _update 计算出的待提交快照；仅在 measure() 真正完成测量后才提交到 _prev*（见 measure），
   // 否则构造函数里的 _update（只建树不测量）会让首测误把未测量段当作可复用。
   protected _pendingContentKeys: string[] = []
@@ -310,9 +315,47 @@ export class Text extends Reactivable {
     return paragraph
   }
 
-  // 仅当根级样式/填充/描边/特效/形变未变、且非竖排、非块级垂直对齐位移时，才允许复用未变段落
-  // （这些会改变各段 computedStyle 或全局位移，复用会得到错误结果）。
-  protected _canReuseLayout(styleKey: string): boolean {
+  /**
+   * 本文本「已用字体族 → 当前解析到的字体源」的签名。
+   * 遍历根/段落/片段声明的 fontFamily，各取 `fonts.get(family)?.src`（modern-font 里每个已加载字体/兜底
+   * 字体的唯一源标识）拼成签名。某族未加载时 `get` 返回兜底字体（其 src 如 modern-font:embedded-fallback），
+   * 加载完成后返回该字体（src=字体 URL）→ src 变化 → 签名变化，据此可靠感知「字体到位」并作废增量复用。
+   */
+  protected _computeFontSig(): string {
+    const fonts = this.fonts as Fonts | undefined
+    if (!fonts?.get) {
+      return ''
+    }
+    const families = new Set<string>()
+    const rootFamily = (this.computedStyle as any)?.fontFamily
+    if (rootFamily) {
+      families.add(String(rootFamily))
+    }
+    for (const para of this.content) {
+      const pFamily = (para as any)?.fontFamily
+      if (pFamily) {
+        families.add(String(pFamily))
+      }
+      const fragments = (para as any)?.fragments
+      if (Array.isArray(fragments)) {
+        for (const frag of fragments) {
+          const fFamily = frag?.fontFamily
+          if (fFamily) {
+            families.add(String(fFamily))
+          }
+        }
+      }
+    }
+    let sig = ''
+    for (const family of families) {
+      sig += `${family}#${fonts.get(family)?.src ?? ''};`
+    }
+    return sig
+  }
+
+  // 仅当根级样式/填充/描边/特效/形变未变、字体解析结果未变、且非竖排、非块级垂直对齐位移时，才允许复用未变段落
+  // （这些会改变各段 computedStyle、字形度量或全局位移，复用会得到错误结果）。
+  protected _canReuseLayout(styleKey: string, fontSig: string): boolean {
     if (!this.incrementalLayout || !this._prevParagraphs.length) {
       return false
     }
@@ -321,6 +364,11 @@ export class Text extends Reactivable {
     }
     // fonts 引用变化（典型：首次挂载到 tree 后由 undefined 变为 tree.fonts）→ 度量会变，不可复用。
     if (!this._prevFontsSet || this.fonts !== this._prevFonts) {
+      return false
+    }
+    // 字体解析结果变化（典型：某字体族从 fallback 变为真正加载完成）→ 字形度量会变，不可复用。
+    // 这是「字体异步加载完文字须手动激活才生效」的根因修复：容器引用不变也能感知字体到位。
+    if (fontSig !== this._prevFontSig) {
       return false
     }
     const cs = this.computedStyle
@@ -341,7 +389,10 @@ export class Text extends Reactivable {
 
     // 根级布局/渲染相关项的快照键：任一变化都强制全量重排（各段 computedStyle 会变）。
     const styleKey = JSON.stringify([this.style, this.fill, this.outline, this.effects, this.deformation])
-    const reuse = this._canReuseLayout(styleKey)
+    // 字体解析签名：字体异步加载完成后其值会变，据此作废增量复用（见 _computeFontSig / _canReuseLayout）。
+    const fontSig = this._computeFontSig()
+    this._pendingFontSig = fontSig
+    const reuse = this._canReuseLayout(styleKey, fontSig)
 
     const content = this.content
     const contentKeys: string[] = Array.from({ length: content.length })
@@ -406,6 +457,7 @@ export class Text extends Reactivable {
     this._prevStyleKey = this._pendingStyleKey
     this._prevFonts = this.fonts
     this._prevFontsSet = true
+    this._prevFontSig = this._pendingFontSig
     const updatePlugins = this._pluginsByUpdateOrder
     for (let i = 0; i < updatePlugins.length; i++) {
       updatePlugins[i].update?.(this)
