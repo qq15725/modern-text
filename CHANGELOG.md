@@ -1,3 +1,9 @@
+# [2.2.0](https://github.com/qq15725/modern-text/compare/v2.1.5...v2.2.0) (2026-07-03)
+
+
+### Bug Fixes
+
+* **deformation:** 变形域改用文字自然内容框，与元素选框解耦 ([20efb19](https://github.com/qq15725/modern-text/commit/20efb19df6bab140585834c16ab9225803fe8ee1))
 ## [2.1.5](https://github.com/qq15725/modern-text/compare/v2.1.4...v2.1.5) (2026-07-03)
 
 
