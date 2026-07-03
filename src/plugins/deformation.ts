@@ -58,6 +58,13 @@ export function deformationPlugin(): Plugin {
         text,
         intensities: config.intensities ?? preset.defaultIntensities,
         maxFontSize: config.maxFontSize,
+        // 变形域用「文字自然内容框」而非元素框——变形恒按内容规范渲染、与元素选框解耦（框窄不再压重叠、
+        // 拖框不再拉伸变形，宿主可把选框自由贴合变形后视觉）。这是**所有变形**的默认行为：
+        // 逐字形状(engine='curve'：ellipse/triangle/heart…)排字位置 pos=(字心x-left)/width、形状半径
+        // extent=0.5*强度*width 都只吃 width，同样需要「自然内容宽」——之前误以为要近方框而对其关掉
+        // autoWidth，反而让它们走了被 fitBox 收小的元素框 → 字符 pos>1 排到形状外挤成一坨。故一律开启。
+        // 注意：不走 config.autoWidth——该字段不在 NormalizedText schema 会被 modern-idoc 剥离，传不到这里。
+        autoWidth: true,
       }
       let deformer: Deformer
       switch (preset.engine) {

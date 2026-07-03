@@ -1,7 +1,6 @@
-import type { BoundingBox } from 'modern-path2d'
 import type { Character, Paragraph } from '../../content'
 import type { Text } from '../../Text'
-import { LineCurve, QuadraticBezierCurve, Vector2 } from 'modern-path2d'
+import { BoundingBox, LineCurve, QuadraticBezierCurve, Vector2 } from 'modern-path2d'
 import { splitCurve } from './splitCurve'
 
 export interface DeformerOptions {
@@ -13,15 +12,42 @@ export interface DeformerOptions {
    * 仅在无可测字形时作兜底。
    */
   maxFontSize?: number
+  /**
+   * 变形域用「文字自然内容框」(inlineBox) 而非「行框」(lineBox=元素框)。
+   * 默认 false（历史行为：变形随元素框宽拉伸/压缩，框窄会把字压重叠）。
+   * 置 true 后变形恒按内容自然尺寸规范渲染、与元素选框解耦——宿主可把选框自由设为变形后视觉 bbox，
+   * 既贴合又不重叠、不发散。
+   */
+  autoWidth?: boolean
 }
 
 export abstract class Deformer {
   declare text: Text
   declare intensities: number[]
   declare lineHeight: number
+  /** 见 DeformerOptions.autoWidth */
+  autoWidth = false
+  /** autoWidth 下缓存本次变形的「干净字形内容框」（首次访问=变形前算，之后 deform 会改写字形，须缓存） */
+  protected _contentBox?: BoundingBox
 
   get boundingBox(): BoundingBox {
-    return this.text.lineBox
+    if (!this.autoWidth) {
+      return this.text.lineBox
+    }
+    // autoWidth：变形域用「文字自然内容框」= 变形前全部字符干净字形盒(glyphBox)的并集。
+    // 与元素选框完全解耦（选框宽高被 mce 绑成 lineBox，框窄会压重叠），故变形恒按内容规范渲染。
+    // 关键点：
+    //  1) 必须**包住全部字形点**——FFD 是网格插值，字形点若超出域(progress>1)会被外插 → 撕裂
+    //     （之前用 advanceWidth 之和作宽、字号作高，高度<字形底部 → 末字撕裂，就是这个坑）。
+    //  2) glyphBox 会被 deform 原地改写，故只在**首次访问时**（deform 尚未改字形）算并缓存；
+    //     deformer 每次变形都是新实例，缓存天然是「本次变形」的干净框。
+    // 2D 闭合形状(engine='curve')由 deformation 插件强制关掉 autoWidth（需近方元素框，不走这里）。
+    if (!this._contentBox) {
+      const boxes = this.characters.map(c => c.glyphBox).filter(Boolean)
+      const lb = this.text.lineBox
+      this._contentBox = boxes.length ? BoundingBox.from(...boxes) : new BoundingBox(lb.left, lb.top, lb.width, lb.height)
+    }
+    return this._contentBox
   }
 
   get paragraphs(): Paragraph[] {
@@ -44,8 +70,9 @@ export abstract class Deformer {
     return this.paragraphs.flatMap(p => p.fragments.flatMap(f => f.characters))
   }
 
-  constructor({ text, intensities = [], maxFontSize }: DeformerOptions) {
+  constructor({ text, intensities = [], maxFontSize, autoWidth = false }: DeformerOptions) {
     this.text = text
+    this.autoWidth = autoWidth
     this.intensities = intensities.map(val => val / 100)
     // 变形半径基准：取文字里真实的最大字号。
     // 早期实现固定取外部传入的 maxFontSize（默认 100），任意字号的文字都按 100px 弯曲——
