@@ -1,3 +1,9 @@
+## [2.1.5](https://github.com/qq15725/modern-text/compare/v2.1.4...v2.1.5) (2026-07-03)
+
+
+### Bug Fixes
+
+* 兜底字体异步加载完成后无 fontFamily 文字未重排 ([3e273cd](https://github.com/qq15725/modern-text/commit/3e273cd1631dfaa30013d79a736eb873cb69a4b9))
 ## [2.1.4](https://github.com/qq15725/modern-text/compare/v2.1.3...v2.1.4) (2026-07-03)
 
 
