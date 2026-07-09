@@ -170,6 +170,24 @@ describe('measurer — paragraphs, newlines and empties', () => {
     expect(text.paragraphs.length).toBe(2)
     expect(text.boundingBox.height).toBeCloseTo(2 * LH, 5)
   })
+
+  // 回归：仅含一个换行符的空行段落（如 `A\n\nB` 的中段）应为「一行」高，
+  // 且该换行符要被定位（inlineBox 不再停在原点）——否则空行双倍高、且编辑态点不中。
+  it('renders a newline-only empty paragraph as a single, positioned line', () => {
+    const text = makeText({ content: [['A'], ['\n'], ['B']] })
+    expect(text.paragraphs.length).toBe(3)
+    const mid = text.paragraphs[1]
+    // 中段只含一个换行符
+    expect(mid.fragments[0].characters.map(c => c.content)).toEqual(['\n'])
+    // 一行高（此前为 2 * LH）
+    expect(mid.lineBox.height).toBeCloseTo(LH, 5)
+    // 换行符被定位到第二行（此前 inlineBox 停在原点 0）
+    const nl = mid.fragments[0].characters[0]
+    expect(nl.inlineBox.top).toBeGreaterThan(0)
+    expect(nl.lineBox.top).toBeCloseTo(LH, 5)
+    // 第三段紧随其后（总三行，而非四行）
+    expect(text.paragraphs[2].fragments[0].characters[0].lineBox.top).toBeCloseTo(2 * LH, 5)
+  })
 })
 
 describe('measurer — box model, alignment, wrapping', () => {

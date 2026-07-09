@@ -353,6 +353,9 @@ export class Measurer implements TextMeasurer {
     for (const fragment of paragraph.fragments) {
       for (const c of fragment.characters) {
         if (c.content === '\n' || c.content === '\r') {
+          // 换行符留在其所属行（而非丢弃）：空行由此获得可定位的字形盒，
+          // 既作为行高来源、又作为编辑态光标/命中的锚点（inlineBox 不再停在原点）。
+          current.push(c)
           flush()
           continue
         }
@@ -368,7 +371,11 @@ export class Measurer implements TextMeasurer {
         width += this._advance(c)
       }
     }
-    flush()
+    // 段末仅在「最后一行有内容」或「整段尚无任何行」时补行：
+    // 以换行结尾的段落（如仅含一个换行的空行段落）不再多出一条幽灵空行。
+    if (current.length > 0 || lines.length === 0) {
+      flush()
+    }
     return lines
   }
 
