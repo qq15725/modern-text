@@ -1,3 +1,9 @@
+## [2.2.1](https://github.com/qq15725/modern-text/compare/v2.2.0...v2.2.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* 仅含换行符的空行段落双倍行高且编辑态点不中 ([2878f20](https://github.com/qq15725/modern-text/commit/2878f2031dc3b94b5bb4ea05cff82e0fd90d05e6))
 # [2.2.0](https://github.com/qq15725/modern-text/compare/v2.1.5...v2.2.0) (2026-07-03)
 
 
