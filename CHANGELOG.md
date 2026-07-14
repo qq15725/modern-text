@@ -1,3 +1,9 @@
+## [2.2.2](https://github.com/qq15725/modern-text/compare/v2.2.1...v2.2.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* render linear-gradient fill/outline on text effect layers ([8790cea](https://github.com/qq15725/modern-text/commit/8790cea418b55611ead35ed27641529ad10df229))
 ## [2.2.1](https://github.com/qq15725/modern-text/compare/v2.2.0...v2.2.1) (2026-07-09)
 
 
