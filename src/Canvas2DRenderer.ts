@@ -58,6 +58,7 @@ export class Canvas2DRenderer {
       style: this.text.computedStyle,
       fill: this.text.computedFill,
       outline: this.text.computedOutline,
+      effects: this.text.computedEffects,
     })
     this.text.paragraphs.forEach((paragraph) => {
       this.uploadColor(paragraph.lineBox, {
@@ -146,9 +147,10 @@ export class Canvas2DRenderer {
       style?: NormalizedStyle
       fill?: NormalizedFill
       outline?: NormalizedOutline
+      effects?: NormalizedEffect[]
     },
   ): void => {
-    const { style, fill, outline } = ctx
+    const { style, fill, outline, effects } = ctx
 
     if (style) {
       this._uploadedStyles.forEach((key) => {
@@ -173,6 +175,22 @@ export class Canvas2DRenderer {
         }, box) as any
       }
     }
+
+    // 特效层的 fill/outline 渐变同样需要解析（否则 effectToPathStyle 只拿到纯色、渐变被忽略、透出底色）。
+    effects?.forEach((effect) => {
+      if (effect.fill?.enabled && effect.fill.linearGradient) {
+        ;(effect.fill as any)._linearGradient = this._parseColor({
+          type: 'linear-gradient',
+          ...effect.fill.linearGradient,
+        }, box) as any
+      }
+      if (effect.outline?.enabled && effect.outline.linearGradient) {
+        ;(effect.outline as any)._linearGradient = this._parseColor({
+          type: 'linear-gradient',
+          ...effect.outline.linearGradient,
+        }, box) as any
+      }
+    })
   }
 
   protected _mergePathStyle(path: Path2D, style: Partial<Path2DStyle>): Partial<Path2DStyle> {
@@ -217,14 +235,15 @@ export class Canvas2DRenderer {
     if (effect.fill?.enabled) {
       style = {
         ...style,
-        fill: effect.fill.color,
+        // 优先用已解析的渐变（_linearGradient，见 uploadColor），无渐变才回退纯色
+        fill: (effect.fill as any)._linearGradient ?? effect.fill.color,
       }
     }
 
     if (effect.outline?.enabled) {
       style = {
         ...style,
-        stroke: effect.outline.color,
+        stroke: (effect.outline as any)._linearGradient ?? effect.outline.color,
         strokeWidth: (effect.outline.width ?? 0) * fontSize,
       }
     }
