@@ -360,8 +360,11 @@ export class Measurer implements TextMeasurer {
           continue
         }
         // 行内非首字计入字偶距（kerning）：与浏览器一样按「含 kern 的渲染宽度」断行。
+        // 步进必须用 _advance（含 letter-spacing），与下面累加 width 的口径一致：
+        // CSS 的字距加在每个字符之后（含末字），只在判定时漏掉它，负字距会算宽一格提前断行
+        // （典型：一行标题莫名掉最后一个字），正字距则该断不断、溢出容器。
         const kern = current.length > 0 ? c.kerningBefore : 0
-        if (avail !== Infinity && current.length > 0 && width + kern + c.advanceWidth > avail) {
+        if (avail !== Infinity && current.length > 0 && width + kern + this._advance(c) > avail) {
           flush()
         }
         if (current.length > 0) {
