@@ -1,3 +1,10 @@
+## [2.2.3](https://github.com/qq15725/modern-text/compare/v2.2.2...v2.2.3) (2026-08-03)
+
+
+### Bug Fixes
+
+* **measure:** count the last character's letter-spacing when breaking lines ([59bef9c](https://github.com/qq15725/modern-text/commit/59bef9c62b79adfb8300e2e14dfad7338905e8c2))
+* **text-editor:** make the caret actually visible ([8d04a60](https://github.com/qq15725/modern-text/commit/8d04a6075a73065d8e529b6f960b3b9a00aedcf3))
 ## [2.2.2](https://github.com/qq15725/modern-text/compare/v2.2.1...v2.2.2) (2026-07-14)
 
 
