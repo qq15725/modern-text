@@ -132,6 +132,19 @@ describe('measurer — CJK (the primary use case)', () => {
       )
     }
   })
+
+  it('首行缩进占用首行宽度并触发重新换行', () => {
+    const text = makeText({
+      content: [['一二三四五六']],
+      style: { fontFamily: 'Fallback', fontSize: 20, width: 100, textIndent: 40 },
+    })
+    const chars = text.characters
+
+    expect(chars[0].inlineBox.left).toBeCloseTo(40, 1)
+    expect(chars[2].lineBox.top).toBeCloseTo(chars[0].lineBox.top, 5)
+    expect(chars[3].lineBox.top).toBeGreaterThan(chars[0].lineBox.top)
+    expect(chars[3].inlineBox.left).toBeCloseTo(0, 1)
+  })
 })
 
 describe('measurer — paragraphs, newlines and empties', () => {

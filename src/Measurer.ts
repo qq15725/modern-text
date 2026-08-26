@@ -143,9 +143,9 @@ export class Measurer implements TextMeasurer {
         continue
       }
 
-      const lines = this._breakLines(paragraph, liAvail)
       const align = pStyle.textAlign
       const indent = pStyle.textIndent ?? 0
+      const lines = this._breakLines(paragraph, liAvail, indent)
       let hasChars = false
       let anyAdvance = false
 
@@ -341,7 +341,7 @@ export class Measurer implements TextMeasurer {
    * v1: `word-break: break-all` (break before any character that would overflow)
    * plus explicit `\n`/`\r` hard breaks. The newline itself occupies no line box.
    */
-  protected _breakLines(paragraph: Paragraph, avail: number): Character[][] {
+  protected _breakLines(paragraph: Paragraph, avail: number, firstLineIndent = 0): Character[][] {
     const lines: Character[][] = []
     let current: Character[] = []
     let width = 0
@@ -364,7 +364,10 @@ export class Measurer implements TextMeasurer {
         // CSS 的字距加在每个字符之后（含末字），只在判定时漏掉它，负字距会算宽一格提前断行
         // （典型：一行标题莫名掉最后一个字），正字距则该断不断、溢出容器。
         const kern = current.length > 0 ? c.kerningBefore : 0
-        if (avail !== Infinity && current.length > 0 && width + kern + this._advance(c) > avail) {
+        const lineAvail = avail === Infinity || lines.length > 0
+          ? avail
+          : avail - firstLineIndent
+        if (lineAvail !== Infinity && current.length > 0 && width + kern + this._advance(c) > lineAvail) {
           flush()
         }
         if (current.length > 0) {
