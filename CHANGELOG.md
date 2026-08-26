@@ -1,3 +1,9 @@
+## [2.2.4](https://github.com/qq15725/modern-text/compare/v2.2.3...v2.2.4) (2026-08-26)
+
+
+### Bug Fixes
+
+* **排版:** 修复首行缩进断行宽度 ([ab24702](https://github.com/qq15725/modern-text/commit/ab24702c50f4eb967116dace293243902dd1070d))
 ## [2.2.3](https://github.com/qq15725/modern-text/compare/v2.2.2...v2.2.3) (2026-08-03)
 
 
