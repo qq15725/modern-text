@@ -43,7 +43,7 @@ export abstract class Deformer {
     //     deformer 每次变形都是新实例，缓存天然是「本次变形」的干净框。
     // 2D 闭合形状(engine='curve')由 deformation 插件强制关掉 autoWidth（需近方元素框，不走这里）。
     if (!this._contentBox) {
-      const boxes = this.characters.map(c => c.glyphBox).filter(Boolean)
+      const boxes = this.characters.map(c => c.glyphBox).filter((box): box is BoundingBox => box !== undefined)
       const lb = this.text.lineBox
       this._contentBox = boxes.length ? BoundingBox.from(...boxes) : new BoundingBox(lb.left, lb.top, lb.width, lb.height)
     }

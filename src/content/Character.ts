@@ -203,6 +203,9 @@ export class Character {
   // 字体度量 flyweight（按 (sfnt,fontSize) 共享）；下面所有度量 getter 都从这里推导，不逐字存。
   protected _metrics?: FontMetrics
 
+  /** 当前字形实际使用的字体身份（含缺字回退），供外部栅格缓存区分异步加载前后的字形。 */
+  get glyphFontId(): number { return this._metrics ? sfntId(this._metrics.sfnt) : 0 }
+
   // 度量 getter —— 零实例存储，从共享 _metrics 推导（advanceWidth 是唯一逐字存的度量）。
   get advanceHeight(): number { return this._metrics?.advanceHeight ?? 0 }
   get baseline(): number { return this._metrics?.baseline ?? 0 }
