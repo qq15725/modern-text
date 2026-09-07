@@ -1,3 +1,9 @@
+## [2.2.5](https://github.com/qq15725/modern-text/compare/v2.2.4...v2.2.5) (2026-09-07)
+
+
+### Bug Fixes
+
+* 修复异步字体缓存身份和变形边界类型 ([8f0fd54](https://github.com/qq15725/modern-text/commit/8f0fd5409b4a7e9eaa78b20212b07959ea1fe8c3))
 ## [2.2.4](https://github.com/qq15725/modern-text/compare/v2.2.3...v2.2.4) (2026-08-26)
 
 
